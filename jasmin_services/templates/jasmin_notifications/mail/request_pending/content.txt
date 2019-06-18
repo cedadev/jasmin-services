@@ -1,0 +1,15 @@
+{% extends "jasmin_notifications/mail/layout.txt" %}
+
+{% block content %}
+Hi {{ user.first_name }},
+
+The following request has been submitted for approval:
+
+    Service: {{ target.role.service }}
+    Role: {{ target.role.name }}
+    User: {{ target.user }}
+
+You are receiving this email because you are a registered approver for this role.
+
+To review the request, please visit {{ follow_link }}.
+{% endblock %}

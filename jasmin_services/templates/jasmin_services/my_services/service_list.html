@@ -1,0 +1,67 @@
+{% extends 'jasmin_services/service_list.html' %}
+
+{% block filter_form %}
+    {% if page.paginator.num_pages > 1 or preserved_filters %}
+        <div class="service-search well">
+            <form method="get" action="" class="form-inline">
+                <input type="hidden" name="page" value="{{ page.number }}" />
+                <div class="form-group" style="width: 100%;">
+                    <div class="input-group" style="width: 100%;">
+                        <div class="form-control">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="active" value="1" {% if 'active' in checked %}checked{% endif %} /> Active
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="revoked" value="1" {% if 'revoked' in checked %}checked{% endif %} /> Revoked
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="expired" value="1" {% if 'expired' in checked %}checked{% endif %} /> Expired
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="expiring" value="1" {% if 'expiring' in checked %}checked{% endif %} /> Expiring
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="rejected" value="1" {% if 'rejected' in checked %}checked{% endif %} /> Rejected
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="pending" value="1" {% if 'pending' in checked %}checked{% endif %} /> Pending
+                            </label>
+                        </div>
+                        <span class="input-group-btn" style="width: 1%;">
+                            <button type="submit" class="btn btn-primary" name="_apply_filters" value="1">
+                                <i class="fa fa-fw fa-filter"></i> Filter services
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block service_list_top %}
+    <div class="alert alert-info text-center">
+        {% if page.paginator.num_pages > 1 or preserved_filters %}
+            <p>This page shows the services for which you have requested or been granted access that match the selected filters.</p>
+        {% else %}
+            <p>This page shows the services for which you have requested or been granted access.</p>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block no_services %}
+    <div class="alert alert-warning">
+        {% if preserved_filters and checked %}
+            No matching services.
+        {% elif preserved_filters %}
+            No filters selected.
+        {% else %}
+            <p>You have not registered for any services yet.</p>
+            <p>To apply for services, start by choosing a category.</p>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block service_list_item %}
+    {% include "jasmin_services/my_services/includes/service_list_item.html" %}
+{% endblock %}

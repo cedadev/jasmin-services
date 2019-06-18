@@ -1,0 +1,76 @@
+{% extends 'layout.html' %}
+{% load markdown_deux_tags %}
+
+{% block head_title %}{{ service }} | JASMIN Accounts Portal{% endblock %}
+{% block page_title %}<code>{{ service }}</code>{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li>JASMIN Services</li>
+    <li>
+        <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
+    </li>
+    <li class="active">{{ service.name }}</li>
+</ol>
+{% endblock %}
+
+{% block content_header %}{{ block.super }}
+<div class="row">
+    <div class="col-md-12">
+        {% include "jasmin_services/includes/service_tabs.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="col-md-9">
+    <table class="table table-striped table-hover requests-table">
+        <caption>{{ requests|length }} pending request{{ requests|length|pluralize }}</caption>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Requested At</th>
+                <th style="width: 1%;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% regroup requests by user as grouped_requests %}
+            {% for user, requests in grouped_requests %}
+                {% for req in requests %}
+                    <tr>
+                        {% if forloop.first %}
+                            <td rowspan="{{ requests|length }}"><code>{{ req.user.username }}</code></td>
+                            <td rowspan="{{ requests|length }}">{{ req.user.get_full_name }}</td>
+                        {% endif %}
+                        <td><code>{{ req.role.name }}</code></td>
+                        <td>{{ req.requested_at }}</td>
+                        <td>
+                            <a class="btn btn-primary btn-sm" title="Make decision"
+                               href="{% url 'jasmin_services:request_decide' pk=req.pk %}">
+                                <i class="fa fa-fw fa-thumbs-up"></i>
+                                Make decision
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="col-md-3">
+    <div class="panel panel-default">
+        <div class="panel-heading">Other approvers</div>
+        {% if approvers %}
+            <ul class="list-group">
+                {% for user in approvers %}
+                    <li class="list-group-item"><code>{{ user.username }}</code></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="panel-body">You are the only approver for this service.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

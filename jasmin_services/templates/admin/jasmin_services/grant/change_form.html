@@ -1,0 +1,5 @@
+{% extends "admin/change_form_metadata.html" %}
+
+{% block form_top %}
+    {% if from_request %}<input type="hidden" name="_from_request" value="{{ from_request }}" />{% endif %}
+{% endblock %}

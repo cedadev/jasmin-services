@@ -1,0 +1,8 @@
+{{ message }}
+
+********************************************************************************
+This email was sent by the JASMIN Accounts Portal on behalf of {{ sender.get_full_name }}.
+{% if reply_to %}
+WARNING: You can reply to {{ sender.first_name }} by replying to this email.
+         However, doing so will reveal your email address.
+{% endif %}********************************************************************************

@@ -1,0 +1,255 @@
+{% extends 'layout.html' %}
+{% load bootstrap3 markdown_deux_tags pretty_name %}
+
+{% block page_title %}Make a decision{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li>JASMIN Services</li>
+    <li>
+        <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
+    </li>
+    <li class="active">{{ service.name }}</li>
+</ol>
+{% endblock %}
+
+{% block content_header %}{{ block.super }}
+<div class="row">
+    <div class="col-md-12">
+        {% include "jasmin_services/includes/service_tabs.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<script type="text/javascript">
+    // Hide the reason stack for now
+    document.write('<style>.reason-stack { display: none; }</style>');
+    // Initially hide all the form-groups
+    // Using document.write allows us to hide fields only when Javascript is enabled
+    document.write('<style>.form-group { display: none; }</style>');
+</script>
+
+<div class="col-md-9">
+    <form method="POST" action="" class="form-horizontal" id="decision-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="id_role">Role</label>
+            <div class="col-md-9">
+                <p class="form-control-static" id="id_role">
+                    <code>{{ pending.role }}</code>
+                </p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="id_for_username">Username</label>
+            <div class="col-md-9">
+                <p class="form-control-static" id="id_for_username">
+                    <code>{{ pending.user.username }}</code>
+                </p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="id_for_full_name">Full name</label>
+            <div class="col-md-9">
+                <p class="form-control-static" id="id_for_full_name">
+                    {{ pending.user.get_full_name }}
+                </p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="id_for_institution">Institution</label>
+            <div class="col-md-9">
+                <p class="form-control-static" id="id_for_institution">
+                    {{ pending.user.institution }}
+                </p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="id_for_discipline">Discipline</label>
+            <div class="col-md-9">
+                <p class="form-control-static" id="id_for_discipline">
+                    {{ pending.user.discipline }}
+                </p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="id_for_degree">Degree</label>
+            <div class="col-md-9">
+                <p class="form-control-static" id="id_for_degree">
+                    {{ pending.user.degree|default:"N/A" }}
+                </p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="id_requested_by">Requested By</label>
+            <div class="col-md-9">
+                <p class="form-control-static" id="id_requested_by">
+                    <code>{{ pending.requested_by }}</code>
+                </p>
+            </div>
+        </div>
+
+        {% if rejected %}
+            <div class="reason-stack">
+                {% for req in rejected %}
+                    <div class="form-group reason">
+                        <div class="col-md-9 col-md-offset-3">
+                            <aside class="danger">
+                                <header>
+                                    <span class="reason-number">{{ forloop.counter }} of {{ rejected|length }}</span>
+                                    Previous request rejected
+                                </header>
+                                {{ req.user_reason|markdown }}
+                                {% if req.internal_reason %}
+                                    <hr>
+                                    {{ req.internal_reason|markdown }}
+                                {% endif %}
+                            </aside>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if grant.revoked %}
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <aside class="danger">
+                        <header>Previous access revoked</header>
+                        {{ grant.user_reason|markdown }}
+                        {% if grant.internal_reason %}
+                            <hr>
+                            {{ grant.internal_reason|markdown }}
+                        {% endif %}
+                    </aside>
+                </div>
+            </div>
+        {% elif grant.expired %}
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <aside class="danger">
+                        <header>Previous access expired</header>
+                        <p>Expired on {{ grant.expires }}</p>
+                    </aside>
+                </div>
+            </div>
+        {% elif grant.expiring %}
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <aside class="warning">
+                        <header>Current access expiring</header>
+                        <p>Expires on {{ grant.expires }}</p>
+                    </aside>
+                </div>
+            </div>
+        {% endif %}
+
+        {% block extra_context %}{% endblock %}
+
+        {% for datum in pending.metadata.all %}
+            <div class="form-group">
+                <label class="col-md-3 control-label" for="id_{{ datum.key }}">{{ datum.key|pretty_name }}</label>
+                <div class="col-md-9">
+                    <p class="form-control-static" id="id_{{ datum.key }}" style="white-space: pre-wrap;">{{ datum.value }}</p>
+                </div>
+            </div>
+        {% endfor %}
+
+        {% bootstrap_form form layout='horizontal' %}
+
+        <div class="form-group">
+            <div class="col-sm-offset-3 col-sm-9">
+                <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Make decision</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="col-md-3">
+    <div class="panel panel-default">
+        <div class="panel-heading">Other approvers</div>
+        {% if approvers %}
+            <ul class="list-group">
+                {% for user in approvers %}
+                    <li class="list-group-item"><code>{{ user.username }}</code></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="panel-body">You are the only approver for this role.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block footer_js %}
+<script type="text/javascript">
+    $('.reason-stack').show();
+    // Stuff for rotating reasons
+    var show_reason = function($reason) {
+        if( $reason.length > 0 ) {
+            $('.reason').not($reason).hide();
+            $reason.show();
+        }
+    };
+    var prev_reason = function() { show_reason($('.reason:visible').prev()); return false; };
+    var next_reason = function() { show_reason($('.reason:visible').next()); return false; }
+    var n_reasons = {{ rejected|length }};
+    show_reason($('.reason:last-child'));
+    // Inject the previous/next reason buttons
+    $('.reason').each(function(i, el) {
+        if( i > 0 ) {
+            var $link = $('<a href="#" title="Previous reason"><i class="fa fa-fw fa-caret-left"></i></a>');
+            $link.click(prev_reason);
+            $(el).find('.reason-number').prepend($link);
+        }
+        if( i < n_reasons - 1 ) {
+            var $link = $('<a href="#" title="Next reason"><i class="fa fa-fw fa-caret-right"></i></a>');
+            $link.click(next_reason);
+            $(el).find('.reason-number').append($link);
+        }
+    });
+
+    // Reset the hiding of form-groups except for those we are worried about
+    $('.form-group').not('.reason, :has([name^="expires"]), :has([name$="_reason"])').show();
+    // Constants used in the function below
+    var YES = 'True', NO = 'False', CUSTOM_DATE = '7';
+    // This function makes sure only fields which are needed are shown
+    var toggle_fields = function() {
+        var approved = $('[name="approved"]').val();
+        var expires = $('[name="expires"]').val();
+        $('[name="expires"]').closest('.form-group')[approved == YES ? 'show' : 'hide']();
+        var show_custom = ( approved == YES && expires == CUSTOM_DATE );
+        $('[name="expires_custom"]').closest('.form-group')[show_custom ? 'show' : 'hide']();
+        $('[name$="_reason"]').closest('.form-group')[approved == NO ? 'show' : 'hide']();
+    }
+    toggle_fields();
+    $('[name="approved"], [name="expires"]').on('change', toggle_fields);
+
+    // For date fields, replace the control with an input group
+    $('input[type="date"]').each(function() {
+        var $input = $(this);
+        var $inputGroup = $('<div class="input-group"><span class="input-group-addon"><i class="fa fa-fw fa-calendar"></i></span></div>').insertBefore($input);
+        $input.attr('type', 'text').detach().prependTo($inputGroup);
+        $input.datepicker({
+            'format' : 'yyyy-mm-dd',
+            'startDate' : new Date(),
+            'autoclose' : true
+        });
+    });
+
+    // Replace the textareas with markdown editors
+    $('textarea').each(function() {
+        new SimpleMDE({
+            element : this,
+            forceSync : true,
+            hideIcons : ['heading', 'heading-smaller', 'heading-bigger',
+                         'heading-1', 'heading-2', 'heading-3', 'image',
+                         'table', 'quote', 'side-by-side', 'fullscreen'],
+            indentWithTabs : false,
+            status : false
+        });
+        // Remove the help text as it is no longer required
+        $(this).siblings('.help-block').find('.help-block:not(.error-block)').remove();
+    })
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+<div class="panel panel-default service-list-item">
+    <div class="panel-heading">
+        {% if user_roles %}
+            <div class="service-list-item-roles">
+                {% for role, grant, req in user_roles %}
+                    {% include "jasmin_services/includes/role_badge.html" with role=role grant=grant req=req %}
+                {% endfor %}
+            </div>
+        {% endif %}
+        <h2 class="panel-title">{% block service_heading_text %}<code>{{ service.name }}</code>{% endblock %}</h2>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-lg-9 col-md-8 col-sm-8 service-summary"><p>{{ service.summary }}</p></div>
+            <div class="col-lg-3 col-md-4 col-sm-4">
+                <a class="btn btn-primary btn-block"
+                   href="{% url 'jasmin_services:service_details' category=service.category.name service=service.name %}">
+                    <i class="fa fa-fw fa-info"></i> More information
+                </a>
+                {% if not user_roles %}
+                    {% with role=service.roles.first %}
+                        {% if role %}
+                            <a class="btn btn-success btn-block"
+                               href="{% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name %}">
+                                <i class="fa fa-fw fa-plus"></i> Apply for access
+                            </a>
+                        {% endif %}
+                    {% endwith %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
