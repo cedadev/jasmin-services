@@ -45,7 +45,8 @@ class JoinJISCMailListBehaviour(Behaviour):
 
     list_name = models.CharField(
         max_length = 100,
-        help_text = 'The name of the JISCMail mailing list to join'
+        help_text = 'The name of the JISCMail mailing list to join',
+        unique = True
     )
     # This is the users who have joined already
     joined_users = models.ManyToManyField(
