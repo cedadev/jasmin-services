@@ -25,7 +25,13 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.db import transaction
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import user_passes_test
+
+# If django-otp is installed use otp_required, otherwise use login_required
+try:
+    from django_otp.decorators import otp_required as authentication_required
+except ImportError:
+    from django.contrib.auth.decorators import login_required as authentication_required
 
 from .models import Grant, Request, RequestState, Category, Service, Role
 from .forms import DecisionForm, message_form_factory
@@ -44,7 +50,7 @@ def active_user_required(view):
         # Force a log out of the user when their account is not active
         login_url = settings.LOGOUT_URL
     )
-    return login_required(active_required(view))
+    return authentication_required(active_required(view))
 
 
 @require_safe
