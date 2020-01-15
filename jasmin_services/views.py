@@ -40,21 +40,8 @@ from .forms import DecisionForm, message_form_factory
 _log = logging.getLogger(__name__)
 
 
-def active_user_required(view):
-    """
-    When this decorator is applied to a view, only logged in, active users are
-    permitted to access the view.
-    """
-    active_required = user_passes_test(
-        lambda u: u.is_active,
-        # Force a log out of the user when their account is not active
-        login_url = settings.LOGOUT_URL
-    )
-    return authentication_required(active_required(view))
-
-
 @require_safe
-@active_user_required
+@authentication_required
 def service_list(request, category):
     """
     Handler for ``/<category>/``.
@@ -178,7 +165,7 @@ def service_list(request, category):
 
 
 @require_safe
-@active_user_required
+@authentication_required
 def my_services(request):
     """
     Handler for ``/my_services/``.
@@ -368,7 +355,7 @@ def redirect_to_service(service, view_name = 'service_details'):
 
 
 @require_safe
-@active_user_required
+@authentication_required
 @with_service
 def service_details(request, service):
     """
@@ -386,9 +373,9 @@ def service_details(request, service):
         .filter(role__service = service, user = request.user) \
         .filter_active()
     # access is a list of (role, grant, has_request) tuples for the roles of
-    # the service
-    # NOTE: Since we filtered for active, we know there is a maximum of one
-    #       grant and one request per role
+    # the service
+    # NOTE: Since we filtered for active, we know there is a maximum of one
+    #       grant and one request per role
     access = []
     for role in service.roles.all():
         grant = next((g for g in grants if g.role == role), None)
@@ -411,7 +398,7 @@ def service_details(request, service):
 
 
 @require_http_methods(['GET', 'POST'])
-@active_user_required
+@authentication_required
 @with_service
 def role_apply(request, service, role):
     """
@@ -426,7 +413,7 @@ def role_apply(request, service, role):
     except Role.DoesNotExist:
         messages.error(request, "Role does not exist")
         return redirect_to_service(service)
-    # If the user has an active grant, it must be revoked, expired or expiring
+    # If the user has an active grant, it must be revoked, expired or expiring
     grant = role.grants.filter(user = request.user).filter_active().first()
     if grant and not (grant.revoked or grant.expired or grant.expiring):
         messages.info(
@@ -460,7 +447,7 @@ def role_apply(request, service, role):
         else:
             messages.error(request, 'Error with one or more fields')
     else:
-        # Set the initial data to the metadata attached to the active request
+        # Set the initial data to the metadata attached to the active request
         initial = {}
         if req:
             for datum in req.metadata.all():
@@ -488,7 +475,7 @@ def role_apply(request, service, role):
 
 
 @require_safe
-@active_user_required
+@authentication_required
 @with_service
 def service_users(request, service):
     """
@@ -500,9 +487,9 @@ def service_users(request, service):
     Displays the active grants for a service. The grants that a user sees
     depends on the permissions they have been granted.
     """
-    # Get the roles for the service for which the user has permission to view
-    # grants. We allow the permission to be allocated for all services,
-    # per-service or per-role.
+    # Get the roles for the service for which the user has permission to view
+    # grants. We allow the permission to be allocated for all services,
+    # per-service or per-role.
     permission = 'jasmin_services.view_users_role'
     if request.user.has_perm(permission) or \
        request.user.has_perm(permission, service):
@@ -513,17 +500,17 @@ def service_users(request, service):
             for role in service.roles.all()
             if request.user.has_perm(permission, role)
         ]
-        # If the user has no permissions, send them back to the service details
+        # If the user has no permissions, send them back to the service details
         # Note that we don't show this message if the user has been granted the
-        # permission for the service but there are no roles - in that case we
-        # just show nothing
+        # permission for the service but there are no roles - in that case we
+        # just show nothing
         if not user_roles:
             messages.error(request, 'Insufficient permissions')
             return redirect_to_service(service)
-    # Start with the active grants for the roles that the user has permission for
+    # Start with the active grants for the roles that the user has permission for
     grants = Grant.objects.filter_active().filter(role__in = user_roles)
     all_statuses = ('active', 'expiring', 'expired', 'revoked')
-    # Only apply filters if _apply_filters is present in the GET params
+    # Only apply filters if _apply_filters is present in the GET params
     if '_apply_filters' in request.GET:
         # Start by getting the roles to display from the GET filters
         selected_roles = set(
@@ -531,17 +518,17 @@ def service_users(request, service):
             for role in user_roles
             if role.name in request.GET
         )
-        # Then filter by those roles
+        # Then filter by those roles
         grants = grants.filter(role__in = selected_roles)
-        # Then get the statuses to display from the GET filters
+        # Then get the statuses to display from the GET filters
         selected_statuses = set(
             status
             for status in all_statuses
             if status in request.GET
         )
-        # Apply any filters to the grants and requests
+        # Apply any filters to the grants and requests
         if 'active' not in selected_statuses:
-            # Make sure we don't include expiring grants in active
+            # Make sure we don't include expiring grants in active
             grants = grants.exclude(
                 revoked = False,
                 expires__gte = date.today() + relativedelta(months = 2)
@@ -556,14 +543,14 @@ def service_users(request, service):
                 expires__lt = date.today() + relativedelta(months = 2)
             )
     else:
-        # If not applying filters, check all the filter checkboxes
+        # If not applying filters, check all the filter checkboxes
         selected_roles = user_roles
         selected_statuses = all_statuses
-    # Order the grants by user and then by the natural ordering
+    # Order the grants by user and then by the natural ordering
     grants = grants  \
         .select_related('role', 'user', 'user__institution')  \
         .order_by('user', *Grant._meta.ordering)
-    # Get a paginator for the grants
+    # Get a paginator for the grants
     paginator = Paginator(
         grants,
         getattr(settings, 'JASMIN_SERVICES', {}).get('GRANTS_PER_PAGE', 20)
@@ -574,7 +561,7 @@ def service_users(request, service):
         page = paginator.page(1)
     except EmptyPage:
         page = paginator.page(paginator.num_pages)
-    # Only preserve filters if they were applied
+    # Only preserve filters if they were applied
     if '_apply_filters' in request.GET:
         preserved_filters = set(r.name for r in selected_roles) \
             .union(selected_statuses)
@@ -608,7 +595,7 @@ def service_users(request, service):
 
 
 @require_safe
-@active_user_required
+@authentication_required
 @with_service
 def service_requests(request, service):
     """
@@ -620,7 +607,7 @@ def service_requests(request, service):
     Displays the pending requests for a service. The requests that a user sees
     depends on the permissions they have been granted.
     """
-    # Get the roles for which the user is allowed to decide requests
+    # Get the roles for which the user is allowed to decide requests
     # We allow the permission to be allocated for all services, per-service or per-role
     permission = 'jasmin_services.decide_request'
     if request.user.has_perm(permission) or \
@@ -632,10 +619,10 @@ def service_requests(request, service):
             for role in service.roles.all()
             if request.user.has_perm(permission, role)
         ]
-        # If the user has no permissions, send them back to the service details
+        # If the user has no permissions, send them back to the service details
         # Note that we don't show this message if the user has been granted the
-        # permission for the service but there are no roles - in that case we
-        # just show nothing
+        # permission for the service but there are no roles - in that case we
+        # just show nothing
         if not user_roles:
             messages.error(request, 'Insufficient permissions')
             return redirect_to_service(service)
@@ -655,8 +642,8 @@ def service_requests(request, service):
         'requests': Request.objects \
             .filter_active() \
             .filter(role__in = user_roles, state = RequestState.PENDING),
-        # The list of approvers to show here is any user who can approve at
-        # least one of the visible roles
+        # The list of approvers to show here is any user who can approve at
+        # least one of the visible roles
         'approvers': get_user_model().objects \
             .filter(
                 grant__in = Grant.objects
@@ -677,7 +664,7 @@ def service_requests(request, service):
 
 
 @require_http_methods(['GET', 'POST'])
-@active_user_required
+@authentication_required
 def request_decide(request, pk):
     """
     Handler for ``/request/<pk>/decide/``.
@@ -713,7 +700,7 @@ def request_decide(request, pk):
         .filter(user = pending.user) \
         .filter_active() \
         .first()
-    # Find all the rejected requests for the role/user since the active grant
+    # Find all the rejected requests for the role/user since the active grant
     rejected = pending.role.requests \
         .filter(user = pending.user, state = RequestState.REJECTED)
     if grant:
@@ -745,15 +732,15 @@ def request_decide(request, pk):
         'pending' : pending,
         'rejected' : rejected,
         'grant' : grant,
-        # The list of approvers to show here is any user who has the correct
-        # permission for either the role or the service
+        # The list of approvers to show here is any user who has the correct
+        # permission for either the role or the service
         'approvers': pending.role.approvers.exclude(pk = request.user.pk),
         'form' : form,
     })
 
 
 @require_http_methods(['GET', 'POST'])
-@active_user_required
+@authentication_required
 @with_service
 def service_message(request, service):
     """
@@ -765,7 +752,7 @@ def service_message(request, service):
     Allows a user with suitable permissions to send messages to other users of
     the service, depending which permissions they have been granted.
     """
-    # Get the roles for which the user is allowed to send messages
+    # Get the roles for which the user is allowed to send messages
     # We allow the permission to be allocated for all services, per-service or per-role
     permission = 'jasmin_services.send_message_role'
     if request.user.has_perm(permission) or \
@@ -777,10 +764,10 @@ def service_message(request, service):
             for role in service.roles.all()
             if request.user.has_perm(permission, role)
         ]
-        # If the user has no permissions, send them back to the service details
+        # If the user has no permissions, send them back to the service details
         # Note that we don't show this message if the user has been granted the
-        # permission for the service but there are no roles - in that case we
-        # just show nothing
+        # permission for the service but there are no roles - in that case we
+        # just show nothing
         if not user_roles:
             messages.error(request, 'Insufficient permissions')
             return redirect_to_service(service)
@@ -828,10 +815,10 @@ def reverse_dns_check(request):
     client.
     """
     response = http.HttpResponse(content_type = 'text/plain')
-    # Use the X-Real-Ip header if present (for reverse proxy), otherwise use 'REMOTE_ADDR'
+    # Use the X-Real-Ip header if present (for reverse proxy), otherwise use 'REMOTE_ADDR'
     remote_ip = request.META.get('HTTP_X_REAL_IP', request.META['REMOTE_ADDR'])
     response.write('External IP address: {}\r\n'.format(remote_ip))
-    # Attempt a reverse DNS lookup
+    # Attempt a reverse DNS lookup
     try:
         host = socket.gethostbyaddr(remote_ip)[0]
     except Exception:
