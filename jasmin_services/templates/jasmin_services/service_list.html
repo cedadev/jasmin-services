@@ -101,6 +101,12 @@
         'html' : true,
         'trigger' : "click",
         'container' : "body",
+        // We need to add blockquote and aside to the whitelist
+        'whiteList' : $.extend(
+            {},
+            $.fn.tooltip.Constructor.DEFAULTS.whiteList,
+            { aside: [], blockquote: [] }
+        ),
         'content' : function() {
             // Get the content from the companion element
             return $(this).siblings('.popover-companion').html();
