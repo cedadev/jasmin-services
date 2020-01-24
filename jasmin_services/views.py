@@ -27,11 +27,7 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import user_passes_test
 
-# If django-otp is installed use otp_required, otherwise use login_required
-try:
-    from django_otp.decorators import otp_required as authentication_required
-except ImportError:
-    from django.contrib.auth.decorators import login_required as authentication_required
+from django.contrib.auth.decorators import login_required
 
 from .models import Grant, Request, RequestState, Category, Service, Role
 from .forms import DecisionForm, message_form_factory
@@ -41,7 +37,7 @@ _log = logging.getLogger(__name__)
 
 
 @require_safe
-@authentication_required
+@login_required
 def service_list(request, category):
     """
     Handler for ``/<category>/``.
@@ -165,7 +161,7 @@ def service_list(request, category):
 
 
 @require_safe
-@authentication_required
+@login_required
 def my_services(request):
     """
     Handler for ``/my_services/``.
@@ -355,7 +351,7 @@ def redirect_to_service(service, view_name = 'service_details'):
 
 
 @require_safe
-@authentication_required
+@login_required
 @with_service
 def service_details(request, service):
     """
@@ -398,7 +394,7 @@ def service_details(request, service):
 
 
 @require_http_methods(['GET', 'POST'])
-@authentication_required
+@login_required
 @with_service
 def role_apply(request, service, role):
     """
@@ -475,7 +471,7 @@ def role_apply(request, service, role):
 
 
 @require_safe
-@authentication_required
+@login_required
 @with_service
 def service_users(request, service):
     """
@@ -595,7 +591,7 @@ def service_users(request, service):
 
 
 @require_safe
-@authentication_required
+@login_required
 @with_service
 def service_requests(request, service):
     """
@@ -664,7 +660,7 @@ def service_requests(request, service):
 
 
 @require_http_methods(['GET', 'POST'])
-@authentication_required
+@login_required
 def request_decide(request, pk):
     """
     Handler for ``/request/<pk>/decide/``.
@@ -740,7 +736,7 @@ def request_decide(request, pk):
 
 
 @require_http_methods(['GET', 'POST'])
-@authentication_required
+@login_required
 @with_service
 def service_message(request, service):
     """
