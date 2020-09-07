@@ -85,7 +85,7 @@ class Service(models.Model):
         help_text = 'Full description of the service, shown on the details page. '
                     'Markdown formatting is allowed.'
     )
-    #: A full description of the service, show on the details page
+    #: Additional text to send to approvers of the service
     approver_message = models.TextField(
         blank = True, null = True, default = '',
         help_text = 'Service specific instructions to be added to the external '
