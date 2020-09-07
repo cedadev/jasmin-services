@@ -431,13 +431,32 @@ def role_apply(request, service, role):
         form = form_class(data = request.POST)
         if form.is_valid():
             with transaction.atomic():
-                form.save(
-                    Request.objects.create(
+                # If the role is set to auto accept, grant before saving
+                if role.auto_accept:
+                    request = Request.objects.create(
                         role = role,
                         user = request.user,
                         requested_by = request.user.username
                     )
-                )
+                    request.grant = Grant.objects.create(
+                        role = role,
+                        user = request.user,
+                        granted_by = request.user.username,
+                        expires = date.today() + relativedelta(years = 1)
+                    )
+                    request.copy_metadata_to(request.grant)
+
+                    form.save(
+                        request
+                    )
+                else:
+                    form.save(
+                        Request.objects.create(
+                            role = role,
+                            user = request.user,
+                            requested_by = request.user.username
+                        )
+                    )
             messages.success(request, 'Request submitted successfully')
             return redirect_to_service(service)
         else:
