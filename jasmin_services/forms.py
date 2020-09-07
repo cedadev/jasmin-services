@@ -58,7 +58,7 @@ def message_form_factory(sender, *roles):
             help_text = mark_safe(
                 'If this box is checked, your email address is attached to the '
                 'email sent by the portal, allowing users to reply to you.<br>'
-                '<strong>WARNING:</strong> This will reveal your email address '
+                '<strong style="color:#F39C12">WARNING:</strong> This will reveal your email address '
                 'to the selected users.'
             )
         ),
@@ -113,11 +113,11 @@ class DecisionForm(forms.Form):
     user_reason = forms.CharField(label = 'Reason for rejection (user)',
                                   required = False,
                                   widget = forms.Textarea(attrs = { 'rows' : 5 }),
-                                  help_text = markdown_allowed())
+                                  help_text = mark_safe(markdown_allowed()))
     internal_reason = forms.CharField(label = 'Reason for rejection (internal)',
                                       required = False,
                                       widget = forms.Textarea(attrs = { 'rows' : 5 }),
-                                      help_text = markdown_allowed())
+                                      help_text = mark_safe(markdown_allowed()))
 
     def __init__(self, request, approver, *args, **kwargs):
         self._request = request

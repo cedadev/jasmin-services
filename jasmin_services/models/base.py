@@ -85,6 +85,12 @@ class Service(models.Model):
         help_text = 'Full description of the service, shown on the details page. '
                     'Markdown formatting is allowed.'
     )
+    #: A full description of the service, show on the details page
+    approver_message = models.TextField(
+        blank = True, null = True, default = '',
+        help_text = 'Service specific instructions to be added to the external '
+                    'approver message.'
+    )
     #: Indicates if the service should be shown in listings
     hidden = models.BooleanField(
         default = True,
@@ -170,6 +176,11 @@ class Role(models.Model):
         default = True,
         help_text = 'Prevents the role appearing in listings unless the user '
                     'has an active grant or request for it.'
+    )
+    auto_accept = models.BooleanField(
+        default = False,
+        help_text = 'Auto accepts all requested access giving users with a 1 '
+                    'year experation date '
     )
     #: Determines the order that the roles appear when listed.
     position = models.PositiveIntegerField(

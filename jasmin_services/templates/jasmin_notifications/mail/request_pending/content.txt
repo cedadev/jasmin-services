@@ -12,4 +12,11 @@ The following request has been submitted for approval:
 You are receiving this email because you are a registered approver for this role.
 
 To review the request, please visit {{ follow_link }}.
+
+{{ if target.role.service.approver_message}}
+Additional useful information:
+
+{{ target.role.service.approver_message }}
+{% endif %}
+
 {% endblock %}
