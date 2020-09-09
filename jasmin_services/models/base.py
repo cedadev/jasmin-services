@@ -15,6 +15,8 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth import get_user_model
+from django_countries.fields import CountryField
+
 
 from jasmin_metadata.models import Form
 
@@ -91,6 +93,12 @@ class Service(models.Model):
         help_text = 'Service specific instructions to be added to the external '
                     'approver message.'
     )
+    #: Countries a users institution must be from to gain access
+    instution_countries = CountryField(
+        multiple = True, blank = True,
+        help_text = 'Coutries a user\'s institute must be located to begin '
+                    'approval. Hold ctrl or cmd for mac to select multiple '
+                    'countries. Leave blank for any country.')
     #: Indicates if the service should be shown in listings
     hidden = models.BooleanField(
         default = True,
@@ -109,7 +117,6 @@ class Service(models.Model):
 
     def __str__(self):
         return '{} : {}'.format(self.category, self.name)
-
 
 class RoleQuerySet(models.QuerySet):
     """
