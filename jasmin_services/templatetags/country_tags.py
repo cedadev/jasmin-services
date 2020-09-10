@@ -11,5 +11,5 @@ register = template.Library()
 
 
 @register.simple_tag
-def user_has_service_perm(user):
+def get_country(user):
     return user.institution.country
