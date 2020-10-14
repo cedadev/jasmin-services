@@ -140,11 +140,8 @@ class Grant(HasMetadata):
         service/role/user combination.
         """
         if not hasattr(self, '_active'):
-            if self.pk:
-                self._active = self.__class__.objects  \
-                    .filter_active()  \
-                    .filter(pk = self.pk)  \
-                    .exists()
+            if not self.next_grant:
+                self._active = True
             else:
                 # Unsaved grants are never active
                 self._active = False
@@ -335,14 +332,11 @@ class Request(HasMetadata):
         service/role/user combination.
         """
         if not hasattr(self, '_active'):
-            if self.pk:
-                self._active = self.__class__.objects  \
-                    .filter_active()  \
-                    .filter(pk = self.pk)  \
-                    .exists()
+            if self.resulting_grant or self.next_request:
+                self._active = False
             else:
                 # Unsaved grants are never active
-                self._active = False
+                self._active = True
         return self._active
 
 
