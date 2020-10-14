@@ -290,8 +290,8 @@ class Role(models.Model):
             from .access_control import Grant
             grants = Grant.objects \
                 .filter(
-                    role__behaviours = behaviour,
-                    user = user,
+                    access__role__behaviours = behaviour,
+                    access__user = user,
                     revoked = False,
                     expires__gte = date.today()
                 ) \

@@ -22,6 +22,28 @@ from jasmin_metadata.models import HasMetadata
 from .base import Role
 
 
+class Access(models.Model):
+    """
+    Represents the join model between the access(role/user pair) and grant.
+    """
+    class Meta:
+        ordering = (
+            'role__service__category__position',
+            'role__service__category__long_name',
+            'role__service__position',
+            'role__service__name',
+            'role__position',
+            'role__name',
+        )
+
+    #: The role that the grant is for
+    role = models.ForeignKey(Role, models.CASCADE,
+                             related_name = 'grants',
+                             related_query_name = 'grant')
+    #: The user for whom the role is granted
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE)
+
+
 class GrantQuerySet(models.QuerySet):
     """
     Custom queryset that allows filtering for the 'active' grants.
@@ -30,16 +52,13 @@ class GrantQuerySet(models.QuerySet):
         """
         Returns a list of the primary keys of the active grants.
         """
-        # Here, we utilise the fact that we have an auto-incrementing id field
-        # to get the largest id for each role/user combo
-        # This uses DISTINCT ON, so is **Postgres specific**
         # We use all the grants, rather than self, because this queryset might
         # have filters applied that will mean we identify the wrong objects as
         # active
         return list(
             Grant.objects
-                .order_by('role_id', 'user_id', '-id')
-                .distinct('role_id', 'user_id')
+                .filter(next_grant__isnull = True)
+                .order_by('access_role_id', 'access_user_id', '-id')
                 .values_list('id', flat = True)
         )
 
@@ -75,33 +94,31 @@ class Grant(HasMetadata):
     Represents the granting of a role to a user.
 
     There may be many grants for each role/user combination. However, when
-    determining whether a user is approved for a role, only the most recent
-    grant for the role/user combination is considered. This is referred to as
-    the 'active' grant.
+    determining whether a user is approved for a role, only grants the head of a
+    grant chain (one without a next_grant) for the role/user combination is considered. 
+    This is referred to as the 'active' grant.
 
     A grant can have arbitrary metadata associated with it. That metadata is
     defined by the service.
     """
     class Meta:
         ordering = (
-            'role__service__category__position',
-            'role__service__category__long_name',
-            'role__service__position',
-            'role__service__name',
-            'role__position',
-            'role__name',
+            'access__role__service__category__position',
+            'access__role__service__category__long_name',
+            'access__role__service__position',
+            'access__role__service__name',
+            'access__role__position',
+            'access__role__name',
             '-granted_at',
         )
         get_latest_by = 'granted_at'
 
     objects = GrantQuerySet.as_manager()
 
-    #: The role that the grant is for
-    role = models.ForeignKey(Role, models.CASCADE,
-                             related_name = 'grants',
-                             related_query_name = 'grant')
-    #: The user for whom the role is granted
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE)
+    #: The role/user combination that the grant is for
+    access = models.ForeignKey(Access, models.CASCADE,
+                               related_name = 'grants',
+                               related_query_name = 'grant')
     #: Username of the user who granted the role
     granted_by = models.CharField(max_length = 200)
     #: The datetime at which the role was granted
@@ -121,6 +138,10 @@ class Grant(HasMetadata):
     internal_reason = models.TextField(blank = True,
                                        verbose_name = 'Reason for revocation (internal)',
                                        help_text = markdown_allowed())
+    #: Grant that superceeds this grant
+    next_grant = models.OneToOneField(Grant, models.SET_NULL,
+                                      null = True, blank = True,
+                                      related_name = 'previous_grant')
 
     def __str__(self):
         return '{} : {}'.format(self.role, self.user)
@@ -165,7 +186,7 @@ class Grant(HasMetadata):
     def clean(self):
         errors = {}
         try:
-            user = self.user
+            user = self.access.user
             # Ensure that the user is active
             if not user.is_active:
                 errors['user'] = 'User is suspended'
@@ -200,8 +221,8 @@ class RequestQuerySet(models.QuerySet):
                 .annotate(
                     later_grant_exists = models.Exists(
                         Grant.objects.filter(
-                            role = models.OuterRef('role'),
-                            user = models.OuterRef('user'),
+                            access__role = models.OuterRef('role'),
+                            access__user = models.OuterRef('user'),
                             granted_at__gte = models.OuterRef('requested_at')
                         )
                     )
@@ -324,6 +345,10 @@ class Request(HasMetadata):
     grant = models.OneToOneField(Grant, models.SET_NULL,
                                  null = True, blank = True,
                                  related_name = 'request')
+    #: If approved, this is the access grant being superceeded
+    previous_grant = models.OneToOneField(Grant, models.SET_NULL,
+                                          null = True, blank = True,
+                                          related_name = 'request')
     #: If rejected, this is a reason for the user
     user_reason = models.TextField(
         blank = True,
@@ -403,12 +428,10 @@ class Request(HasMetadata):
             pass
         # Check that the grant is for the same service/role/user combination
         if self.grant:
-            if self.grant.role != self.role:
+            if self.grant.access.role != self.role:
                 errors['grant'] = 'Grant must be for same role as request'
             try:
-                if self.grant.service != self.service:
-                    errors['grant'] = 'Grant must be for same service as request'
-                if self.grant.user != self.user:
+                if self.grant.access.user != self.user:
                     errors['grant'] = 'Grant must be for same user as request'
             except ObjectDoesNotExist:
                 pass
