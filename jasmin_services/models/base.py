@@ -243,7 +243,7 @@ class Role(models.Model):
             .filter(
                 grant__in = Grant.objects
                     .filter(
-                        role__in = Role.objects.filter_permission(
+                        access__role__in = Role.objects.filter_permission(
                             'jasmin_services.decide_request',
                             self.service,
                             self
@@ -290,8 +290,8 @@ class Role(models.Model):
             from .access_control import Grant
             grants = Grant.objects \
                 .filter(
-                    role__behaviours = behaviour,
-                    user = user,
+                    access__role__behaviours = behaviour,
+                    access__user = user,
                     revoked = False,
                     expires__gte = date.today()
                 ) \
