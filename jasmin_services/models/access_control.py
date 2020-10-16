@@ -35,7 +35,7 @@ class Access(models.Model):
             'role__position',
             'role__name',
         )
-        unique_together = ['role', 'user']
+        unique_together = ('role', 'user')
 
     #: The role that the grant is for
     role = models.ForeignKey(Role, models.CASCADE,
@@ -294,7 +294,6 @@ class Request(HasMetadata):
     requested_by = models.CharField(max_length = 200)
     #: The datetime at which the service request was created
     requested_at = models.DateTimeField(auto_now_add = True)
-
     #: The current state of the request
     state = RequestState.model_field(default = RequestState.PENDING)
     #: If approved, this is the resulting access grant
@@ -304,7 +303,7 @@ class Request(HasMetadata):
     #: If approved, this is the access grant being superceeded
     previous_grant = models.OneToOneField(Grant, models.SET_NULL,
                                           null = True, blank = True,
-                                          related_name = 'request')
+                                          related_name = 'next_request')
     #: Request that superceeds this request
     next_request = models.OneToOneField('self', models.SET_NULL,
                                       null = True, blank = True,
@@ -333,9 +332,9 @@ class Request(HasMetadata):
         """
         if not hasattr(self, '_active'):
             if self.resulting_grant or self.next_request:
+                # Unsaved requests won't have a resulting grant
                 self._active = False
             else:
-                # Unsaved grants are never active
                 self._active = True
         return self._active
 

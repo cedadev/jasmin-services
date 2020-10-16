@@ -243,7 +243,7 @@ class Role(models.Model):
             .filter(
                 grant__in = Grant.objects
                     .filter(
-                        role__in = Role.objects.filter_permission(
+                        access__role__in = Role.objects.filter_permission(
                             'jasmin_services.decide_request',
                             self.service,
                             self
