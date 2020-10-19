@@ -10,6 +10,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterModelOptions(
+            name='request',
+            options={'get_latest_by': 'requested_at', 'ordering': ('access__role__service__category__position', 'access__role__service__category__long_name', 'access__role__service__position', 'access__role__service__name', 'access__role__position', 'access__role__name', '-requested_at'), 'permissions': (('decide_request', 'Can make decisions on requests'),)},
+        ),
         migrations.RemoveField(
             model_name='request',
             name='role',
