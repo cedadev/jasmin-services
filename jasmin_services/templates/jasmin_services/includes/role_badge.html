@@ -3,8 +3,8 @@
 {% if req %}
     {% if req.rejected %}
         <span class="label label-danger"
-              data-toggle="popover"
-              data-title="Request rejected">
+            data-toggle="popover"
+            data-title="Request rejected">
             <i class="fa fa-ban"></i> {{ role.name }}
         </span>
         <div class="popover-companion" style="display: none;">
@@ -12,8 +12,8 @@
         </div>
     {% else %}
         <span class="label label-default"
-              data-toggle="popover"
-              data-title="Request pending">
+            data-toggle="popover"
+            data-title="Request pending">
             <i class="fa fa-hourglass-half"></i> {{ role.name }}
         </span>
         <div class="popover-companion" style="display: none;">
@@ -23,8 +23,8 @@
 {% elif grant %}
     {% if grant.revoked %}
         <span class="label label-danger"
-              data-toggle="popover"
-              data-title="Access revoked">
+            data-toggle="popover"
+            data-title="Access revoked">
             <i class="fa fa-ban"></i> {{ role.name }}
         </span>
         <div class="popover-companion" style="display: none;">
@@ -32,18 +32,18 @@
         </div>
     {% elif grant.expired %}
         <span class="label label-danger"
-              data-toggle="popover"
-              data-title="Access expired">
-            <i class="fa fa-clock-o"></i> {{ role.name }}
+            data-toggle="popover"
+            data-title="Access expired">
+            <i class="fa fa-clock"></i> {{ role.name }}
         </span>
         <div class="popover-companion" style="display: none;">
             <aside class="danger">Access expired on {{ grant.expires }}</aside>
         </div>
     {% elif grant.expiring %}
         <span class="label label-warning"
-              data-toggle="popover"
-              data-title="Access expiring">
-            <i class="fa fa-clock-o"></i> {{ role.name }}
+            data-toggle="popover"
+            data-title="Access expiring">
+            <i class="fa fa-clock"></i> {{ role.name }}
         </span>
         <div class="popover-companion" style="display: none;">
             <aside class="warning">Access expires on {{ grant.expires }}</aside>

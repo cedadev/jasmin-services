@@ -6,18 +6,20 @@
 
 {% block breadcrumbs %}
 <ol class="breadcrumb">
-    <li>JASMIN Services</li>
-    <li>
-        <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
+    <li class="breadcrumb-item">JASMIN Services</li>
+    <li class="breadcrumb-item">
+        <a class="breadcrumb-link" href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
     </li>
-    <li class="active">{{ service.name }}</li>
+    <li  class="breadcrumb-item active">{{ service.name }}</li>
 </ol>
 {% endblock %}
 
 {% block content_header %}{{ block.super }}
-<div class="row">
-    <div class="col-md-12">
-        {% include "jasmin_services/includes/service_tabs.html" %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            {% include "jasmin_services/includes/service_tabs.html" %}
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -25,6 +27,7 @@
 {% block content %}
 {# Only show the filters if there are enough grants #}
 {% if grants.paginator.num_pages > 1 or preserved_filters %}
+<div class="container">
     <div class="col-md-12 hidden-sm hidden-xs">
         <p>
             <button id="toggle-filters" class="btn btn-default">
@@ -148,9 +151,9 @@
                         {% if grant.revoked %}
                             <td class="text-danger"><i class="fa fa-fw fa-ban"></i></td>
                         {% elif grant.expired %}
-                            <td class="text-danger"><i class="fa fa-fw fa-clock-o"></i></td>
+                            <td class="text-danger"><i class="fa fa-fw fa-clock"></i></td>
                         {% elif grant.expiring %}
-                            <td class="text-warning"><i class="fa fa-fw fa-clock-o"></i></td>
+                            <td class="text-warning"><i class="fa fa-fw fa-clock"></i></td>
                         {% else %}
                             <td class="text-success"><i class="fa fa-fw fa-check"></i></td>
                         {% endif %}
@@ -171,5 +174,6 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
 </div>
 {% endblock %}

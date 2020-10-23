@@ -109,7 +109,7 @@
                     {% endif %}
                     {% if grant.revoked %}
                         <aside class="danger">
-                            <header>Previous access revoked</header>
+                            <header>Current grant revoked</header>
                             {{ grant.user_reason|markdown }}
                             {% if grant.internal_reason %}
                                 <hr>
@@ -118,15 +118,67 @@
                         </aside>
                     {% elif grant.expired %}
                         <aside class="danger">
-                            <header>Previous access expired</header>
+                            <header>Current grant expired</header>
                             <p>Expired on {{ grant.expires }}</p>
                         </aside>
                     {% elif grant.expiring %}
                         <aside class="warning">
-                            <header>Current access expiring</header>
+                            <header>Current grant expiring</header>
+                            <p>Expires on {{ grant.expires }}</p>
+                        </aside>
+                    {% else %}
+                        <aside>
+                            <header>Current grant live</header>
                             <p>Expires on {{ grant.expires }}</p>
                         </aside>
                     {% endif %}
+                </fieldset>
+            {% endif %}
+
+            {% if grants %}
+                <fieldset class="module aligned">
+                    <h2>Other active grants</h2>
+                        <div class="reason-stack">
+                            {% for grant in grants %}
+                                {% if grant.revoked %}
+                                    <aside class="danger">
+                                        <header>
+                                            <span class="reason-number">{{ forloop.counter }} of {{ rejected|length }}</span>
+                                            Grant revoked
+                                        </header>
+                                        {{ grant.user_reason|markdown }}
+                                        {% if grant.internal_reason %}
+                                            <hr>
+                                            {{ grant.internal_reason|markdown }}
+                                        {% endif %}
+                                    </aside>
+                                {% elif grant.expired %}
+                                    <aside class="danger">
+                                        <header>
+                                            <span class="reason-number">{{ forloop.counter }} of {{ grants|length }}</span>
+                                            Grant expired
+                                        </header>
+                                        <p>Expired on {{ grant.expires }}</p>
+                                    </aside>
+                                {% elif grant.expiring %}
+                                    <aside class="warning">
+                                        <header>
+                                            <span class="reason-number">{{ forloop.counter }} of {{ rejected|length }}</span>
+                                            Grant expiring
+                                        </header>
+                                        <p>Expires on {{ grant.expires }}</p>
+                                    </aside>
+                                {% else %}
+                                    <aside>
+                                        <header>
+                                            <span class="reason-number">{{ forloop.counter }} of {{ rejected|length }}</span>
+                                            Grant live
+                                        </header>
+                                        <p>Expires on {{ grant.expires }}</p>
+                                    </aside>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
                 </fieldset>
             {% endif %}
 
