@@ -64,14 +64,14 @@ def service_list(request, category):
         .annotate(
             has_grant = Exists(
                 Grant.objects.filter(
-                    role__service__category = OuterRef('pk'),
-                    user = request.user
+                    access__role__service__category = OuterRef('pk'),
+                    access__user = request.user
                 )
             ),
             has_request = Exists(
                 Request.objects.filter(
-                    role__service__category = OuterRef('pk'),
-                    user = request.user
+                    access__role__service__category = OuterRef('pk'),
+                    access__user = request.user
                 )
             )
         )  \
@@ -88,14 +88,14 @@ def service_list(request, category):
         .annotate(
             has_grant = Exists(
                 Grant.objects.filter(
-                    role__service = OuterRef('pk'),
-                    user = request.user
+                    access__role__service = OuterRef('pk'),
+                    access__user = request.user
                 )
             ),
             has_request = Exists(
                 Request.objects.filter(
-                    role__service = OuterRef('pk'),
-                    user = request.user
+                    access__role__service = OuterRef('pk'),
+                    access__user = request.user
                 )
             )
         )  \
@@ -127,14 +127,14 @@ def service_list(request, category):
         page = paginator.page(paginator.num_pages)
     # Get the active grants and requests for the user, as these define the visible
     # services and categories, along with the hidden flag on the service itself
-    grants = Grant.objects  \
-        .filter(user = request.user)  \
+    all_grants = Grant.objects  \
+        .filter(access__user = request.user)  \
         .filter_active()  \
-        .select_related('role')
-    requests = Request.objects  \
-        .filter(user = request.user)  \
+        .select_related('access')
+    all_requests = Request.objects  \
+        .filter(access__user = request.user)  \
         .filter_active()  \
-        .select_related('role')
+        .select_related('access')
     return render(request, 'jasmin_services/service_list.html', {
         'categories': categories,
         'current_category': category,
@@ -146,8 +146,8 @@ def service_list(request, category):
                 [
                     (
                         role,
-                        next((g for g in grants if g.role == role), None),
-                        next((r for r in requests if r.role == role), None)
+                        all_grants.filter_access(role, request.user),
+                        all_requests.filter_relevant(role, request.user)
                     )
                     for role in service.roles.all()
                 ]
@@ -184,14 +184,14 @@ def my_services(request):
         .annotate(
             has_grant = Exists(
                 Grant.objects.filter(
-                    role__service__category = OuterRef('pk'),
-                    user = request.user
+                    access__role__service__category = OuterRef('pk'),
+                    access__user = request.user
                 )
             ),
             has_request = Exists(
                 Request.objects.filter(
-                    role__service__category = OuterRef('pk'),
-                    user = request.user
+                    access__role__service__category = OuterRef('pk'),
+                    access__user = request.user
                 )
             )
         )  \
@@ -202,16 +202,17 @@ def my_services(request):
         )  \
         .distinct()  \
         .values_list('name', 'long_name')
-    # Get the active grants and requests for the user, as these define the visible
-    # services and categories, along with the hidden flag on the service itself
+    # Get the active grants and requests with the longest expiries for the user, 
+    # as these define the visible services and categories, along with the hidden 
+    # flag on the service itself
     all_grants = Grant.objects  \
-        .filter(user = request.user)  \
-        .filter_active()  \
-        .select_related('role')
+        .filter(access__user = request.user)  \
+        .filter_active() \
+        .select_related('access')
     all_requests = Request.objects  \
-        .filter(user = request.user)  \
+        .filter(access__user = request.user)  \
         .filter_active()  \
-        .select_related('role')
+        .select_related('access')
     # Apply filters, making sure to maintain a reference to the full lists of
     # grants and requests
     grants = all_grants
@@ -267,8 +268,8 @@ def my_services(request):
     services = list(
         Service.objects
             .filter(
-                Q(role__grant__in = grants) |
-                Q(role__request__in = requests)
+                Q(role__access__grant__in = grants) |
+                Q(role__access__request__in = requests)
             )
             .distinct()
             .prefetch_related('roles')
@@ -300,14 +301,16 @@ def my_services(request):
         },
         # services is a list of (service, roles) tuples
         # roles is a list of (role, grant or None, request or None) tuples
+        # next((g for g in all_grants if g.access.role == role), None),
+        # next((r for r in all_requests if r.access.role == role), None)
         'services': [
             (
                 service,
                 [
                     (
                         role,
-                        next((g for g in all_grants if g.role == role), None),
-                        next((r for r in all_requests if r.role == role), None)
+                        all_grants.filter_access(role, request.user),
+                        all_requests.filter_relevant(role, request.user)
                     )
                     for role in service.roles.all()
                 ]
@@ -362,22 +365,26 @@ def service_details(request, service):
     Displays details for a service, including details of current access and requests.
     """
     # Get the active grants and requests for the service as a whole
-    grants = Grant.objects \
-        .filter(role__service = service, user = request.user) \
+    all_grants = Grant.objects \
+        .filter(access__role__service = service, access__user = request.user) \
         .filter_active()
-    requests = Request.objects \
-        .filter(role__service = service, user = request.user) \
+    all_requests = Request.objects \
+        .filter(access__role__service = service, access__user = request.user) \
         .filter_active()
-    # access is a list of (role, grant, has_request) tuples for the roles of
-    # the service
-    # NOTE: Since we filtered for active, we know there is a maximum of one
-    #       grant and one request per role
-    access = []
+    # roles is a list of the roles of the service that have an active grant 
+    # or request or aren't hidden
+    roles = []
+    grants = []
+    requests = []
     for role in service.roles.all():
-        grant = next((g for g in grants if g.role == role), None)
-        has_request = any(r for r in requests if r.role == role)
-        if not role.hidden or has_request or grant:
-            access.append((role, grant, has_request))
+        role_grants = all_grants.filter(access__role = role)
+        role_requests = all_requests.filter(access__role = role)
+        if role_grants:
+            grants.append((role, role_grants))
+        if role_requests:
+            requests.append((role, role_requests))
+        if not role.hidden or role_requests or role_grants:
+            roles.append(role)
     templates = [
         'jasmin_services/{}/{}/service_details.html'.format(
             service.category.name,
@@ -389,14 +396,15 @@ def service_details(request, service):
     return render(request, templates, {
         'service': service,
         'requests': requests,
-        'access': access,
+        'grants': grants,
+        'roles': roles,
     })
 
 
 @require_http_methods(['GET', 'POST'])
 @login_required
 @with_service
-def role_apply(request, service, role):
+def role_apply(request, service, role, next_grant=None):
     """
     Handler for ``/<category>/<service>/apply/<role>/``.
 

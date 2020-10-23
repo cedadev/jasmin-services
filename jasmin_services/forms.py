@@ -37,7 +37,7 @@ def message_form_factory(sender, *roles):
         .filter(
             grant__in = Grant.objects
                 .filter(
-                    role__in = roles,
+                    access__role__in = roles,
                     expires__gte = date.today(),
                     revoked = False
                 )
@@ -174,15 +174,29 @@ class DecisionForm(forms.Form):
             else:
                 expires_date = self.cleaned_data['expires_custom']
             self._request.state = RequestState.APPROVED
-            # If the request was approved, create the grant
-            self._request.grant = Grant.objects.create(
-                role = self._request.role,
-                user = self._request.user,
-                granted_by = self._approver.username,
-                expires = expires_date
-            )
+            # If the request has a previous_grant create a new grant 
+            # and link with the old grant
+            if self._request.previous_grant:
+                self._request.resulting_grant = Grant.objects.create(
+                    access = self._request.access,
+                    granted_by = self._approver.username,
+                    expires = expires_date
+                )
+                self._request.previous_grant.next_grant = self._request.resulting_grant
+            else:
+            # Else create the access if it does not already exist and
+            # then create the new grant
+                access = Access.objects.get_or_create(
+                    user = self._request.user,
+                    role = self._request.role
+                )
+                self._request.resulting_grant = Grant.objects.create(
+                    access = access,
+                    granted_by = self._approver.username,
+                    expires = expires_date
+                )
             # Copy the metadata from the request to the grant
-            self._request.copy_metadata_to(self._request.grant)
+            self._request.copy_metadata_to(self._request.resulting_grant)
         else:
             self._request.state = RequestState.REJECTED
             self._request.user_reason = self.cleaned_data['user_reason']

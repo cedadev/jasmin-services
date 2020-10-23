@@ -32,7 +32,7 @@ from jasmin_metadata.admin import HasMetadataModelAdmin
 
 from .models import (
     Category, Service, Role, RoleObjectPermission,
-    Grant, Request, RequestState,
+    Access, Grant, Request, RequestState,
     Behaviour, LdapTagBehaviour, LdapGroupBehaviour, JoinJISCMailListBehaviour
 )
 from .forms import AdminDecisionForm, LdapGroupBehaviourAdminForm
@@ -363,14 +363,39 @@ class _ActiveListFilter(admin.SimpleListFilter):
             return queryset.filter_active()
 
 
+class GrantInline(admin.TabularInline):
+    model = Grant
+    fields = ('active', 'revoked', 'expired', 'expires')
+    readonly_fields = fields[:-1]
+    max_num = 0
+    can_delete = False
+    show_change_link = True
+
+
+class RequestInline(admin.TabularInline):
+    model = Request
+    fields = ('active', 'state')
+    readonly_fields = fields[:-1]
+    max_num = 0
+    can_delete = False
+    show_change_link = True
+
+
+@admin.register(Access)
+class AccessAdmin(admin.ModelAdmin):
+    inlines = (GrantInline, RequestInline)
+    list_display = ('role', 'user')
+    search_fields = ('role', 'user')
+
+
 @admin.register(Grant)
 class GrantAdmin(HasMetadataModelAdmin):
-    list_display = ('role', 'user', 'active',
+    list_display = ('access', 'active',
                     'revoked', 'expired', 'expires', 'granted_at')
     list_filter = (
         _ServiceFilter,
-        'role__name',
-        ('user', admin.RelatedOnlyFieldListFilter),
+        'access__role__name',
+        ('access__user', admin.RelatedOnlyFieldListFilter),
         _ActiveListFilter,
         'revoked',
         _ExpiredListFilter
@@ -378,27 +403,27 @@ class GrantAdmin(HasMetadataModelAdmin):
     # This is expensive and unnecessary
     show_full_result_count = False
     search_fields = (
-        'role__service__name',
-        'role__name',
-        'user__username',
-        'user__email',
-        'user__last_name'
+        'access__role__service__name',
+        'access__role__name',
+        'access__user__username',
+        'access__user__email',
+        'access__user__last_name'
     )
     actions = ('synchronise_service_access', 'send_expiry_notifications')
     list_select_related = (
-        'role',
-        'role__service',
-        'role__service__category',
-        'user',
+        'access__role',
+        'access__role__service',
+        'access__role__service__category',
+        'access__user',
     )
     # Allow "Save as new" for quick duplication of grants
     save_as = True
 
     change_form_template = "admin/jasmin_services/grant/change_form.html"
 
-    fields = ('role', 'user', 'granted_by',
+    fields = ('access', 'granted_by',
               'expires', 'revoked', 'user_reason', 'internal_reason')
-    autocomplete_fields = ('role', 'user')
+    autocomplete_fields = ('access',)
 
     def get_queryset(self, request):
         # Annotate with information about active status
@@ -479,7 +504,7 @@ class GrantAdmin(HasMetadataModelAdmin):
         if not obj:
             return None
         try:
-            return obj.role.metadata_form_class
+            return obj.access.role.metadata_form_class
         except Role.DoesNotExist:
             return None
 
@@ -523,36 +548,36 @@ class _StateListFilter(admin.SimpleListFilter):
 
 @admin.register(Request)
 class RequestAdmin(HasMetadataModelAdmin):
-    list_display = ('role_link', 'user', 'active', 'state_html', 'requested_at')
+    list_display = ('role_link', 'access', 'active', 'state_html', 'requested_at')
     list_filter = (
         _ServiceFilter,
-        'role__name',
-        ('user', admin.RelatedOnlyFieldListFilter),
+        'access__role__name',
+        ('access__user', admin.RelatedOnlyFieldListFilter),
         _ActiveListFilter,
         _StateListFilter
     )
     # This is expensive and unnecessary
     show_full_result_count = False
     search_fields = (
-        'role__service__name',
-        'role__name',
-        'user__username',
-        'user__email',
-        'user__last_name'
+        'access__role__service__name',
+        'access__role__name',
+        'access__user__username',
+        'access__user__email',
+        'access__user__last_name'
     )
     fields = (
-        'role',
-        'user',
+        'access__role',
+        'access__user',
         'requested_by',
         'requested_at',
         'state',
-        'grant',
+        'resulting_grant',
         'user_reason',
         'internal_reason'
     )
     actions = ('remind_pending', )
-    autocomplete_fields = ('role', 'user')
-    raw_id_fields = ('grant', )
+    autocomplete_fields = ('access',)
+    raw_id_fields = ('resulting_grant', )
     readonly_fields = ('requested_at', )
 
     def get_queryset(self, request):
@@ -602,7 +627,7 @@ class RequestAdmin(HasMetadataModelAdmin):
         if not obj:
             return None
         try:
-            return obj.role.metadata_form_class
+            return obj.access.role.metadata_form_class
         except Role.DoesNotExist:
             return None
 
