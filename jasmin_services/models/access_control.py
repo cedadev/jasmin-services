@@ -44,6 +44,9 @@ class Access(models.Model):
     #: The user for whom the role is granted
     user = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE)
 
+    def __str__(self):
+        return '{} : {}'.format(self.role, self.user)
+
 
 class GrantQuerySet(models.QuerySet):
     """
@@ -72,9 +75,30 @@ class GrantQuerySet(models.QuerySet):
         """
         return self.filter(next_grant__isnull = True)
 
+    def filter_access(self, role, user):
+        """
+        Returns a new queryset containing the grant that determines the users
+        permision for the given access.
+        When there are multiple grants for an access return the grant with the 
+        longest expiry, if there are none expiring return the most recent 
+        revocation.
+        """
+        grants = self.filter(access__role = role, access__user=user)
+        if grants.count() == 1:
+            return grants
+        elif grants.count() > 0:
+            live_grants = grants.filter(revoked = False)
+            if live_grants:
+                return live_grants.order_by('expires', 'granted_at').first()
+            else:
+                return grants.order_by('granted_at').first()
+        else:
+            return grants
+
 
 def _default_expiry():
     return date.today() + settings.JASMIN_SERVICES['DEFAULT_EXPIRY_DELTA']
+
 
 class Grant(HasMetadata):
     """
@@ -131,7 +155,10 @@ class Grant(HasMetadata):
                                       related_name = 'previous_grant')
 
     def __str__(self):
-        return '{} : {}'.format(self.role, self.user)
+        if self.next_grant:
+            return '{} : {}'.format(self.access, self.next_grant)
+        else:
+            return '{} : active'.format(self.access)
 
     @property
     def active(self):
@@ -198,8 +225,8 @@ class RequestQuerySet(models.QuerySet):
         return self.annotate(
             active = models.Case(
                 models.When(
-                    resulting_grant__is_null = True,
-                    next_request__is_null = True,
+                    resulting_grant__isnull = True,
+                    next_request__isnull = True,
                     then = models.Value(True),
                 ),
                 default = models.Value(False),
@@ -212,8 +239,25 @@ class RequestQuerySet(models.QuerySet):
         Returns a new queryset containing only the 'active' requests from this
         queryset.
         """
-        return self.filter(resulting_grant__is_null = True, next_request__is_null = True)
+        return self.filter(resulting_grant__isnull = True, next_request__isnull = True)
 
+    def filter_relevant(self, role, user):
+        """
+        Returns a new queryset containing the most relevant request.
+        When there are multiple requests for an access return the most recent
+        pending request else return the most recent request.
+        """
+        requests = self.filter(access__role = role, access__user=user)
+        if requests.count() == 1:
+            return requests
+        elif requests.count() > 0:
+            pending_requests = requests.filter(state = RequestState.PENDING)
+            if pending_requests:
+                return pending_requests.order_by('requested_at').first()
+            else:
+                return requests.order_by('requested_at').first()
+        else:
+            return requests
 
 class RequestState:
     """
