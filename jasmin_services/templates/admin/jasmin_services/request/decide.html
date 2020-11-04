@@ -51,27 +51,27 @@
             <fieldset class="module aligned">
                 <div class="form-row">
                     <label for="id_service">Role</label>
-                    <p id="id_service"><code>{{ original.role }}</code></p>
+                    <p id="id_service"><code>{{ original.access.role }}</code></p>
                 </div>
                 <div class="form-row">
                     <label for="id_for_user">Username</label>
-                    <p id="id_for_user"><code>{{ original.user.username }}</code></p>
+                    <p id="id_for_user"><code>{{ original.access.user.username }}</code></p>
                 </div>
                 <div class="form-row">
                     <label for="id_for_user">Full name</label>
-                    <p id="id_for_user">{{ original.user.get_full_name }}</p>
+                    <p id="id_for_user">{{ original.access.user.get_full_name }}</p>
                 </div>
                 <div class="form-row">
                     <label for="id_for_user">Institution</label>
-                    <p id="id_for_user">{{ original.user.institution }}</p>
+                    <p id="id_for_user">{{ original.access.user.institution }}</p>
                 </div>
                 <div class="form-row">
                     <label for="id_for_user">Discipline</label>
-                    <p id="id_for_user">{{ original.user.discipline }}</p>
+                    <p id="id_for_user">{{ original.access.user.discipline }}</p>
                 </div>
                 <div class="form-row">
                     <label for="id_for_user">Degree</label>
-                    <p id="id_for_user">{{ original.user.degree|default:"N/A" }}</p>
+                    <p id="id_for_user">{{ original.access.user.degree|default:"N/A" }}</p>
                 </div>
                 <div class="form-row">
                     <label for="id_requested_by">Requested By</label>
@@ -86,14 +86,14 @@
                 {% endfor %}
             </fieldset>
 
-            {% if rejected or grant.revoked or grant.expired or grant.expiring %}
+            {% if rejected or previous_grant %}
                 <fieldset class="module aligned">
                     <h2>Previous access</h2>
 
                     {% if rejected %}
                         <div class="reason-stack">
                             {% for req in rejected %}
-                                <aside class="reason danger">
+                                <aside class="rej-reason danger">
                                     <header>
                                         <span class="reason-number">{{ forloop.counter }} of {{ rejected|length }}</span>
                                         Previous request rejected
@@ -107,29 +107,29 @@
                             {% endfor %}
                         </div>
                     {% endif %}
-                    {% if grant.revoked %}
+                    {% if previous_grant.revoked %}
                         <aside class="danger">
-                            <header>Current grant revoked</header>
-                            {{ grant.user_reason|markdown }}
-                            {% if grant.internal_reason %}
+                            <header>Grant to be extended revoked</header>
+                            {{ previous_grant.user_reason|markdown }}
+                            {% if previous_grant.internal_reason %}
                                 <hr>
-                                {{ grant.internal_reason|markdown }}
+                                {{ previous_grant.internal_reason|markdown }}
                             {% endif %}
                         </aside>
-                    {% elif grant.expired %}
+                    {% elif previous_grant.expired %}
                         <aside class="danger">
-                            <header>Current grant expired</header>
-                            <p>Expired on {{ grant.expires }}</p>
+                            <header>Grant to be extended expired</header>
+                            <p>Expired on {{ previous_grant.expires }}</p>
                         </aside>
-                    {% elif grant.expiring %}
+                    {% elif previous_grant.expiring %}
                         <aside class="warning">
-                            <header>Current grant expiring</header>
-                            <p>Expires on {{ grant.expires }}</p>
+                            <header>Grant to be extended expiring</header>
+                            <p>Expires on {{ previous_grant.expires }}</p>
                         </aside>
                     {% else %}
-                        <aside>
-                            <header>Current grant live</header>
-                            <p>Expires on {{ grant.expires }}</p>
+                        <aside class="success">
+                            <header>Grant to be extended</header>
+                            <p>Expires on {{ previous_grant.expires }}</p>
                         </aside>
                     {% endif %}
                 </fieldset>
@@ -141,9 +141,9 @@
                         <div class="reason-stack">
                             {% for grant in grants %}
                                 {% if grant.revoked %}
-                                    <aside class="danger">
+                                    <aside class="grant-reason danger">
                                         <header>
-                                            <span class="reason-number">{{ forloop.counter }} of {{ rejected|length }}</span>
+                                            <span class="reason-number">{{ forloop.counter }} of {{ grants|length }}</span>
                                             Grant revoked
                                         </header>
                                         {{ grant.user_reason|markdown }}
@@ -153,7 +153,7 @@
                                         {% endif %}
                                     </aside>
                                 {% elif grant.expired %}
-                                    <aside class="danger">
+                                    <aside class="grant-reason danger">
                                         <header>
                                             <span class="reason-number">{{ forloop.counter }} of {{ grants|length }}</span>
                                             Grant expired
@@ -161,17 +161,17 @@
                                         <p>Expired on {{ grant.expires }}</p>
                                     </aside>
                                 {% elif grant.expiring %}
-                                    <aside class="warning">
+                                    <aside class="grant-reason warning">
                                         <header>
-                                            <span class="reason-number">{{ forloop.counter }} of {{ rejected|length }}</span>
+                                            <span class="reason-number">{{ forloop.counter }} of {{ grants|length }}</span>
                                             Grant expiring
                                         </header>
                                         <p>Expires on {{ grant.expires }}</p>
                                     </aside>
                                 {% else %}
-                                    <aside>
+                                    <aside class="grant-reason success">
                                         <header>
-                                            <span class="reason-number">{{ forloop.counter }} of {{ rejected|length }}</span>
+                                            <span class="reason-number">{{ forloop.counter }} of {{ grants|length }}</span>
                                             Grant live
                                         </header>
                                         <p>Expires on {{ grant.expires }}</p>
@@ -211,16 +211,40 @@
     // Stuff for rotating reasons
     var show_reason = function($reason) {
         if( $reason.length > 0 ) {
-            $('.reason').not($reason).hide();
+            $('.rej-reason').not($reason).hide();
             $reason.show();
         }
     };
-    var prev_reason = function(e) { show_reason($('.reason:visible').prev()); e.preventDefault(); };
-    var next_reason = function(e) { show_reason($('.reason:visible').next()); e.preventDefault(); };
+    var prev_reason = function(e) { show_reason($('.rej-reason:visible').prev()); e.preventDefault(); };
+    var next_reason = function(e) { show_reason($('.rej-reason:visible').next()); e.preventDefault(); };
     var n_reasons = {{ rejected|length }};
-    show_reason($('.reason:last-child'));
+    show_reason($('.rej-reason:last-child'));
     // Inject the previous/next reason buttons
-    $('.reason').each(function(i, el) {
+    $('.rej-reason').each(function(i, el) {
+        if( i > 0 ) {
+            var $link = $('<a href="#" title="Previous reason">&larr;</a>');
+            $link.click(prev_reason);
+            $(el).find('.reason-number').prepend($link);
+        }
+        if( i < n_reasons - 1 ) {
+            var $link = $('<a href="#" title="Next reason">&rarr;</a>');
+            $link.click(next_reason);
+            $(el).find('.reason-number').append($link);
+        }
+    });
+
+    var show_reason = function($reason) {
+        if( $reason.length > 0 ) {
+            $('.grant-reason').not($reason).hide();
+            $reason.show();
+        }
+    };
+    var prev_reason = function(e) { show_reason($('.grant-reason:visible').prev()); e.preventDefault(); };
+    var next_reason = function(e) { show_reason($('.grant-reason:visible').next()); e.preventDefault(); };
+    var n_reasons = {{ grants|length }};
+    show_reason($('.grant-reason:last-child'));
+    // Inject the previous/next reason buttons
+    $('.grant-reason').each(function(i, el) {
         if( i > 0 ) {
             var $link = $('<a href="#" title="Previous reason">&larr;</a>');
             $link.click(prev_reason);

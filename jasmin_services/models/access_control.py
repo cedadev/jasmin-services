@@ -36,6 +36,7 @@ class Access(models.Model):
             'role__name',
         )
         unique_together = ('role', 'user')
+        verbose_name_plural = "accesses"
 
     #: The role that the grant is for
     role = models.ForeignKey(Role, models.CASCADE,
@@ -84,9 +85,7 @@ class GrantQuerySet(models.QuerySet):
         revocation.
         """
         grants = self.filter(access__role = role, access__user=user)
-        if grants.count() == 1:
-            return grants
-        elif grants.count() > 0:
+        if grants.count() > 1:
             live_grants = grants.filter(revoked = False)
             if live_grants:
                 return live_grants.order_by('expires', 'granted_at').first()
@@ -156,7 +155,7 @@ class Grant(HasMetadata):
 
     def __str__(self):
         if self.next_grant:
-            return '{} : {}'.format(self.access, self.next_grant)
+            return '{} : old'.format(self.access)
         else:
             return '{} : active'.format(self.access)
 
@@ -350,8 +349,8 @@ class Request(HasMetadata):
                                           related_name = 'next_request')
     #: Request that superceeds this request
     next_request = models.OneToOneField('self', models.SET_NULL,
-                                      null = True, blank = True,
-                                      related_name = 'previous_request')
+                                        null = True, blank = True,
+                                        related_name = 'previous_request')
     #: If rejected, this is a reason for the user
     user_reason = models.TextField(
         blank = True,
@@ -366,7 +365,7 @@ class Request(HasMetadata):
     )
 
     def __str__(self):
-        return '{} : {} : {}'.format(self.role, self.user, self.state)
+        return '{} : {}'.format(self.access, self.state)
 
     @property
     def active(self):

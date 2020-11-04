@@ -22,7 +22,7 @@ from django.urls import reverse
 
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
-from .models import Grant, RequestState, LdapGroupBehaviour
+from .models import Access, Grant, RequestState, LdapGroupBehaviour
 
 
 def message_form_factory(sender, *roles):
@@ -35,7 +35,7 @@ def message_form_factory(sender, *roles):
     # grant for the USER role for the service
     queryset = get_user_model().objects.distinct() \
         .filter(
-            grant__in = Grant.objects
+            access__grant__in = Grant.objects
                 .filter(
                     access__role__in = roles,
                     expires__gte = date.today(),
@@ -176,20 +176,22 @@ class DecisionForm(forms.Form):
             self._request.state = RequestState.APPROVED
             # If the request has a previous_grant create a new grant 
             # and link with the old grant
-            if self._request.previous_grant:
+            previous_grant = self._request.previous_grant
+            if previous_grant:
                 self._request.resulting_grant = Grant.objects.create(
                     access = self._request.access,
                     granted_by = self._approver.username,
                     expires = expires_date
                 )
-                self._request.previous_grant.next_grant = self._request.resulting_grant
+                previous_grant.next_grant = self._request.resulting_grant
+                previous_grant.save()
             else:
             # Else create the access if it does not already exist and
             # then create the new grant
                 access = Access.objects.get_or_create(
-                    user = self._request.user,
-                    role = self._request.role
-                )
+                    user = self._request.access.user,
+                    role = self._request.access.role
+                )[0]
                 self._request.resulting_grant = Grant.objects.create(
                     access = access,
                     granted_by = self._approver.username,

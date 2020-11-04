@@ -49,8 +49,8 @@ def send_expiry_notifications(grant_queryset):
                 'grant_expired',
                 grant,
                 reverse('jasmin_services:service_details', kwargs = {
-                    'category' : grant.role.service.category.name,
-                    'service' : grant.role.service.name,
+                    'category' : grant.access.role.service.category.name,
+                    'service' : grant.access.role.service.name,
                 })
             )
         elif grant.expiring:
@@ -60,8 +60,8 @@ def send_expiry_notifications(grant_queryset):
                 'grant_expiring',
                 grant,
                 reverse('jasmin_services:service_details', kwargs = {
-                    'category' : grant.access.role.service.category.name,
-                    'service' : grant.access.role.service.name,
+                    'category' : grant.access.access.role.service.category.name,
+                    'service' : grant.access.access.role.service.name,
                 })
             )
 

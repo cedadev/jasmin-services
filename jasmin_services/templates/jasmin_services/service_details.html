@@ -74,7 +74,7 @@
                             {% for role, role_grants in grants %}
                                 {% for grant in role_grants %}
                                     <tbody>
-                                        {% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name next_grant=grant.pk as apply_url %}
+                                        {% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name bool_grant=1 previous=grant.pk as apply_url %}
                                         {% if grant.revoked %}
                                             <tr class="danger">
                                                 <td class="text-danger" style="width: 1%;"><i class="fa fa-fw fa-ban"></i></td>
@@ -118,6 +118,12 @@
                                                 </td>
                                             {% endif %}
                                         </tr>
+                                        {% if role_grants|length > 1 %}
+                                            <tr>
+                                                <th class="text-muted" colspan="2">Reason:</th>
+                                                <td colspan="3"><blockquote class="active">{{ grant.meta_data.reason|markdown }}</blockquote></td>
+                                            </tr>
+                                        {% endif %}
                                         {% if grant.revoked %}
                                             <tr>
                                                 <th class="text-muted" colspan="2">Reason:</th>
@@ -145,7 +151,7 @@
                             </thead>
                             {% for role, role_requests in requests %}
                                 {% for req in role_requests %}
-                                    {% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=requests.access.role.name next_request=request.pk as apply_url %}
+                                    {% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name bool_grant=0 previous=req.pk as apply_url %}
                                     <tbody>
                                         {% if req.rejected %}
                                             <tr class="danger">
@@ -157,13 +163,11 @@
                                             <tr class="success">
                                                 <td class="text-success" style="width: 1%;"><i class="fa fa-fw fa-check"></i></td>
                                         {% endif %}
-                                            <td><code>{{ req.role.name }}</code></td>
+                                            <td><code>{{ req.access.role.name }}</code></td>
                                             {% if req.approved %}
                                                 <td><code>APPROVED</code></td>
                                             {% elif req.rejected %}
-                                                <td>
-                                                    <code>REJECTED</code>
-                                                </td>
+                                                <td><code>REJECTED</code></td>
                                             {% else %}
                                                 <td><code>PENDING</code></td>
                                             {% endif %}
@@ -171,7 +175,7 @@
                                             {% if req.rejected %}
                                                 <td style="width: 1%;">
                                                     <a class="btn btn-primary btn-sm btn-block"
-                                                    href="{% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=req.role.name %}">
+                                                    href="{{ apply_url }}">
                                                         <i class="fa fa-fw fa-sync-alt"></i> Apply again
                                                     </a>
                                                 </td>
@@ -226,6 +230,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
 {% block tail_js_extra %}
 <script type="text/javascript">
     var $multiple = $('.access-table > tbody > tr:nth-child(2)').parent();
@@ -255,5 +261,4 @@
         $tbody.children('tr').show();
     });
 </script>
-{% endblock %}
 {% endblock %}

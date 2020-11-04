@@ -130,7 +130,7 @@
             </tr>
         </thead>
         <tbody>
-            {% regroup grants by user as grouped_grants %}
+            {% regroup grants by access.user as grouped_grants %}
             {% for user, grants in grouped_grants %}
                 {% for grant in grants %}
                     {% if grant.revoked %}
@@ -157,7 +157,7 @@
                         {% else %}
                             <td class="text-success"><i class="fa fa-fw fa-check"></i></td>
                         {% endif %}
-                        <td><code>{{ grant.role.name }}</code></td>
+                        <td><code>{{ grant.access.role.name }}</code></td>
                         {% if grant.revoked %}
                             <td><code>REVOKED</code></td>
                         {% elif grant.expired %}

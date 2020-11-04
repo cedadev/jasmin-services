@@ -29,7 +29,7 @@ from django.contrib.auth.decorators import user_passes_test
 
 from django.contrib.auth.decorators import login_required
 
-from .models import Grant, Request, RequestState, Category, Service, Role
+from .models import Access, Grant, Request, RequestState, Category, Service, Role
 from .forms import DecisionForm, message_form_factory
 
 
@@ -385,6 +385,7 @@ def service_details(request, service):
             requests.append((role, role_requests))
         if not role.hidden or role_requests or role_grants:
             roles.append(role)
+            
     templates = [
         'jasmin_services/{}/{}/service_details.html'.format(
             service.category.name,
@@ -404,7 +405,7 @@ def service_details(request, service):
 @require_http_methods(['GET', 'POST'])
 @login_required
 @with_service
-def role_apply(request, service, role, next_grant=None):
+def role_apply(request, service, role, bool_grant = None, previous=None):
     """
     Handler for ``/<category>/<service>/apply/<role>/``.
 
@@ -417,54 +418,81 @@ def role_apply(request, service, role, next_grant=None):
     except Role.DoesNotExist:
         messages.error(request, "Role does not exist")
         return redirect_to_service(service)
-    # If the user has an active grant, it must be revoked, expired or expiring
-    grant = role.grants.filter(user = request.user).filter_active().first()
-    if grant and not (grant.revoked or grant.expired or grant.expiring):
-        messages.info(
-            request,
-            "You have already been granted the specified role"
-        )
-        return redirect_to_service(service)
-    # If the user has an active request, it must be rejected
-    req = role.requests.filter(user = request.user).filter_active().first()
-    if req and not req.state == RequestState.REJECTED:
-        messages.info(
-            request,
-            "You already have a pending request for the specified role"
-        )
-        return redirect_to_service(service)
+    
+    previous_grant = None
+    previous_request = None
+    if bool_grant == 1:
+        previous_grant = Grant.objects.get(pk = previous)
+    elif bool_grant == 0:
+        previous_request = Request.objects.get(pk = previous)
+        if previous_request.previous_grant:
+            previous_grant = previous_request.previous_grant
+    
+    # If the user has an active request for this chain it must be rejected
+    if previous_grant or previous_request:
+        requests = Request.objects.filter_active()
+        current_req = requests.filter(previous_grant = previous_grant).first()
+
+        if not current_req:
+            current_req = requests.filter(next_request = previous_request).first()
+
+        if current_req and current_req.state != RequestState.REJECTED:
+            messages.info(
+                request,
+                "You have already have an active request for the specified grant"
+            )
+            return redirect_to_service(service)
+ 
     # Otherwise, attempt to do something
     form_class = role.metadata_form_class
     if request.method == 'POST':
         form = form_class(data = request.POST)
         if form.is_valid():
             with transaction.atomic():
+                access = Access.objects.get_or_create(
+                    role = role,
+                    user = request.user,
+                )[0]
                 # If the role is set to auto accept, grant before saving
                 if role.auto_accept:
-                    request = Request.objects.create(
-                        role = role,
-                        user = request.user,
-                        requested_by = request.user.username
+                    req = Request.objects.create(
+                        access = access,
+                        requested_by = request.user.username,
+                        state = RequestState.APPROVED
                     )
-                    request.grant = Grant.objects.create(
-                        role = role,
-                        user = request.user,
-                        granted_by = request.user.username,
+                    req.resulting_grant = Grant.objects.create(
+                        access = access,
+                        granted_by = 'automatic',
                         expires = date.today() + relativedelta(years = 1)
                     )
-                    request.copy_metadata_to(request.grant)
+                    req.copy_metadata_to(req.resulting_grant)
+                    
+                    if previous_request:
+                        previous_request.next_request = req
+                        previous_request.save()
 
-                    form.save(
-                        request
-                    )
+                    if previous_grant:
+                        previous_grant.next_grant = req.resulting_grant
+                        req.previous_grant = previous_grant
+                        previous_grant.save()
+                    
+                    req.save()
+                    form.save(req)
                 else:
-                    form.save(
-                        Request.objects.create(
-                            role = role,
-                            user = request.user,
-                            requested_by = request.user.username
-                        )
+                    req = Request.objects.create(
+                        access = access,
+                        requested_by = request.user.username
                     )
+
+                    if previous_request:
+                        previous_request.next_request = req
+                        previous_request.save()
+                    
+                    if previous_grant:
+                        req.previous_grant = previous_grant
+                        
+                    req.save()
+                    form.save(req)
             messages.success(request, 'Request submitted successfully')
             return redirect_to_service(service)
         else:
@@ -472,8 +500,8 @@ def role_apply(request, service, role, next_grant=None):
     else:
         # Set the initial data to the metadata attached to the active request
         initial = {}
-        if req:
-            for datum in req.metadata.all():
+        if previous_request:
+            for datum in previous_request.metadata.all():
                 initial[datum.key] = datum.value
         form = form_class(initial = initial)
     templates = [
@@ -491,8 +519,8 @@ def role_apply(request, service, role, next_grant=None):
     ]
     return render(request, templates, {
         'role': role,
-        'grant': grant,
-        'req': req,
+        'grant': previous_grant,
+        'req': previous_request,
         'form': form,
     })
 
@@ -531,7 +559,7 @@ def service_users(request, service):
             messages.error(request, 'Insufficient permissions')
             return redirect_to_service(service)
     # Start with the active grants for the roles that the user has permission for
-    grants = Grant.objects.filter_active().filter(role__in = user_roles)
+    grants = Grant.objects.filter_active().filter(access__role__in = user_roles)
     all_statuses = ('active', 'expiring', 'expired', 'revoked')
     # Only apply filters if _apply_filters is present in the GET params
     if '_apply_filters' in request.GET:
@@ -542,7 +570,7 @@ def service_users(request, service):
             if role.name in request.GET
         )
         # Then filter by those roles
-        grants = grants.filter(role__in = selected_roles)
+        grants = grants.filter(access__role__in = selected_roles)
         # Then get the statuses to display from the GET filters
         selected_statuses = set(
             status
@@ -571,8 +599,8 @@ def service_users(request, service):
         selected_statuses = all_statuses
     # Order the grants by user and then by the natural ordering
     grants = grants  \
-        .select_related('role', 'user', 'user__institution')  \
-        .order_by('user', *Grant._meta.ordering)
+        .select_related('access__role', 'access__user', 'access__user__institution')  \
+        .order_by('access__user', *Grant._meta.ordering)
     # Get a paginator for the grants
     paginator = Paginator(
         grants,
@@ -610,7 +638,7 @@ def service_users(request, service):
             for r in user_roles
         ),
         'grants': page,
-        'n_users': grants.values('user').distinct().count(),
+        'n_users': grants.values('access__user').distinct().count(),
         'preserved_filters': '&'.join(
             '{}=1'.format(f) for f in preserved_filters
         ),
@@ -664,14 +692,14 @@ def service_requests(request, service):
         # Get the pending requests for the discovered roles
         'requests': Request.objects \
             .filter_active() \
-            .filter(role__in = user_roles, state = RequestState.PENDING),
+            .filter(access__role__in = user_roles, state = RequestState.PENDING),
         # The list of approvers to show here is any user who can approve at
         # least one of the visible roles
         'approvers': get_user_model().objects \
             .filter(
-                grant__in = Grant.objects
+                access__grant__in = Grant.objects
                     .filter(
-                        role__in = Role.objects.filter_permission(
+                        access__role__in = Role.objects.filter_permission(
                             permission,
                             service,
                             *user_roles
@@ -706,58 +734,55 @@ def request_decide(request, pk):
     # The current user must have permission to grant the role
     permission = 'jasmin_services.decide_request'
     if not request.user.has_perm(permission) and \
-       not request.user.has_perm(permission, pending.role.service) and \
-       not request.user.has_perm(permission, pending.role):
+       not request.user.has_perm(permission, pending.access.role.service) and \
+       not request.user.has_perm(permission, pending.access.role):
         messages.error(request, 'Request does not exist')
-        return redirect_to_service(pending.role.service, 'service_details')
+        return redirect_to_service(pending.access.role.service, 'service_details')
     # If the request is not pending, redirect to the list of pending requests
     if not pending.active or pending.state != RequestState.PENDING:
         messages.info(request, 'This request has already been resolved')
         return redirect(
             'jasmin_services:service_requests',
-            category = pending.role.service.category.name,
-            service = pending.role.service.name
+            category = pending.access.role.service.category.name,
+            service = pending.access.role.service.name
         )
     # If the user requesting access has an active grant, find it
-    grant = pending.role.grants \
-        .filter(user = pending.user) \
-        .filter_active() \
-        .first()
+    grant = pending.previous_grant
     # Find all the rejected requests for the role/user since the active grant
-    rejected = pending.role.requests \
-        .filter(user = pending.user, state = RequestState.REJECTED)
-    if grant:
-        rejected = rejected.filter(requested_at__gt = grant.granted_at)
-    rejected = rejected.order_by('requested_at')
+    rejected = Request.objects.filter(
+        access = pending.access,
+        state = RequestState.REJECTED,
+        previous_grant = pending.previous_grant
+    ).order_by('requested_at')
     # Process the form if this is a POST request, otherwise just set it up
     if request.method == 'POST':
         form = DecisionForm(pending, request.user, data = request.POST)
         if form.is_valid():
             with transaction.atomic():
                 form.save()
-            return redirect_to_service(pending.role.service, 'service_requests')
+            return redirect_to_service(pending.access.role.service, 'service_requests')
         else:
             messages.error(request, 'Error with one or more fields')
     else:
         form = DecisionForm(pending, request.user)
     templates = [
         'jasmin_services/{}/{}/request_decide.html'.format(
-            pending.role.service.category.name,
-            pending.role.service.name
+            pending.access.role.service.category.name,
+            pending.access.role.service.name
         ),
         'jasmin_services/{}/request_decide.html'.format(
-            pending.role.service.category.name
+            pending.access.role.service.category.name
         ),
         'jasmin_services/request_decide.html',
     ]
     return render(request, templates, {
-        'service' : pending.role.service,
+        'service' : pending.access.role.service,
         'pending' : pending,
         'rejected' : rejected,
         'grant' : grant,
         # The list of approvers to show here is any user who has the correct
         # permission for either the role or the service
-        'approvers': pending.role.approvers.exclude(pk = request.user.pk),
+        'approvers': pending.access.role.approvers.exclude(pk = request.user.pk),
         'form' : form,
     })
 

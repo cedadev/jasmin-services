@@ -421,9 +421,9 @@ class GrantAdmin(HasMetadataModelAdmin):
 
     change_form_template = "admin/jasmin_services/grant/change_form.html"
 
-    fields = ('access', 'granted_by',
+    fields = ('access', 'granted_by', 'next_grant',
               'expires', 'revoked', 'user_reason', 'internal_reason')
-    autocomplete_fields = ('access',)
+    autocomplete_fields = ('access', 'next_grant')
 
     def get_queryset(self, request):
         # Annotate with information about active status
@@ -548,7 +548,7 @@ class _StateListFilter(admin.SimpleListFilter):
 
 @admin.register(Request)
 class RequestAdmin(HasMetadataModelAdmin):
-    list_display = ('role_link', 'access', 'active', 'state_html', 'requested_at')
+    list_display = ('role_link', 'access', 'active', 'state_html', 'next_request', 'previous_grant', 'requested_at')
     list_filter = (
         _ServiceFilter,
         'access__role__name',
@@ -566,12 +566,13 @@ class RequestAdmin(HasMetadataModelAdmin):
         'access__user__last_name'
     )
     fields = (
-        'access__role',
-        'access__user',
+        'access',
         'requested_by',
         'requested_at',
         'state',
         'resulting_grant',
+        'next_request', 
+        'previous_grant', 
         'user_reason',
         'internal_reason'
     )
@@ -601,7 +602,7 @@ class RequestAdmin(HasMetadataModelAdmin):
             url = reverse('admin:jasmin_services_request_change',
                           args = (quote(obj.pk), ),
                           current_app=self.admin_site.name)
-        return mark_safe('<a href="{}">{}</a>'.format(url, obj.role))
+        return mark_safe('<a href="{}">{}</a>'.format(url, obj.access.role))
     role_link.short_description = 'Service'
 
     def state_html(self, obj):
@@ -674,18 +675,19 @@ class RequestAdmin(HasMetadataModelAdmin):
         else:
             form = AdminDecisionForm(pending, request.user)
         # If the user requesting access has an active grant, find it
-        grant = pending.role.grants \
-            .filter(user = pending.user)  \
-            .filter_active()  \
-            .first()
-        # Find all the rejected requests for the role/user since the active grant
-        rejected = pending.role.requests.filter(
-            user = pending.user,
-            state = RequestState.REJECTED
-        )
-        if grant:
-            rejected = rejected.filter(requested_at__gt = grant.granted_at)
-        rejected = rejected.order_by('requested_at')
+        previous_grant = pending.previous_grant
+
+        grants = Grant.objects \
+            .filter(access = pending.access)  \
+            .filter_active()
+
+        # Find all the rejected requests for this request chain.
+        rejected = Request.objects.filter(
+            access = pending.access,
+            state = RequestState.REJECTED,
+            previous_grant = pending.previous_grant
+        ).order_by('requested_at')
+
         context = {
             'title': 'Decide Service Request',
             'form': form,
@@ -702,7 +704,8 @@ class RequestAdmin(HasMetadataModelAdmin):
             'show_save': True,
             'media': self.media + form.media,
             'rejected': rejected,
-            'grant': grant,
+            'previous_grant': previous_grant,
+            'grants': grants,
         }
         context.update(self.admin_site.each_context(request))
         request.current_app = self.admin_site.name

@@ -1,1 +1,1 @@
-Access granted for {{ target.role.service }}
+Access granted for {{ target.access.role.service }}

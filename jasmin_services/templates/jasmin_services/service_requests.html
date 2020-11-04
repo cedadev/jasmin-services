@@ -44,10 +44,10 @@
                     {% for req in requests %}
                         <tr>
                             {% if forloop.first %}
-                                <td rowspan="{{ requests|length }}"><code>{{ req.user.username }}</code></td>
-                                <td rowspan="{{ requests|length }}">{{ req.user.get_full_name }}</td>
+                                <td rowspan="{{ requests|length }}"><code>{{ req.access.user.username }}</code></td>
+                                <td rowspan="{{ requests|length }}">{{ req.access.user.get_full_name }}</td>
                             {% endif %}
-                            <td><code>{{ req.role.name }}</code></td>
+                            <td><code>{{ req.access.role.name }}</code></td>
                             <td>{{ req.requested_at }}</td>
                             <td>
                                 <a class="btn btn-primary btn-sm" title="Make decision"
