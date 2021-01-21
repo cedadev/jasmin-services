@@ -15,6 +15,8 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth import get_user_model
+from django_countries.fields import CountryField
+
 
 from jasmin_metadata.models import Form
 
@@ -85,6 +87,18 @@ class Service(models.Model):
         help_text = 'Full description of the service, shown on the details page. '
                     'Markdown formatting is allowed.'
     )
+    #: Additional text to send to approvers of the service
+    approver_message = models.TextField(
+        blank = True, null = True, default = '',
+        help_text = 'Service specific instructions to be added to the external '
+                    'approver message.'
+    )
+    #: Countries a users institution must be from to gain access
+    instution_countries = CountryField(
+        multiple = True, blank = True,
+        help_text = 'Coutries a user\'s institute must be located to begin '
+                    'approval. Hold ctrl or cmd for mac to select multiple '
+                    'countries. Leave blank for any country.')
     #: Indicates if the service should be shown in listings
     hidden = models.BooleanField(
         default = True,
@@ -103,7 +117,6 @@ class Service(models.Model):
 
     def __str__(self):
         return '{} : {}'.format(self.category, self.name)
-
 
 class RoleQuerySet(models.QuerySet):
     """
@@ -171,6 +184,11 @@ class Role(models.Model):
         help_text = 'Prevents the role appearing in listings unless the user '
                     'has an active grant or request for it.'
     )
+    auto_accept = models.BooleanField(
+        default = False,
+        help_text = 'Auto accepts all requested access giving users with a 1 '
+                    'year experation date '
+    )
     #: Determines the order that the roles appear when listed.
     position = models.PositiveIntegerField(
         default = 9999,
@@ -223,9 +241,9 @@ class Role(models.Model):
         from .access_control import Grant
         return get_user_model().objects \
             .filter(
-                grant__in = Grant.objects
+                access__grant__in = Grant.objects
                     .filter(
-                        role__in = Role.objects.filter_permission(
+                        access__role__in = Role.objects.filter_permission(
                             'jasmin_services.decide_request',
                             self.service,
                             self

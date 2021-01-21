@@ -5,16 +5,16 @@ Hi {{ user.first_name }},
 
 The following request has been rejected:
 {% if target.user.service_user %}
-    Service: {{ target.role.service }}
-    Role: {{ target.role.name }}
-    User: {{ target.user }}
+    Service: {{ target.access.role.service }}
+    Role: {{ target.access.role.name }}
+    User: {{ target.access.user }}
 
 You are receiving this email as a designated responsible user for this service user.
 
 Please contact the system administrator to find out why.
 {% else %}
-    Service: {{ target.role.service }}
-    Role: {{ target.role.name }}
+    Service: {{ target.access.role.service }}
+    Role: {{ target.access.role.name }}
 
 Please visit {{ follow_link }} to view the reason and reapply (if appropriate).
 {% endif %}

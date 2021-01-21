@@ -1,78 +1,99 @@
 {% extends 'layout.html' %}
-{% load bootstrap3 markdown_deux_tags %}
+{% load widget_tweaks markdown_deux_tags %}
 
 {% block page_title %}Apply for role{% endblock %}
 
 {% block breadcrumbs %}
 <ol class="breadcrumb">
-    <li>JASMIN Services</li>
-    <li>
-        <a href="{% url 'jasmin_services:service_list' category=role.service.category.name %}">{{ role.service.category }}</a>
+    <li class="breadcrumb-item">JASMIN Services</li>
+    <li class="breadcrumb-item">
+        <a class="breadcrumb-link" href="{% url 'jasmin_services:service_list' category=role.service.category.name %}">{{ role.service.category }}</a>
     </li>
-    <li>
-        <a href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name %}">{{ role.service.name }}</a>
+    <li class="breadcrumb-item">
+        <a class="breadcrumb-link" href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name %}">{{ role.service.name }}</a>
     </li>
-    <li class="active">Apply</li>
+    <li  class="breadcrumb-item active">Apply</li>
 </ol>
 {% endblock %}
 
 {% block content %}
-<div class="col-md-8 col-md-offset-2">
-    <form method="POST" action="" class="form-horizontal">
-        {% csrf_token %}
+<div class="row justify-content-lg-center">
+    <div class="col-lg-8 col-12">
+        <form method="POST" action="" class="form-horizontal" id="apply-form">
+            {% csrf_token %}
 
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_service">Service</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_service">
-                    <code>{{ role.service }}</code>
-                </p>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_role">Role</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_role">
-                    <code>{{ role.name }}</code>
-                </p>
-            </div>
-        </div>
-
-        {% if req or grant %}
             <div class="form-group">
-                <div class="col-md-9 col-md-offset-3">
-                    {% if req %}
-                        <aside class="danger">
-                            <header>Previous request rejected</header>
-                            {{ req.user_reason|markdown }}
-                        </aside>
-                    {% elif grant.revoked %}
-                        <aside class="danger">
-                            <header>Previous access revoked</header>
-                            {{ grant.user_reason|markdown }}
-                        </aside>
-                    {% elif grant.expired %}
-                        <aside class="danger">
-                            <header>Access expired</header>
-                            <p>Expired on {{ grant.expires }}</p>
-                        </aside>
-                    {% elif grant.expiring %}
-                        <aside class="warning">
-                            <header>Access expiring</header>
-                            <p>Expiring on {{ grant.expires }}</p>
-                        </aside>
-                    {% endif %}
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_service"><b>Service</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_service">
+                            <code>{{ role.service }}</code>
+                        </p>
+                    </div>
                 </div>
             </div>
-        {% endif %}
-
-        {% bootstrap_form form layout='horizontal' %}
-
-        <div class="form-group">
-            <div class="col-sm-offset-3 col-sm-9">
-                <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Apply</button>
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_role"><b>Role</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_role">
+                            <code>{{ role.name }}</code>
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-    </form>
+    
+            {% if req or grant %}
+                <div class="form-group">
+                    <div class="col-8 offset-4">
+                        {% if req %}
+                            <aside class="danger">
+                                <header>Previous request rejected</header>
+                                {{ req.user_reason|markdown }}
+                            </aside>
+                        {% elif grant.revoked %}
+                            <aside class="danger">
+                                <header>Previous access revoked</header>
+                                {{ grant.user_reason|markdown }}
+                            </aside>
+                        {% elif grant.expired %}
+                            <aside class="danger">
+                                <header>Access expired</header>
+                                <p>Expired on {{ grant.expires }}</p>
+                            </aside>
+                        {% elif grant.expiring %}
+                            <aside class="warning">
+                                <header>Access expiring</header>
+                                <p>Expiring on {{ grant.expires }}</p>
+                            </aside>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+    
+            {% for field in form.visible_fields %}
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_service"><b>{{ field.label }}</b></label>
+                    <div class="col">
+                            {% render_field field class="form-control" placeholder=field.label %}
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="form-group">
+                <div class="row">
+                    <div class="ml-auto">
+                        <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

@@ -5,14 +5,14 @@ Hi {{ user.first_name }},
 
 The following request has been submitted for approval:
 {% if target.user.service_user %}
-    Service: {{ target.role.service }}
-    Role: {{ target.role.name }}
-    User: {{ target.user }}
+    Service: {{ target.access.role.service }}
+    Role: {{ target.access.role.name }}
+    User: {{ target.access.user }}
 
 You are receiving this email as a designated responsible user for this service user.
 {% else %}
-    Service: {{ target.role.service }}
-    Role: {{ target.role.name }}
+    Service: {{ target.access.role.service }}
+    Role: {{ target.access.role.name }}
 {% endif %}
 You will be notified when a decision has been made.
 {% endblock %}

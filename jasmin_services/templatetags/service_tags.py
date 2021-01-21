@@ -37,5 +37,5 @@ def pending_req_count(context, service):
         ]
     return Request.objects \
         .filter_active() \
-        .filter(role__in = user_roles, state = RequestState.PENDING) \
+        .filter(access__role__in = user_roles, state = RequestState.PENDING) \
         .count()

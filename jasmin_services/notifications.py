@@ -78,12 +78,12 @@ def confirm_request(sender, instance, created, **kwargs):
     Notifies the user that their request was received.
     """
     if created and instance.active and instance.state == RequestState.PENDING:
-        instance.user.notify(
+        instance.access.user.notify(
             'request_confirm',
             instance,
             reverse('jasmin_services:service_details', kwargs = {
-                'category' : instance.role.service.category.name,
-                'service' : instance.role.service.name,
+                'category' : instance.access.role.service.category.name,
+                'service' : instance.access.role.service.name,
             })
         )
 
@@ -93,7 +93,7 @@ def notify_approvers(instance):
     Notifies potential approvers for a request to poke them into action.
     """
     if instance.active and instance.state == RequestState.PENDING:
-        approvers = instance.role.approvers.exclude(pk = instance.user.pk)
+        approvers = instance.access.role.approvers.exclude(pk = instance.access.user.pk)
         # If the role has some approvers, notify them
         if approvers:
             link = reverse(
@@ -150,12 +150,12 @@ def request_rejected(sender, instance, created, **kwargs):
     """
     if instance.active and instance.state == RequestState.REJECTED:
         # Only send the notification once
-        instance.user.notify_if_not_exists(
+        instance.access.user.notify_if_not_exists(
             'request_rejected',
             instance,
             reverse('jasmin_services:service_details', kwargs = {
-                'category' : instance.role.service.category.name,
-                'service' : instance.role.service.name,
+                'category' : instance.access.role.service.category.name,
+                'service' : instance.access.role.service.name,
             })
         )
 
@@ -166,12 +166,12 @@ def grant_created(sender, instance, created, **kwargs):
     Notifies the user when a grant is created.
     """
     if created and instance.active:
-        instance.user.notify(
+        instance.access.user.notify(
             'grant_created',
             instance,
             reverse('jasmin_services:service_details', kwargs = {
-                'category' : instance.role.service.category.name,
-                'service' : instance.role.service.name,
+                'category' : instance.access.role.service.category.name,
+                'service' : instance.access.role.service.name,
             })
         )
 
@@ -183,12 +183,12 @@ def grant_revoked(sender, instance, created, **kwargs):
     """
     if instance.active and instance.revoked:
         # Only send the notification once
-        instance.user.notify_if_not_exists(
+        instance.access.user.notify_if_not_exists(
             'grant_revoked',
             instance,
             reverse('jasmin_services:service_details', kwargs = {
-                'category' : instance.role.service.category.name,
-                'service' : instance.role.service.name,
+                'category' : instance.access.role.service.category.name,
+                'service' : instance.access.role.service.name,
             })
         )
 
@@ -200,9 +200,9 @@ def grant_sync_access(sender, instance, created, **kwargs):
     """
     if instance.active:
         if instance.revoked or instance.expired:
-            instance.role.disable(instance.user)
+            instance.access.role.disable(instance.access.user)
         else:
-            instance.role.enable(instance.user)
+            instance.access.role.enable(instance.access.user)
 
 
 @receiver(signals.post_save, sender = get_user_model())

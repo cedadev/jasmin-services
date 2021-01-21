@@ -1,22 +1,26 @@
 {% extends 'layout.html' %}
-{% load bootstrap3 markdown_deux_tags pretty_name %}
+{% load widget_tweaks markdown_deux_tags pretty_name %}
 
 {% block page_title %}Make a decision{% endblock %}
 
 {% block breadcrumbs %}
 <ol class="breadcrumb">
-    <li>JASMIN Services</li>
-    <li>
-        <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
+    <li  class="breadcrumb-item">JASMIN Services</li>
+    <li class="breadcrumb-item">
+        <a class="breadcrumb-link" style="text-decoration: none;" href="{% url 'jasmin_services:my_services'%}">
+            {{ service.category }}
+        </a>
     </li>
-    <li class="active">{{ service.name }}</li>
+    <li class="breadcrumb-item active">{{ service.name }}</li>
 </ol>
 {% endblock %}
 
 {% block content_header %}{{ block.super }}
-<div class="row">
-    <div class="col-md-12">
-        {% include "jasmin_services/includes/service_tabs.html" %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            {% include "jasmin_services/includes/service_tabs.html" %}
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -30,142 +34,174 @@
     document.write('<style>.form-group { display: none; }</style>');
 </script>
 
-<div class="col-md-9">
-    <form method="POST" action="" class="form-horizontal" id="decision-form">
-        {% csrf_token %}
+<div class="row justify-content-lg-center">
+    <div class="col-lg-8 col-12">
+        <form method="POST" action="" class="form-horizontal" id="decision-form">
+            {% csrf_token %}
 
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_role">Role</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_role">
-                    <code>{{ pending.role }}</code>
-                </p>
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_service"><b>Role</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_role">
+                            <code>{{ pending.role }}</code>
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_for_username">Username</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_for_username">
-                    <code>{{ pending.user.username }}</code>
-                </p>
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_for_username"><b>Username</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_for_username">
+                            <code>{{ pending.user.username }}</code>
+                        </p>
+                    </div>
+                </div>  
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_for_full_name">Full name</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_for_full_name">
-                    {{ pending.user.get_full_name }}
-                </p>
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_for_full_name"><b>Full name</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_for_full_name">
+                            {{ pending.user.get_full_name }}
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_for_institution">Institution</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_for_institution">
-                    {{ pending.user.institution }}
-                </p>
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_for_institution"><b>Institution</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_for_institution">
+                            {{ pending.user.institution }}
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_for_discipline">Discipline</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_for_discipline">
-                    {{ pending.user.discipline }}
-                </p>
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_for_discipline"><b>Discipline</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_for_discipline">
+                            {{ pending.user.discipline }}
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_for_degree">Degree</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_for_degree">
-                    {{ pending.user.degree|default:"N/A" }}
-                </p>
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_for_degree"><b>Degree</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_for_degree">
+                            {{ pending.user.degree|default:"N/A" }}
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_requested_by">Requested By</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_requested_by">
-                    <code>{{ pending.requested_by }}</code>
-                </p>
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_requested_by"><b>Requested By</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_requested_by">
+                            <code>{{ pending.requested_by }}</code>
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        {% if rejected %}
-            <div class="reason-stack">
-                {% for req in rejected %}
-                    <div class="form-group reason">
-                        <div class="col-md-9 col-md-offset-3">
-                            <aside class="danger">
-                                <header>
-                                    <span class="reason-number">{{ forloop.counter }} of {{ rejected|length }}</span>
-                                    Previous request rejected
-                                </header>
-                                {{ req.user_reason|markdown }}
-                                {% if req.internal_reason %}
-                                    <hr>
-                                    {{ req.internal_reason|markdown }}
-                                {% endif %}
-                            </aside>
+            {% if rejected %}
+                <div class="reason-stack">
+                    {% for req in rejected %}
+                        <div class="form-group reason">
+                            <div class="col-8 offset-4">
+                                <aside class="danger">
+                                    <header>
+                                        <span class="reason-number">{{ forloop.counter }} of {{ rejected|length }}</span>
+                                        Previous request rejected
+                                    </header>
+                                    {{ req.user_reason|markdown }}
+                                    {% if req.internal_reason %}
+                                        <hr>
+                                        {{ req.internal_reason|markdown }}
+                                    {% endif %}
+                                </aside>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% if grant.revoked %}
+                <div class="form-group">
+                    <div class="col-8 offset-4">
+                        <aside class="danger">
+                            <header>Previous access revoked</header>
+                            {{ grant.user_reason|markdown }}
+                            {% if grant.internal_reason %}
+                                <hr>
+                                {{ grant.internal_reason|markdown }}
+                            {% endif %}
+                        </aside>
+                    </div>
+                </div>
+            {% elif grant.expired %}
+                <div class="form-group">
+                    <div class="col-8 offset-4">
+                        <aside class="danger">
+                            <header>Previous access expired</header>
+                            <p>Expired on {{ grant.expires }}</p>
+                        </aside>
+                    </div>
+                </div>
+            {% elif grant.expiring %}
+                <div class="form-group">
+                    <div class="col-8 offset-4">
+                        <aside class="warning">
+                            <header>Current access expiring</header>
+                            <p>Expires on {{ grant.expires }}</p>
+                        </aside>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% block extra_context %}{% endblock %}
+
+            {% for datum in pending.metadata.all %}
+                <div class="form-group">
+                    <div class="row">
+                        <label class="col-4 text-right control-label" for="id_{{ datum.key }}"><b>{{ datum.key|pretty_name }}</b></label>
+                        <div class="col">
+                            <p class="form-control-static" id="id_{{ datum.key }}" style="white-space: pre-wrap;">{{ datum.value }}</p>
                         </div>
                     </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-        {% if grant.revoked %}
+                </div>
+            {% endfor %}
+
+            {% for field in form.visible_fields %}
             <div class="form-group">
-                <div class="col-md-9 col-md-offset-3">
-                    <aside class="danger">
-                        <header>Previous access revoked</header>
-                        {{ grant.user_reason|markdown }}
-                        {% if grant.internal_reason %}
-                            <hr>
-                            {{ grant.internal_reason|markdown }}
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_service"><b>{{ field.label }}</b></label>
+                    <div class="col">
+                            {% render_field field class="form-control" placeholder=field.label %}
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
                         {% endif %}
-                    </aside>
+                    </div>
                 </div>
             </div>
-        {% elif grant.expired %}
+            {% endfor %}
+
             <div class="form-group">
-                <div class="col-md-9 col-md-offset-3">
-                    <aside class="danger">
-                        <header>Previous access expired</header>
-                        <p>Expired on {{ grant.expires }}</p>
-                    </aside>
+                <div class="row">
+                    <div class="ml-auto">
+                        <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Make decision</button>
+                    </div>
                 </div>
             </div>
-        {% elif grant.expiring %}
-            <div class="form-group">
-                <div class="col-md-9 col-md-offset-3">
-                    <aside class="warning">
-                        <header>Current access expiring</header>
-                        <p>Expires on {{ grant.expires }}</p>
-                    </aside>
-                </div>
-            </div>
-        {% endif %}
-
-        {% block extra_context %}{% endblock %}
-
-        {% for datum in pending.metadata.all %}
-            <div class="form-group">
-                <label class="col-md-3 control-label" for="id_{{ datum.key }}">{{ datum.key|pretty_name }}</label>
-                <div class="col-md-9">
-                    <p class="form-control-static" id="id_{{ datum.key }}" style="white-space: pre-wrap;">{{ datum.value }}</p>
-                </div>
-            </div>
-        {% endfor %}
-
-        {% bootstrap_form form layout='horizontal' %}
-
-        <div class="form-group">
-            <div class="col-sm-offset-3 col-sm-9">
-                <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Make decision</button>
-            </div>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
-<div class="col-md-3">
+<div class="col-md-6">
     <div class="panel panel-default">
         <div class="panel-heading">Other approvers</div>
         {% if approvers %}
@@ -175,13 +211,13 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <div class="panel-body">You are the only approver for this role.</div>
+            <div class="panel-body"><code>You are the only approver for this role.</code></div>
         {% endif %}
     </div>
 </div>
 {% endblock %}
 
-{% block footer_js %}
+{% block tail_js_extra %}
 <script type="text/javascript">
     $('.reason-stack').show();
     // Stuff for rotating reasons

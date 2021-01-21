@@ -5,11 +5,18 @@ Hi {{ user.first_name }},
 
 The following request has been submitted for approval:
 
-    Service: {{ target.role.service }}
-    Role: {{ target.role.name }}
-    User: {{ target.user }}
+    Service: {{ target.access.role.service }}
+    Role: {{ target.access.role.name }}
+    User: {{ target.access.user }}
 
 You are receiving this email because you are a registered approver for this role.
 
 To review the request, please visit {{ follow_link }}.
+
+{% if target.access.role.service.approver_message %}
+Additional useful information:
+
+{{ target.access.role.service.approver_message }}
+{% endif %}
+
 {% endblock %}
