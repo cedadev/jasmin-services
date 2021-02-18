@@ -50,10 +50,10 @@
             {% endblock %}
         </div>
         <div class="col-lg-5 col-md-6">
-            {% if not requests and not grants and roles|length == 1 and not access.0.1 and not access.0.2 %}
+            {% if not requests and not grants and roles|length == 1 %}
                 <div class="well text-center">
                     <a class="btn btn-primary btn-lg {% if service.instution_countries and user_country not in service.instution_countries %} disabled {% endif %}"
-                    href="{% url 'jasmin_services:role_apply' category=access.0.0.service.category.name service=access.0.0.service.name role=access.0.0.name %}">
+                    href="{% url 'jasmin_services:role_apply' category=roles.0.service.category.name service=roles.0.service.name role=roles.0.name %}">
                         <i class="fa fa-fw fa-plus"></i> Apply for access
                     </a>
                 </div>
