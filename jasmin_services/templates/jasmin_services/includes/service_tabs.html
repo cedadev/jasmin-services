@@ -5,7 +5,7 @@
 {% user_has_service_perm service request.user 'jasmin_services.send_message_role' as send_message %}
 
 {% with active=request.resolver_match.url_name %}
-    {% if view_users or approver or send_message %}
+    {% if view_users or approver or send_message or service.object_store_url %}
         <ul class="nav nav-tabs">
             <li {% if active == 'service_details' %}class="active"{% endif %}>
                 <a href="{% url 'jasmin_services:service_details' category=service.category.name service=service.name %}">Details</a>
@@ -29,6 +29,11 @@
                             <span class="badge">{{ n_pending }}</span>
                         {% endif %}
                     </a>
+                </li>
+            {% endif %}
+            {% if service.object_store_url %}
+                <li {% if active == 'service_object_store_tokens' %}class="active"{% endif %}>
+                    <a href="{% url 'jasmin_services:service_object_store_tokens' category=service.category.name service=service.name %}">Object store tokens</a>
                 </li>
             {% endif %}
         </ul>

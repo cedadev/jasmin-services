@@ -100,6 +100,12 @@ class Service(models.Model):
                     'Services are ordered in ascending order by category, then by '
                     'this field, then alphabetically by name.'
     )
+    #: If the service is for an object store this is the url
+    object_store_url = models.CharField(
+        blank = True, default = '', max_length=250,
+        help_text = 'URL for object store. Leave blank if service is not an object '
+                    'store. '
+    )
 
     def __str__(self):
         return '{} : {}'.format(self.category, self.name)

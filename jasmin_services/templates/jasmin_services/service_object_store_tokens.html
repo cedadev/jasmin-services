@@ -1,0 +1,87 @@
+{% extends 'layout.html' %}
+{% load markdown_deux_tags bootstrap3 %}
+
+{% block head_title %}{{ service }} | JASMIN Accounts Portal{% endblock %}
+{% block page_title %}<code>{{ service }}</code>{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li>JASMIN Services</li>
+    <li>
+        <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
+    </li>
+    <li class="active">{{ service.name }}</li>
+</ol>
+{% endblock %}
+
+{% block content_header %}{{ block.super }}
+<div class="row">
+    <div class="col-md-12">
+        {% include "jasmin_services/includes/service_tabs.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="panel panel-default" style="margin-bottom:5px;">
+    <div class="panel-heading"><h3 class="panel-title">Current Tokens</h3></div>
+    <table class="table table-hover access-table">
+        <thead>
+            <tr>
+                <th>Token</th>
+                <th>Last Modified</th>
+                <th>Expiration Date</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for token in tokens %}
+            {% if token.expired %}
+                <tr class="danger">
+            {% elif token.expiring %}
+                <tr class="warning">
+            {% else %}
+                <tr class="success">
+            {% endif %}
+                <td>{{ token.name }}</td>
+                <td>{{ token.last_modified }}</td>
+                <td>{{ token.lifepoint }}</td>
+                <td>{{ token.x_custom_meta_source }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<a href="{% url 'jasmin_services:service_object_store_create_token' category=service.category.name service=service.name %}" style="float: right;" class="btn btn-primary">
+    <i class="fa fa-fw fa-plus"></i> Add Token
+</a>
+
+{% if created %}
+    {# The HTML inside here is what will be rendered in the key created dialog #}
+    <script id="key-creation-content" type="text/template">
+        <div class="banner banner-info">
+            <p><strong>Token: </strong><code>{{ created.token }}</code></p>
+            <p><strong>S3 Secret Key: </strong><code>{{ created.secret_key }}</code></p>
+            <p><strong class="text-danger">WARNING:</strong> Make sure you copy your <code>S3 Secret Key</code> and store it somewhere safe - you will not be able to see it again!</p>
+        </div>
+    </script>
+
+<script>
+    // If a key has been created, pop a dialog with the token and secret
+    bootbox.dialog({
+        closeButton : false,
+        size : 'large',
+        title : 'Successfully created Secret Key and Token',
+        message : $('#key-creation-content').html(),
+        buttons : {
+            'ok' : {
+                label: 'ok',
+                className: 'btn-primary'
+            }
+        }
+    });
+</script>
+{% endif %}
+
+{% endblock %}

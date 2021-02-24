@@ -26,6 +26,10 @@ urlpatterns = [
         url(r'^requests/$', views.service_requests, name = 'service_requests'),
         url(r'^users/$', views.service_users, name = 'service_users'),
         url(r'^message/$', views.service_message, name = 'service_message'),
+        url(r'^object_store/', include([
+            url(r'^tokens/$', views.service_object_store_tokens, name = 'service_object_store_tokens'),
+            url(r'^create_token/$', views.service_object_store_create_token, name = 'service_object_store_create_token'),
+        ])),
     ])),
     url(r'^(?P<category>[\w-]+)/(?P<service>[\w-]+)/apply/(?P<role>[\w-]+)/$',
         views.role_apply,

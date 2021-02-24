@@ -8,7 +8,11 @@ __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 import logging
 import functools
 import socket
-from datetime import date
+import requests
+import json
+import random
+import string
+from datetime import date, datetime
 
 from dateutil.relativedelta import relativedelta
 
@@ -30,8 +34,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import login_required
 
 from .models import Grant, Request, RequestState, Category, Service, Role
-from .forms import DecisionForm, message_form_factory
-
+from .forms import DecisionForm, message_form_factory, ObjectStoreKeysForm
 
 _log = logging.getLogger(__name__)
 
@@ -587,6 +590,141 @@ def service_users(request, service):
         'preserved_filters': '&'.join(
             '{}=1'.format(f) for f in preserved_filters
         ),
+    })
+
+
+@require_safe
+@login_required
+@with_service
+def service_object_store_tokens(request, service):
+    """
+    Handler for ``/<category>/<service>/object_store/tokens``.
+
+    Responds to GET requests only. The user must be authenticated.
+
+    Allows users to view their object store tokens for this service.
+    """
+    # if the service doesn't have an object_store_url redirect to the service page
+    if not service.object_store_url or service.object_store_url == '':
+        return redirect_to_service(service)
+        
+    created = request.session.get('created', None)
+    # If created is in session remove it
+    if created:
+        del request.session['created']    
+    
+    # headers = {
+    #     'Cookie': 'token=' + token,
+    # }
+    url = service.object_store_url.rstrip('/') + ':81/.TOKEN/?format=json'
+    response = requests.get(
+        url,
+        # headers=headers,
+        auth=(request.user.username, settings.JASMIN_PASSWORD)
+    )
+    tokens = json.loads(response.content)
+
+    for token in tokens:
+        last_modified = datetime.strptime(token['last_modified'].split('T')[0], '%Y-%m-%d')
+        lifepoint = datetime.strptime(token['lifepoint'].split(']')[0], '[%a, %d %b %Y %H:%M:%S %Z')
+        expired = True if lifepoint < datetime.today() else False
+        expiring = True if lifepoint > datetime.today() and lifepoint < datetime.today() + relativedelta(weeks = 1) else False
+
+        token['last_modified'] = last_modified.strftime('%Y-%m-%d')
+        token['lifepoint'] = lifepoint.strftime('%Y-%m-%d')
+        token['expired'] = expired
+        token['expiring'] = expiring
+    
+    print(tokens[0])
+
+    templates = [
+        'jasmin_services/{}/{}/service_object_store_tokens.html'.format(
+            service.category.name,
+            service.name
+        ),
+        'jasmin_services/{}/service_object_store_tokens.html'.format(service.category.name),
+        'jasmin_services/service_object_store_tokens.html',
+    ]
+    return render(request, templates, {
+        'service': service,
+        'tokens': tokens,
+        'created': created,
+    })
+
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+@with_service
+def service_object_store_create_token(request, service):
+    """
+    Handler for ``/<category>/<service>/object_store/create_token``.
+
+    Responds to GET and POST only. The user must be authenticated.
+
+    Allows user to create an object store token for this service.
+    """
+
+    if not service.object_store_url or service.object_store_url == '':
+        return redirect_to_service(service)
+
+    if request.method == 'POST':
+        form = ObjectStoreKeysForm(request.POST)
+        if form.is_valid():
+            password = form.cleaned_data['password']
+            description = form.cleaned_data['description']
+            expires = form.cleaned_data['expires']
+            # Create random 64 characters secret key
+            secret_key = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=64))
+
+            try:
+                # request token creation
+                headers = {
+                    'X-User-Secret-Key-Meta': secret_key,
+                    'X-Custom-Meta-Source': description,
+                    'X-User-Token-Expires-Meta': expires.strftime('%Y-%m-%d'),
+                }
+                url = service.object_store_url.rstrip('/') + ':81/.TOKEN/'
+                response = requests.post(
+                    url,
+                    headers=headers,
+                    auth=(request.user.username, password)
+                )
+                response_text = response.text
+
+                # if response isn't 200 display relevant message. 
+                if response.status_code != '200':
+                    created = {
+                        'token': response_text.split()[1],
+                        'secret_key': secret_key,
+                    }
+                    # put the token and secret key into the session
+                    request.session['created'] = created
+                    return redirect_to_service(service, 'service_object_store_tokens')
+                elif response_text == 'Invalid expiration':
+                    messages.error(request, 'Please choose a valid expiration')
+                elif response_text == 'Unable to authenticate':
+                    messages.error(request, 'Please check your password is correct')
+                else:
+                    messages.error(request, 'Error with one or more fields')
+                    
+            except ConnectionError:
+                messages.error(request, 'Connection error')
+        else:
+            messages.error(request, 'Error with one or more fields')
+    else:
+        form = ObjectStoreKeysForm()
+
+    templates = [
+        'jasmin_services/{}/{}/service_object_store_create_token.html'.format(
+            service.category.name,
+            service.name
+        ),
+        'jasmin_services/{}/service_object_store_create_token.html'.format(service.category.name),
+        'jasmin_services/service_object_store_create_token.html',
+    ]
+    return render(request, templates, {
+        'service': service,
+        'form': form,
     })
 
 

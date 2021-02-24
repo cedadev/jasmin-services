@@ -1,0 +1,39 @@
+{% extends 'layout.html' %}
+{% load markdown_deux_tags bootstrap3 %}
+
+{% block head_title %}{{ service }} | JASMIN Accounts Portal{% endblock %}
+{% block page_title %}<code>{{ service }}</code>{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li>JASMIN Services</li>
+    <li>
+        <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
+    </li>
+    <li class="active">{{ service.name }}</li>
+</ol>
+{% endblock %}
+
+{% block content_header %}{{ block.super }}
+<div class="row">
+    <div class="col-md-12">
+        {% include "jasmin_services/includes/service_tabs.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="col-md-8 col-md-offset-2">
+    <form method="POST" action="" class="form-horizontal" id="object-store-form">
+        {% csrf_token %}
+
+        {% bootstrap_form form layout='horizontal' %}
+        
+        <div class="form-group">
+            <div class="col-sm-offset-3 col-sm-9">
+                <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Create Token</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

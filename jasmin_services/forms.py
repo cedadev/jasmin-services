@@ -191,6 +191,24 @@ class DecisionForm(forms.Form):
         return self._request
 
 
+class ObjectStoreKeysForm(forms.Form):
+    """
+    Form for creating a key pair for the object store.
+    """
+    # Constants defining options for the quick expiry selection
+    password = forms.CharField(label = 'Password', required = True, widget = forms.PasswordInput)
+    description = forms.CharField(label = 'Description', required = True, max_length = 25)
+    expires = forms.DateField(
+        label = 'Expiry date',
+        required = False,
+        input_formats = ['%Y-%m-%d', '%d/%m/%Y'],
+        widget = forms.DateInput(
+            format = '%Y-%m-%d',
+            attrs = { 'type' : 'date' }
+        )
+    )
+
+
 ######
 ## ADMIN FORMS
 ######
