@@ -191,12 +191,24 @@ class DecisionForm(forms.Form):
         return self._request
 
 
-class ObjectStoreKeysForm(forms.Form):
+class ObjectStoreGetAccessKeyForm(forms.Form):
     """
-    Form for creating a key pair for the object store.
+    Form for getting a access key for the object store.
     """
-    # Constants defining options for the quick expiry selection
-    password = forms.CharField(label = 'Password', required = True, widget = forms.PasswordInput)
+    password = forms.CharField(
+        label = 'Password',
+        required = True,
+        widget = forms.PasswordInput,
+        help_text = mark_safe(
+            'Please enter your JASMIN account password.'
+        )
+    )
+
+
+class ObjectStoreCreateAccessKeyForm(forms.Form):
+    """
+    Form for creating an access key for the object store.
+    """
     description = forms.CharField(label = 'Description', required = True, max_length = 25)
     expires = forms.DateField(
         label = 'Expiry date',

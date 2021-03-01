@@ -9,7 +9,7 @@ from datetime import date
 
 from django import template
 
-from ..models import RequestState, Request
+from ..models import RequestState, Request, Grant
 
 
 register = template.Library()
@@ -21,6 +21,13 @@ def user_has_service_perm(service, user, perm):
            user.has_perm(perm, service) or \
            any(user.has_perm(perm, role) for role in service.roles.all())
 
+@register.simple_tag
+def user_has_object_store_role(service, user):
+    if service.object_store_url:
+        return any(Grant.objects.filter_active() \
+            .filter(user = user, role__in = service.roles.all()))
+    else:
+        return False
 
 @register.simple_tag(takes_context = True)
 def pending_req_count(context, service):

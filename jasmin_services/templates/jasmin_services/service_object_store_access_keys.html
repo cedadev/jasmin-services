@@ -1,0 +1,158 @@
+{% extends 'layout.html' %}
+{% load markdown_deux_tags bootstrap3 %}
+
+{% block head_title %}{{ service }} | JASMIN Accounts Portal{% endblock %}
+{% block page_title %}<code>{{ service }}</code>{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li>JASMIN Services</li>
+    <li>
+        <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
+    </li>
+    <li class="active">{{ service.name }}</li>
+</ol>
+{% endblock %}
+
+{% block content_header %}{{ block.super }}
+<div class="row">
+    <div class="col-md-12">
+        {% include "jasmin_services/includes/service_tabs.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="panel panel-default" style="margin-bottom:5px;">
+    <div class="panel-heading"><h3 class="panel-title">Current Access Keys</h3></div>
+    <table class="table table-hover access-table">
+        <thead>
+            <tr>
+                <th>Access Key</th>
+                <th>Description</th>
+                <th>Created</th>
+                <th></th>
+                <th>Status</th>
+                <th>Expires</th>
+                <th></th>
+            </tr>
+        </thead>
+        {% if access_keys %}
+            <tbody>
+                {% for access_key in access_keys %}
+                <tr>
+                    <td><code>{{ access_key.name }}</code></td>
+                    <td>{{ access_key.x_custom_meta_source }}</td>
+                    <td>{{ access_key.last_modified }}</td>
+                    {% if access_key.expired %}
+                        <td class="danger text-danger"><i class="fa fa-fw fa-clock-o"></i></td>
+                        <td class="danger"><code>EXPIRED</code></td>
+                        <td class="danger">
+                    {% elif access_key.expiring %}
+                        <td class="warning text-warning"><i class="fa fa-fw fa-clock-o"></i></td>
+                        <td class="warning"><code>EXPIRING</code></td>
+                        <td class="warning">
+                    {% else %}
+                        <td class="success text-success"><i class="fa fa-fw fa-check"></i></td>
+                        <td class="success"><code>ACTIVE</code></td>
+                        <td class="success">
+                    {% endif %}
+                    {{ access_key.lifepoint }}</td>
+                    <td>
+                        <form method="POST" action="" class="form-horizontal"  id="delete_{{ access_key.name }}_form" name="{{ access_key.name }}">
+                            {% csrf_token %}
+                            <div class="form-group" >
+                                <input type="hidden" id="delete_{{ access_key.name }}_input" name="delete_access_key" value="{{ access_key.name }}">
+                                <div class="col-sm-offset-3 col-sm-9">
+                                    <button name="delete_access_key_btn" id="delete_{{ access_key.name }}_btn" type="submit" class="btn btn-primary" style="float: right;" autocomplete="off">
+                                        <i class="fa fa-fw fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        {% else %}
+            <tbody>
+                <tr>
+                    No access_keys found.
+                </tr>
+            </tbody>
+        {% endif %}
+    </table>
+</div>
+
+<a href="{% url 'jasmin_services:service_object_store_create_access_key' category=service.category.name service=service.name %}" style="float: right;" class="btn btn-primary">
+    <i class="fa fa-fw fa-plus"></i> Add Access Key
+</a>
+
+{% if created %}
+    {# The HTML inside here is what will be rendered in the key created dialog #}
+    <script id="key-creation-content" type="text/template">
+        <div class="banner banner-info">
+            <p><strong>Access Key: </strong><code>{{ created.access_key }}</code></p>
+            <p><strong>S3 Secret Key: </strong><code>{{ created.secret_key }}</code></p>
+            <p><strong class="text-danger">WARNING:</strong> Make sure you copy your <code>S3 Secret Key</code> and store it somewhere safe - you will not be able to see it again!</p>
+        </div>
+    </script>
+
+    <script>
+        // If a key has been created, pop a dialog with the access key and secret
+        bootbox.dialog({
+            closeButton : false,
+            size : 'large',
+            title : 'Successfully created Secret and Access Keys',
+            message : $('#key-creation-content').html(),
+            buttons : {
+                'ok' : {
+                    label: 'ok',
+                    className: 'btn-primary'
+                }
+            }
+        });
+    </script>
+{% endif %}
+
+<script type="text/javascript">
+    // // When the account form is submitted show the T&Cs in a modal
+    var $delete_forms = document.getElementsByTagName("form");
+    for (let $delete_form of $delete_forms) {
+        $delete_form.addEventListener("submit", function(e) {
+            // Otherwise, pop a dialog with the T&Cs in
+            bootbox.dialog({
+                closeButton : false,
+                size : 'medium',
+                title : $(
+                    '<div>\
+                        Delete Access Key: <code>' + $delete_form.name + '</code>\
+                    </div>'
+                ).html(),
+                message : $(
+                    '<div>\
+                        <p class="banner banner-info">Are you sure you want to <strong>delete</strong> this access key?</p>\
+                    </div>'
+                ).html(),
+                buttons : {
+                    'cancel' : {
+                        label: 'Cancel',
+                        className: 'btn-default'
+                    },
+                    'confirm' : {
+                        label: 'Confirm',
+                        className: 'btn-primary',
+                        callback: function() {
+                            // Flag on the form that the T&Cs are accepted and resubmit
+                            $delete_form.submit();
+                        }                        
+                    }
+                }
+            });
+            e.preventDefault();
+        })
+    }
+</script>
+
+
+{% endblock %}

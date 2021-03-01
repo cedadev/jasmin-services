@@ -34,7 +34,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import login_required
 
 from .models import Grant, Request, RequestState, Category, Service, Role
-from .forms import DecisionForm, message_form_factory, ObjectStoreKeysForm
+from .forms import DecisionForm, message_form_factory, ObjectStoreCreateAccessKeyForm, ObjectStoreGetAccessKeyForm
 
 _log = logging.getLogger(__name__)
 
@@ -593,61 +593,85 @@ def service_users(request, service):
     })
 
 
-@require_safe
+@require_http_methods(['GET', 'POST'])
 @login_required
 @with_service
-def service_object_store_tokens(request, service):
+def service_object_store_access_keys(request, service):
     """
-    Handler for ``/<category>/<service>/object_store/tokens``.
+    Handler for ``/<category>/<service>/object_store/access_keys``.
 
-    Responds to GET requests only. The user must be authenticated.
+    Responds to GET and PUT requests. The user must be authenticated.
 
-    Allows users to view their object store tokens for this service.
+    Allows a users to view their object store access keys for this service.
     """
-    # if the service doesn't have an object_store_url redirect to the service page
-    if not service.object_store_url or service.object_store_url == '':
+    # If the service doesn't have an object_store_url or the user doesn't have an active grant
+    # redirect to the service details page.
+    if not service.object_store_url or service.object_store_url == '' \
+        or not any(Grant.objects.filter_active().filter(user = request.user, role__in = service.roles.all())):
         return redirect_to_service(service)
-        
+    object_store_url = service.object_store_url.rstrip('/')
+
+    # If there isn't an access key for this service redirect to the get object store access key page.
+    auth_access_key = request.session.get('access_key_' + str(service.id), None)
+    if not auth_access_key:
+        return redirect_to_service(service, 'service_object_store_get_access_key')
+    # Set the request headers.
+    headers = {
+        'Cookie': 'token=' + auth_access_key,
+    }
+
+    # Check if a access key has been created if one has remove it from session.
     created = request.session.get('created', None)
-    # If created is in session remove it
     if created:
-        del request.session['created']    
-    
-    # headers = {
-    #     'Cookie': 'token=' + token,
-    # }
-    url = service.object_store_url.rstrip('/') + ':81/.TOKEN/?format=json'
+        del request.session['created']
+
+    # Delete requested access key from list then refresh table.
+    if request.method == 'POST':
+        delete_access_key = request.POST['delete_access_key']
+        url = object_store_url + ':81/.TOKEN/' + delete_access_key
+        response = requests.delete(
+            url,
+            headers=headers,
+        )
+        return redirect_to_service(service, 'service_object_store_access_keys')
+
+    # Get the users access keys from the object store.
+    url = object_store_url + ':81/.TOKEN/?format=json'
     response = requests.get(
         url,
-        # headers=headers,
-        auth=(request.user.username, settings.JASMIN_PASSWORD)
+        headers=headers,
     )
-    tokens = json.loads(response.content)
+    all_access_keys = json.loads(response.content)
+    print(all_access_keys)
 
-    for token in tokens:
-        last_modified = datetime.strptime(token['last_modified'].split('T')[0], '%Y-%m-%d')
-        lifepoint = datetime.strptime(token['lifepoint'].split(']')[0], '[%a, %d %b %Y %H:%M:%S %Z')
+    access_keys = []
+    for access_key in all_access_keys:
+        # Update date fields to viewable format and check if they're expired/expiring.
+        last_modified = datetime.strptime(access_key['last_modified'].split('T')[0], '%Y-%m-%d')
+        lifepoint = datetime.strptime(access_key['lifepoint'].split(']')[0], '[%a, %d %b %Y %H:%M:%S %Z')
         expired = True if lifepoint < datetime.today() else False
         expiring = True if lifepoint > datetime.today() and lifepoint < datetime.today() + relativedelta(weeks = 1) else False
 
-        token['last_modified'] = last_modified.strftime('%Y-%m-%d')
-        token['lifepoint'] = lifepoint.strftime('%Y-%m-%d')
-        token['expired'] = expired
-        token['expiring'] = expiring
-    
-    print(tokens[0])
+        access_key['last_modified'] = last_modified.strftime('%Y-%m-%d')
+        access_key['lifepoint'] = lifepoint.strftime('%Y-%m-%d')
+        access_key['expired'] = expired
+        access_key['expiring'] = expiring
+
+        # Hide the auth access key from the users access key table.
+        if access_key['x_custom_meta_source'] != 'JASMIN account auth access key':
+            access_keys.append(access_key)
 
     templates = [
-        'jasmin_services/{}/{}/service_object_store_tokens.html'.format(
+        'jasmin_services/{}/{}/service_object_store_access_keys.html'.format(
             service.category.name,
             service.name
         ),
-        'jasmin_services/{}/service_object_store_tokens.html'.format(service.category.name),
-        'jasmin_services/service_object_store_tokens.html',
+        'jasmin_services/{}/service_object_store_access_keys.html'.format(service.category.name),
+        'jasmin_services/service_object_store_access_keys.html',
     ]
     return render(request, templates, {
         'service': service,
-        'tokens': tokens,
+        'access_keys': access_keys,
         'created': created,
     })
 
@@ -655,72 +679,175 @@ def service_object_store_tokens(request, service):
 @require_http_methods(['GET', 'POST'])
 @login_required
 @with_service
-def service_object_store_create_token(request, service):
+def service_object_store_get_access_key(request, service):
     """
-    Handler for ``/<category>/<service>/object_store/create_token``.
+    Handler for ``/<category>/<service>/object_store/auth``.
 
-    Responds to GET and POST only. The user must be authenticated.
+    Responds to GET and POST requests. The user must be authenticated.
 
-    Allows user to create an object store token for this service.
+    Allows a user to get an auth access key to view/create/delete their access keys for this service.
     """
 
-    if not service.object_store_url or service.object_store_url == '':
+    # If the service doesn't have an object_store_url or the user doesn't have an active grant
+    # redirect to the service details page.
+    if not service.object_store_url or service.object_store_url == '' \
+        or not any(Grant.objects.filter_active().filter(user = request.user, role__in = service.roles.all())):
         return redirect_to_service(service)
 
     if request.method == 'POST':
-        form = ObjectStoreKeysForm(request.POST)
+        form = ObjectStoreGetAccessKeyForm(request.POST)
         if form.is_valid():
             password = form.cleaned_data['password']
+            try:
+                object_store_url = service.object_store_url.rstrip('/')
+                url = object_store_url + ':81/.TOKEN/?format=json'
+                response = requests.get(
+                    url,
+                    auth=(request.user.username, password)
+                )
+                if response.status_code != 200:
+                    if response.text.strip() == 'Unable to authenticate':
+                        message =  'Please check your password is correct'
+                    else:
+                        message = 'Error with one or more fields'
+                    messages.error(request, message)
+                else:
+                    access_keys = json.loads(response.content)
+                    # Find the auth keys from the access keys.
+                    auth_access_key = next((access_key for access_key in access_keys if access_key['x_custom_meta_source'] == "JASMIN account auth access key"), False)
+
+                    # If the auth access key exists check if it's expired.
+                    if auth_access_key:
+                        auth_access_key_name = auth_access_key['name']
+                        lifepoint = datetime.strptime(auth_access_key['lifepoint'].split(']')[0], '[%a, %d %b %Y %H:%M:%S %Z')
+                        # If the access key is expired delete it so it can be recreated.
+                        if lifepoint < datetime.today():
+                            url = object_store_url + ':81/.TOKEN/' + auth_access_key_name
+                            response = requests.delete(
+                                url,
+                                auth=(request.user.username, password)
+                            )
+                            auth_access_key = False
+
+                    # If the auth access key doesn't exist or has been deleted, create it.
+                    if not auth_access_key:
+                        expires = datetime.today() + relativedelta(weeks = 1)
+                        headers = {
+                            'X-Custom-Meta-Source': 'JASMIN account auth access key',
+                            'X-User-Token-Expires-Meta': expires.strftime('%Y-%m-%d'),
+                        }
+                        url = object_store_url + ':81/.TOKEN/'
+                        response = requests.post(
+                            url,
+                            headers=headers,
+                            auth=(request.user.username, password)
+                        )
+                        auth_access_key_name = response.text.split()[1]
+
+                    # Put the auth access key in the session user could have one for each of their services
+                    # so make unique by adding service id.
+                    request.session['access_key_' + str(service.id)] = auth_access_key_name
+                    return redirect_to_service(service, 'service_object_store_access_keys')
+
+            except ConnectionError:
+                messages.error(request, 'Connection error')
+        else:
+            messages.error(request, 'Error authenticating')
+    else:
+        form = ObjectStoreGetAccessKeyForm()
+
+    templates = [
+        'jasmin_services/{}/{}/service_object_store_get_access_key.html'.format(
+            service.category.name,
+            service.name
+        ),
+        'jasmin_services/{}/service_object_store_get_access_key.html'.format(service.category.name),
+        'jasmin_services/service_object_store_get_access_key.html',
+    ]
+    return render(request, templates, {
+        'service': service,
+        'form': form,
+    })
+
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+@with_service
+def service_object_store_create_access_key(request, service):
+    """
+    Handler for ``/<category>/<service>/object_store/create_token``.
+
+    Responds to GET and POST requests. The user must be authenticated.
+
+    Allows a user to create an object store access key for this service.
+    """
+
+    # if the service doesn't have an object_store_url or the user doesn't have an active grant
+    # redirect to the service details page
+    if not service.object_store_url or service.object_store_url == '' \
+        or not any(Grant.objects.filter_active().filter(user = request.user, role__in = service.roles.all())):
+        return redirect_to_service(service)
+
+    # if there isn't a access key for this service redirect to the get object store access key page
+    auth_access_key = request.session.get('access_key_' + str(service.id), None)
+    if not auth_access_key:
+        return redirect_to_service(service, 'service_object_store_get_access_key')
+
+    if request.method == 'POST':
+        form = ObjectStoreCreateAccessKeyForm(request.POST)
+        if form.is_valid():
             description = form.cleaned_data['description']
             expires = form.cleaned_data['expires']
             # Create random 64 characters secret key
             secret_key = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=64))
 
             try:
-                # request token creation
+                # request access key creation
                 headers = {
                     'X-User-Secret-Key-Meta': secret_key,
                     'X-Custom-Meta-Source': description,
                     'X-User-Token-Expires-Meta': expires.strftime('%Y-%m-%d'),
+                    'Cookie': 'token=' + auth_access_key,
                 }
                 url = service.object_store_url.rstrip('/') + ':81/.TOKEN/'
                 response = requests.post(
                     url,
                     headers=headers,
-                    auth=(request.user.username, password)
                 )
                 response_text = response.text
 
-                # if response isn't 200 display relevant message. 
-                if response.status_code != '200':
+                # if response isn't 201 display relevant message.
+                if response.status_code != 201:
+                    if response_text.strip() == 'Invalid expiration':
+                        message = 'Please choose a valid expiration'
+                    elif response_text.strip() == 'Unable to authenticate':
+                        message = 'Please check your password is correct'
+                    else:
+                        message = 'Error with one or more fields'
+                    messages.error(request, message)
+                else:
                     created = {
-                        'token': response_text.split()[1],
+                        'access_key': response_text.split()[1],
                         'secret_key': secret_key,
                     }
-                    # put the token and secret key into the session
+                    # put the access and secret keys into the session
                     request.session['created'] = created
-                    return redirect_to_service(service, 'service_object_store_tokens')
-                elif response_text == 'Invalid expiration':
-                    messages.error(request, 'Please choose a valid expiration')
-                elif response_text == 'Unable to authenticate':
-                    messages.error(request, 'Please check your password is correct')
-                else:
-                    messages.error(request, 'Error with one or more fields')
-                    
+                    return redirect_to_service(service, 'service_object_store_access_keys')
+
             except ConnectionError:
                 messages.error(request, 'Connection error')
         else:
             messages.error(request, 'Error with one or more fields')
     else:
-        form = ObjectStoreKeysForm()
+        form = ObjectStoreCreateAccessKeyForm()
 
     templates = [
-        'jasmin_services/{}/{}/service_object_store_create_token.html'.format(
+        'jasmin_services/{}/{}/service_object_store_create_access_key.html'.format(
             service.category.name,
             service.name
         ),
-        'jasmin_services/{}/service_object_store_create_token.html'.format(service.category.name),
-        'jasmin_services/service_object_store_create_token.html',
+        'jasmin_services/{}/service_object_store_create_access_key.html'.format(service.category.name),
+        'jasmin_services/service_object_store_create_access_key.html',
     ]
     return render(request, templates, {
         'service': service,

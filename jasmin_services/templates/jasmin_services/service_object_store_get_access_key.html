@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="col-md-8 col-md-offset-2">
+<div class="col-md-6 col-md-offset-3">
     <form method="POST" action="" class="form-horizontal" id="object-store-form">
         {% csrf_token %}
 
@@ -31,7 +31,7 @@
         
         <div class="form-group">
             <div class="col-sm-offset-3 col-sm-9">
-                <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Create Token</button>
+                <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Verify</button>
             </div>
         </div>
     </form>
