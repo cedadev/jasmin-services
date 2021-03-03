@@ -613,17 +613,17 @@ def service_object_store_access_keys(request, service):
 
     # If there isn't an access key for this service redirect to the get object store access key page.
     auth_access_key = request.session.get('access_key_' + str(service.id), None)
+
     if not auth_access_key:
         return redirect_to_service(service, 'service_object_store_get_access_key')
+
     # Set the request headers.
     headers = {
         'Cookie': 'token=' + auth_access_key,
     }
 
     # Check if a access key has been created if one has remove it from session.
-    created = request.session.get('created', None)
-    if created:
-        del request.session['created']
+    created = request.session.pop('created', None)
 
     # Delete requested access key from list then refresh table.
     if request.method == 'POST':
@@ -642,23 +642,23 @@ def service_object_store_access_keys(request, service):
         headers=headers,
     )
     all_access_keys = json.loads(response.content)
-    print(all_access_keys)
 
     access_keys = []
     for access_key in all_access_keys:
         # Update date fields to viewable format and check if they're expired/expiring.
         last_modified = datetime.strptime(access_key['last_modified'].split('T')[0], '%Y-%m-%d')
         lifepoint = datetime.strptime(access_key['lifepoint'].split(']')[0], '[%a, %d %b %Y %H:%M:%S %Z')
-        expired = True if lifepoint < datetime.today() else False
         expiring = True if lifepoint > datetime.today() and lifepoint < datetime.today() + relativedelta(weeks = 1) else False
+        expired = True if lifepoint < datetime.today() else False
+        hidden = True if lifepoint + relativedelta(weeks = 1) < datetime.today() else False
 
         access_key['last_modified'] = last_modified.strftime('%Y-%m-%d')
         access_key['lifepoint'] = lifepoint.strftime('%Y-%m-%d')
-        access_key['expired'] = expired
         access_key['expiring'] = expiring
+        access_key['expired'] = expired
 
         # Hide the auth access key from the users access key table.
-        if access_key['x_custom_meta_source'] != 'JASMIN account auth access key':
+        if not hidden and access_key['x_custom_meta_source'] != "JASMIN account auth access key":
             access_keys.append(access_key)
 
     templates = [
@@ -714,23 +714,17 @@ def service_object_store_get_access_key(request, service):
                 else:
                     access_keys = json.loads(response.content)
                     # Find the auth keys from the access keys.
-                    auth_access_key = next((access_key for access_key in access_keys if access_key['x_custom_meta_source'] == "JASMIN account auth access key"), False)
+                    auth_access_keys = [ak for ak in access_keys if ak['x_custom_meta_source'] == "JASMIN account auth access key"]
 
-                    # If the auth access key exists check if it's expired.
-                    if auth_access_key:
-                        auth_access_key_name = auth_access_key['name']
+                    # Check if a non expired auth access key exists.
+                    auth_access_key_name = False
+                    for auth_access_key in auth_access_keys:
                         lifepoint = datetime.strptime(auth_access_key['lifepoint'].split(']')[0], '[%a, %d %b %Y %H:%M:%S %Z')
-                        # If the access key is expired delete it so it can be recreated.
-                        if lifepoint < datetime.today():
-                            url = object_store_url + ':81/.TOKEN/' + auth_access_key_name
-                            response = requests.delete(
-                                url,
-                                auth=(request.user.username, password)
-                            )
-                            auth_access_key = False
+                        if lifepoint > datetime.today():
+                            auth_access_key_name = auth_access_key['name']
 
-                    # If the auth access key doesn't exist or has been deleted, create it.
-                    if not auth_access_key:
+                    # If no unexpired auth access key exists, create one.
+                    if not auth_access_key_name:
                         expires = datetime.today() + relativedelta(weeks = 1)
                         headers = {
                             'X-Custom-Meta-Source': 'JASMIN account auth access key',
@@ -744,8 +738,8 @@ def service_object_store_get_access_key(request, service):
                         )
                         auth_access_key_name = response.text.split()[1]
 
-                    # Put the auth access key in the session user could have one for each of their services
-                    # so make unique by adding service id.
+                    # Put the auth access key in the session. Add service id to name to make unique, 
+                    # as users could have multiple auth access keys (one for each of their services).
                     request.session['access_key_' + str(service.id)] = auth_access_key_name
                     return redirect_to_service(service, 'service_object_store_access_keys')
 
