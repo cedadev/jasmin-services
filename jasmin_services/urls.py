@@ -26,6 +26,7 @@ urlpatterns = [
         url(r'^requests/$', views.service_requests, name = 'service_requests'),
         url(r'^users/$', views.service_users, name = 'service_users'),
         url(r'^message/$', views.service_message, name = 'service_message'),
+        url(r'^groups/$', views.service_groups, name = 'service_groups'),
     ])),
     url(r'^(?P<category>[\w-]+)/(?P<service>[\w-]+)/apply/(?P<role>[\w-]+)/$',
         views.role_apply,

@@ -3,9 +3,10 @@
 {% user_has_service_perm service request.user 'jasmin_services.view_users_role' as view_users %}
 {% user_has_service_perm service request.user 'jasmin_services.decide_request' as approver %}
 {% user_has_service_perm service request.user 'jasmin_services.send_message_role' as send_message %}
+{% user_has_service_perm service request.user 'jasmin_services.create_group_role' as create_group %}
 
 {% with active=request.resolver_match.url_name %}
-    {% if view_users or approver or send_message %}
+    {% if view_users or approver or send_message or create_group %}
         <ul class="nav nav-tabs">
             <li {% if active == 'service_details' %}class="active"{% endif %}>
                 <a href="{% url 'jasmin_services:service_details' category=service.category.name service=service.name %}">Details</a>
@@ -29,6 +30,11 @@
                             <span class="badge">{{ n_pending }}</span>
                         {% endif %}
                     </a>
+                </li>
+            {% endif %}
+            {% if create_group %}
+                <li {% if active == 'service_groups' %}class="active"{% endif %}>
+                    <a href="{% url 'jasmin_services:service_groups' category=service.category.name service=service.name %}">Create group</a>
                 </li>
             {% endif %}
         </ul>

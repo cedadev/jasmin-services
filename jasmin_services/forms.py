@@ -65,6 +65,42 @@ def message_form_factory(sender, *roles):
     })
 
 
+def group_form_factory(*roles):
+    """
+    Factory function that creates a group form for a set of roles.
+
+    The set of users is those with a valid, active grant for one of the roles.
+    """
+    # The possible users are those that have an active, non-revoked, non-expired
+    # grant for the USER role for the service
+    queryset = get_user_model().objects.distinct() \
+        .filter(
+            grant__in = Grant.objects
+                .filter(
+                    role__in = roles,
+                    expires__gte = date.today(),
+                    revoked = False
+                )
+                .filter_active()
+        ).distinct()
+    return type(uuid.uuid4().hex, (forms.Form, ), {
+        'name' : forms.CharField(label = 'Name', required = True, max_length = 15),
+        'description' : forms.CharField(label = 'Description'),
+        'users' : forms.ModelMultipleChoiceField(
+            queryset = queryset,
+            label = 'Initial users'
+        ),
+    })
+
+
+class GroupForm(forms.Form):
+    """
+    Form for creating a key LDAP group for an object store.
+    """
+    name = forms.CharField(label = 'Name', required = True, max_length = 15)
+    description = forms.CharField(label = 'Description')
+
+
 class DecisionForm(forms.Form):
     """
     Form for making a decision on a request.
