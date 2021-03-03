@@ -87,6 +87,7 @@ def group_form_factory(*roles):
         'name' : forms.CharField(label = 'Name', required = True, max_length = 15),
         'description' : forms.CharField(label = 'Description'),
         'users' : forms.ModelMultipleChoiceField(
+            required = False,
             queryset = queryset,
             label = 'Initial users'
         ),

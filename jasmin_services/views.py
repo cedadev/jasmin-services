@@ -846,7 +846,8 @@ def service_groups(request, service):
             try:
                 name = form.cleaned_data['name']
                 description = form.cleaned_data['description']
-                member_uids = [u.account.uid for u in form.cleaned_data['users']]
+                users = form.cleaned_data['users']
+                member_uids = [user.account.uid for user in users]
                 LDAP_group_name = (service.name + '_' + name).replace('-', '_')
                 default_form = Form.objects.get(pk = settings.JASMIN_SERVICES['DEFAULT_METADATA_FORM'])
 
@@ -876,18 +877,28 @@ def service_groups(request, service):
                         description = description,
                         member_uids = member_uids,
                     )
-                
+
+                # Create the LDAP group behaviour
+                ldap_group_behaviour = LdapGroupBehaviour.objects.create(
+                    ldap_model = group,
+                    group_name = LDAP_group_name,
+                )
+
                 # Save both after check so not to create only one
                 role.save()
                 group.save()
-                
-                # Create the LDAP group behaviour
-                ldap_group_behaviour = LdapGroupBehaviour.objects.create(
-                    ldap_model = CedaLdapGroup,
-                    group_name = LDAP_group_name,
-                )
                 role.behaviours.add(ldap_group_behaviour)
                 
+                # Create a grant for each initial user
+                for user in users:
+                    Grant.objects.create(
+                        role = role,
+                        user = user,
+                        granted_by = request.user.username,
+                        expires = date.today() + relativedelta(years = 1)
+                    )
+
+
                 # Create relevant role_object_permissions to the manager and deputy
                 permissions = [
                     Permission.objects.get(
