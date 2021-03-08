@@ -814,44 +814,30 @@ def service_groups(request, service):
     Handler for ``/<category>/<service>/groups/``.
 
     Responds to GET and POST. The user must have the ``create_groups_role``
-    permission for at least one role for the service.
+    permission for the service.
 
     Allows a user with suitable permissions to create an LDAP group which other 
-    users of the service can apply for, depending which permissions they have 
-    been granted.
+    users of the service can apply for.
     """
-    # Get the roles for which the user is allowed to create groups
-    # We allow the permission to be allocated for all services, per-service or per-role
+    # The current user must have permission to create a group.
     permission = 'jasmin_services.create_group_role'
-    if request.user.has_perm(permission) or \
-       request.user.has_perm(permission, service):
-        user_roles = list(service.roles.all())
-    else:
-        user_roles = [
-            role
-            for role in service.roles.all()
-            if request.user.has_perm(permission, role)
-        ]
-        # If the user has no permissions, send them back to the service details
-        # Note that we don't show this message if the user has been granted the
-        # permission for the service but there are no roles - in that case we
-        # just show nothing
-        if not user_roles:
-            messages.error(request, 'Insufficient permissions')
-            return redirect_to_service(service)
-    GroupForm = group_form_factory(*user_roles)
+    if not request.user.has_perm(permission) and \
+       not request.user.has_perm(permission, service):
+        messages.error(request, 'Insufficient permissions')
+        return redirect_to_service(service)
+    
+    GroupForm = group_form_factory(service)
     if request.method == 'POST':
         form = GroupForm(request.POST)
         if form.is_valid():
             try:
                 name = form.cleaned_data['name']
                 description = form.cleaned_data['description']
-                users = form.cleaned_data['users']
-                member_uids = [user.account.uid for user in users]
+                approver_roles = form.cleaned_data['approver_roles']
                 LDAP_group_name = (service.name + '_' + name).replace('-', '_')
                 default_form = Form.objects.get(pk = settings.JASMIN_SERVICES['DEFAULT_METADATA_FORM'])
 
-                # Check if there is already a role with this name
+                # Check if there is already a role with this name.
                 try:
                     Role.objects.get(
                         service = service,
@@ -867,7 +853,7 @@ def service_groups(request, service):
                         hidden = False,
                     )
                 
-                # Check if there is already a ceda ldap group with this name
+                # Check if there is already a ceda ldap group with this name.
                 try:
                     CedaLdapGroup.objects.get(name = LDAP_group_name)
                     raise Exception('Already exists')
@@ -875,31 +861,20 @@ def service_groups(request, service):
                     group = CedaLdapGroup(
                         name = LDAP_group_name,
                         description = description,
-                        member_uids = member_uids,
                     )
 
-                # Create the LDAP group behaviour
+                # Create the LDAP group behaviour.
                 ldap_group_behaviour = LdapGroupBehaviour.objects.create(
                     ldap_model = group,
                     group_name = LDAP_group_name,
                 )
 
-                # Save both after check so not to create only one
-                role.save()
+                # Save both after check, as not to create only one.
                 group.save()
+                role.save()
                 role.behaviours.add(ldap_group_behaviour)
-                
-                # Create a grant for each initial user
-                for user in users:
-                    Grant.objects.create(
-                        role = role,
-                        user = user,
-                        granted_by = request.user.username,
-                        expires = date.today() + relativedelta(years = 1)
-                    )
 
-
-                # Create relevant role_object_permissions to the manager and deputy
+                # Create relevant role_object_permissions for the approver roles.
                 permissions = [
                     Permission.objects.get(
                     content_type = ContentType.objects.get_for_model(Role),
@@ -915,21 +890,10 @@ def service_groups(request, service):
                     ),
                 ]
 
-                management_roles = [
-                    Role.objects.get(
-                        service = service,
-                        name = 'MANAGER',
-                    ),
-                    Role.objects.get(
-                        service = service,
-                        name = 'DEPUTY',
-                    ),
-                ]
-
-                for management_role in management_roles:
+                for approver_role in approver_roles:
                     RoleObjectPermission.objects.bulk_create([
                         RoleObjectPermission(
-                            role = management_role,
+                            role = approver_role,
                             permission =  permission,
                             content_type = ContentType.objects.get_for_model(role),
                             object_pk = role.pk

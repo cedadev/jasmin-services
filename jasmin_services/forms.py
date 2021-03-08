@@ -22,7 +22,7 @@ from django.urls import reverse
 
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
-from .models import Grant, RequestState, LdapGroupBehaviour
+from .models import Grant, RequestState, LdapGroupBehaviour, Role
 
 
 def message_form_factory(sender, *roles):
@@ -65,31 +65,23 @@ def message_form_factory(sender, *roles):
     })
 
 
-def group_form_factory(*roles):
+def group_form_factory(service):
     """
     Factory function that creates a group form for a set of roles.
-
-    The set of users is those with a valid, active grant for one of the roles.
     """
-    # The possible users are those that have an active, non-revoked, non-expired
-    # grant for the USER role for the service
-    queryset = get_user_model().objects.distinct() \
-        .filter(
-            grant__in = Grant.objects
-                .filter(
-                    role__in = roles,
-                    expires__gte = date.today(),
-                    revoked = False
-                )
-                .filter_active()
-        ).distinct()
+    ROLE_CHOICES = [(role, role.name) for role in service.roles.all()]
+
     return type(uuid.uuid4().hex, (forms.Form, ), {
         'name' : forms.CharField(label = 'Name', required = True, max_length = 15),
         'description' : forms.CharField(label = 'Description'),
-        'users' : forms.ModelMultipleChoiceField(
+        'approver_roles' : forms.MultipleChoiceField(
             required = False,
-            queryset = queryset,
-            label = 'Initial users'
+            choices = ROLE_CHOICES,
+            label = 'Approver roles',
+            help_text = mark_safe(
+                'The selected roles will be able to approve request for '
+                'the created role.'
+            )
         ),
     })
 

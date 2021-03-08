@@ -64,6 +64,9 @@ class Service(models.Model):
             'position',
             'name'
         )
+        permissions = (
+            ('create_group_role', 'Can great a new group'),
+        )
 
     #: The category that the service belongs to
     category = models.ForeignKey(Category, models.CASCADE,
