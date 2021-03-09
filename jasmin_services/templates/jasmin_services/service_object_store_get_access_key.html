@@ -24,6 +24,9 @@
 
 {% block content %}
 <div class="col-md-6 col-md-offset-3">
+    <div class="banner banner-info text-center">
+        <p>To authenticate with the object store. Please enter your JASMIN password.</p>
+    </div>
     <form method="POST" action="" class="form-horizontal" id="object-store-form">
         {% csrf_token %}
 

@@ -23,9 +23,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="panel panel-default" style="margin-bottom:5px;">
-    <div class="panel-heading"><h3 class="panel-title">Current Access Keys</h3></div>
-    <table class="table table-hover access-table">
+<div class="col-md-12" >
+    <table class="table table-hover access-key-table" style=>
+        <caption>
+            {{ access_keys|length }} access key{{ access_keys|length|pluralize }}
+            <a href="{% url 'jasmin_services:service_object_store_create_access_key' category=service.category.name service=service.name %}" style="float: right;" class="btn btn-primary">
+                <i class="fa fa-fw fa-plus"></i> Add Access Key
+            </a>
+        </caption>
         <thead>
             <tr>
                 <th>Access Key</th>
@@ -41,7 +46,9 @@
             <tbody>
                 {% for access_key in access_keys %}
                 {% if access_key.expired %}
-                    <tr style="opacity: 50%;">
+                    <tr class="danger">
+                {% elif access_key.expiring %}
+                    <tr class="warning">
                 {% else %}
                     <tr>
                 {% endif %}
@@ -49,48 +56,33 @@
                     <td>{{ access_key.x_custom_meta_source }}</td>
                     <td>{{ access_key.last_modified }}</td>
                     {% if access_key.expired %}
-                        <td class="danger text-danger"><i class="fa fa-fw fa-clock-o"></i></td>
-                        <td class="danger"><code>EXPIRED</code></td>
-                        <td class="danger">
+                        <td class="text-danger"><i class="fa fa-fw fa-clock-o"></i></td>
+                        <td><code>EXPIRED</code></td>
                     {% elif access_key.expiring %}
-                        <td class="warning text-warning"><i class="fa fa-fw fa-clock-o"></i></td>
-                        <td class="warning"><code>EXPIRING</code></td>
-                        <td class="warning">
+                        <td class="text-warning"><i class="fa fa-fw fa-clock-o"></i></td>
+                        <td><code>EXPIRING</code></td>
                     {% else %}
-                        <td class="success text-success"><i class="fa fa-fw fa-check"></i></td>
-                        <td class="success"><code>ACTIVE</code></td>
-                        <td class="success">
+                        <td class="text-success"><i class="fa fa-fw fa-check"></i></td>
+                        <td><code>ACTIVE</code></td>
                     {% endif %}
-                    {{ access_key.lifepoint }}</td>
-                    <td>
-                        <form method="POST" action="" class="form-horizontal"  id="delete_{{ access_key.name }}_form" name="{{ access_key.expired }}">
+                    <td>{{ access_key.lifepoint }}</td>
+                    <td style="padding-right: 0.6em">
+                        <form method="POST" action="" class="form-horizontal"  id="delete_{{ access_key.name }}_form">
                             {% csrf_token %}
                             <div class="form-group" >
                                 <input type="hidden" id="delete_{{ access_key.name }}_input" name="delete_access_key" value="{{ access_key.name }}">
-                                <div class="col-sm-offset-3 col-sm-9">
-                                    <button name="delete_access_key_btn" id="delete_{{ access_key.name }}_btn" type="submit" class="btn btn-primary" style="float: right;" autocomplete="off">
-                                        <i class="fa fa-fw fa-trash"></i> Delete
-                                    </button>
-                                </div>
+                                <button name="delete_access_key_btn" id="delete_{{ access_key.name }}_btn" {% if access_key.expired %} disabled {% endif %} type="submit" class="btn btn-primary" style="float: right; margin-right: 1.2em;" autocomplete="off">
+                                    <i class="fa fa-fw fa-trash"></i> Delete
+                                </button>
                             </div>
                         </form>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
-        {% else %}
-            <tbody>
-                <tr>
-                    No access_keys found.
-                </tr>
-            </tbody>
         {% endif %}
     </table>
 </div>
-
-<a href="{% url 'jasmin_services:service_object_store_create_access_key' category=service.category.name service=service.name %}" style="float: right;" class="btn btn-primary">
-    <i class="fa fa-fw fa-plus"></i> Add Access Key
-</a>
 
 {% if created %}
     {# The HTML inside here is what will be rendered in the key created dialog #}
@@ -124,19 +116,12 @@
     var $delete_forms = document.getElementsByTagName("form");
     for (let $delete_form of $delete_forms) {
         $delete_form.addEventListener("submit", function(e) {
-            if ($delete_form.name == 'True') {
-                $title_html = $('<div>Cannot delete Access Key: <code>' + $delete_form['delete_access_key'].value + '</code></div>').html()
-                $message_html = $('<div><p class="banner banner-info">Expired Access Keys will be automatically deleted after 7 days</p></div>').html()
-                $buttons = {
-                    'ok' : {
-                        label: 'Ok',
-                        className: 'btn-primary'
-                    },
-                }
-            } else {
-                $title_html = $('<div>Delete Access Key: <code>' + $delete_form['delete_access_key'].value + '</code></div>').html()
-                $message_html = $('<div><p class="banner banner-info">Are you sure you want to <strong>delete</strong> this access key?</p></div>').html()
-                $buttons = {
+            bootbox.dialog({
+                closeButton : false,
+                size : 'medium',
+                title : $('<div>Delete Access Key: <code>' + $delete_form['delete_access_key'].value + '</code></div>').html(),
+                message : $('<div><p class="banner banner-info">Are you sure you want to <strong>delete</strong> this access key?</p></div>').html(),
+                buttons : {
                     'cancel' : {
                         label: 'Cancel',
                         className: 'btn-default'
@@ -149,13 +134,6 @@
                         }
                     }
                 }
-            }
-            bootbox.dialog({
-                closeButton : false,
-                size : 'medium',
-                title : $title_html,
-                message : $message_html,
-                buttons : $buttons
             });
             e.preventDefault();
         })

@@ -199,9 +199,6 @@ class ObjectStoreGetAccessKeyForm(forms.Form):
         label = 'Password',
         required = True,
         widget = forms.PasswordInput,
-        help_text = mark_safe(
-            'Please enter your JASMIN account password.'
-        )
     )
 
 

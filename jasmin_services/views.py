@@ -641,25 +641,38 @@ def service_object_store_access_keys(request, service):
         url,
         headers=headers,
     )
+    # If the response isn't 200 redirect to object store authorization encase their key is expired.
+    if response.status_code != 200:
+        return redirect_to_service(service, 'service_object_store_get_access_key')
     all_access_keys = json.loads(response.content)
 
     access_keys = []
+    expired_access_keys = []
     for access_key in all_access_keys:
         # Update date fields to viewable format and check if they're expired/expiring.
         last_modified = datetime.strptime(access_key['last_modified'].split('T')[0], '%Y-%m-%d')
         lifepoint = datetime.strptime(access_key['lifepoint'].split(']')[0], '[%a, %d %b %Y %H:%M:%S %Z')
         expiring = True if lifepoint > datetime.today() and lifepoint < datetime.today() + relativedelta(weeks = 1) else False
         expired = True if lifepoint < datetime.today() else False
-        hidden = True if lifepoint + relativedelta(weeks = 1) < datetime.today() else False
 
         access_key['last_modified'] = last_modified.strftime('%Y-%m-%d')
+        access_key['lifepoint_date'] = lifepoint
         access_key['lifepoint'] = lifepoint.strftime('%Y-%m-%d')
         access_key['expiring'] = expiring
         access_key['expired'] = expired
 
-        # Hide the auth access key from the users access key table.
-        if not hidden and access_key['x_custom_meta_source'] != "JASMIN account auth access key":
-            access_keys.append(access_key)
+        #  Hide the auth access key from the user's access key table.
+        if access_key['x_custom_meta_source'] != "JASMIN account auth access key":
+            # Create a list of expired and active access keys.
+            if not expired:
+                access_keys.append(access_key)
+            else:
+                expired_access_keys.append(access_key)
+
+    # If there are no active keys show the most recent expired key.
+    if access_keys == [] and expired_access_keys != []:
+        expired_access_keys.sort(key=lambda x: x['lifepoint_date'], reverse=True)
+        access_keys.append(expired_access_keys[0])
 
     templates = [
         'jasmin_services/{}/{}/service_object_store_access_keys.html'.format(

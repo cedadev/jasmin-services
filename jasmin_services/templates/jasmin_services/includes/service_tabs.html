@@ -33,7 +33,7 @@
                 </li>
             {% endif %}
             {% if object_store_role %}
-                <li {% if active == 'service_object_store_access_keys' %}class="active"{% endif %}>
+                <li {% if active == 'service_object_store_access_keys' or active == 'service_object_store_get_access_key' or active == 'service_object_store_create_access_key' %}class="active"{% endif %}>
                     <a href="{% url 'jasmin_services:service_object_store_access_keys' category=service.category.name service=service.name %}">Access keys</a>
                 </li>
             {% endif %}
