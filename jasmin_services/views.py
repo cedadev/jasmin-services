@@ -25,12 +25,15 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.db import transaction
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib.contenttypes.models import ContentType
 
 from django.contrib.auth.decorators import login_required
 
-from .models import Grant, Request, RequestState, Category, Service, Role
-from .forms import DecisionForm, message_form_factory
+from jasmin_metadata.models import Metadatum, Form
+from .models import Grant, Request, RequestState, Category, Service, Role, Group, RoleObjectPermission, LdapGroupBehaviour, CedaLdapGroup
+from .forms import DecisionForm, message_form_factory, group_form_factory
 
 
 _log = logging.getLogger(__name__)
@@ -795,6 +798,129 @@ def service_message(request, service):
         ),
         'jasmin_services/{}/service_message.html'.format(service.category.name),
         'jasmin_services/service_message.html',
+    ]
+    return render(request, templates, {
+        'service': service,
+        'form': form,
+    })
+
+# from . import models as service_models
+# CedaLdapGroup = getattr(models, 'CedaLdapGroup')
+@require_http_methods(['GET', 'POST'])
+@login_required
+@with_service
+def service_groups(request, service):
+    """
+    Handler for ``/<category>/<service>/groups/``.
+
+    Responds to GET and POST. The user must have the ``create_groups_role``
+    permission for the service.
+
+    Allows a user with suitable permissions to create an LDAP group which other 
+    users of the service can apply for.
+    """
+    # The current user must have permission to create a group.
+    permission = 'jasmin_services.create_group_role'
+    if not request.user.has_perm(permission) and \
+       not request.user.has_perm(permission, service):
+        messages.error(request, 'Insufficient permissions')
+        return redirect_to_service(service)
+    
+    GroupForm = group_form_factory(service)
+    if request.method == 'POST':
+        form = GroupForm(request.POST)
+        if form.is_valid():
+            try:
+                name = form.cleaned_data['name']
+                description = form.cleaned_data['description']
+                approver_roles = form.cleaned_data['approver_roles']
+                LDAP_group_name = (service.name + '_' + name).replace('-', '_')
+                default_form = Form.objects.get(pk = settings.JASMIN_SERVICES['DEFAULT_METADATA_FORM'])
+
+                # Check if there is already a role with this name.
+                try:
+                    Role.objects.get(
+                        service = service,
+                        name = name,
+                    )
+                    raise Exception('Already exists')
+                except Role.DoesNotExist:
+                    role = Role(
+                        service = service,
+                        name = name,
+                        description = description,
+                        metadata_form = default_form,
+                        hidden = False,
+                    )
+                
+                # Check if there is already a ceda ldap group with this name.
+                try:
+                    CedaLdapGroup.objects.get(name = LDAP_group_name)
+                    raise Exception('Already exists')
+                except CedaLdapGroup.DoesNotExist:
+                    group = CedaLdapGroup(
+                        name = LDAP_group_name,
+                        description = description,
+                    )
+
+                # Create the LDAP group behaviour.
+                ldap_group_behaviour = LdapGroupBehaviour.objects.create(
+                    ldap_model = group,
+                    group_name = LDAP_group_name,
+                )
+
+                # Save both after check, as not to create only one.
+                group.save()
+                role.save()
+                role.behaviours.add(ldap_group_behaviour)
+
+                # Create relevant role_object_permissions for the approver roles.
+                permissions = [
+                    Permission.objects.get(
+                    content_type = ContentType.objects.get_for_model(Role),
+                    codename = 'view_users_role',
+                    ),
+                    Permission.objects.get(
+                        content_type = ContentType.objects.get_for_model(Role),
+                        codename = 'send_message_role',
+                    ),
+                    Permission.objects.get(
+                        content_type = ContentType.objects.get_for_model(Request),
+                        codename = 'decide_request',
+                    ),
+                ]
+
+                for approver_role in approver_roles:
+                    RoleObjectPermission.objects.bulk_create([
+                        RoleObjectPermission(
+                            role = approver_role,
+                            permission =  permission,
+                            content_type = ContentType.objects.get_for_model(role),
+                            object_pk = role.pk
+                        )
+                        for permission in permissions
+                    ])
+
+                messages.success(request, 'Group created')
+                return redirect_to_service(service)
+            except Exception as e:
+                print(e)
+                if str(e) == 'Already exists':
+                    messages.error(request, 'Group with this name already exists')
+                else:
+                    messages.error(request, 'Error creating group')
+
+        else:
+            messages.error(request, 'Error with one or more fields')
+    else:
+        form = GroupForm()
+    templates = [
+        'jasmin_services/{}/{}/service_group.html'.format(
+            service.category.name,
+            service.name
+        ),
+        'jasmin_services/{}/service_group.html'.format(service.category.name),
+        'jasmin_services/service_group.html',
     ]
     return render(request, templates, {
         'service': service,

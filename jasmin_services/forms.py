@@ -22,7 +22,7 @@ from django.urls import reverse
 
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
-from .models import Grant, RequestState, LdapGroupBehaviour
+from .models import Grant, RequestState, LdapGroupBehaviour, Role
 
 
 def message_form_factory(sender, *roles):
@@ -63,6 +63,35 @@ def message_form_factory(sender, *roles):
             )
         ),
     })
+
+
+def group_form_factory(service):
+    """
+    Factory function that creates a group form for a set of roles.
+    """
+    ROLE_CHOICES = [(role, role.name) for role in service.roles.all()]
+
+    return type(uuid.uuid4().hex, (forms.Form, ), {
+        'name' : forms.CharField(label = 'Name', required = True, max_length = 15),
+        'description' : forms.CharField(label = 'Description'),
+        'approver_roles' : forms.MultipleChoiceField(
+            required = False,
+            choices = ROLE_CHOICES,
+            label = 'Approver roles',
+            help_text = mark_safe(
+                'The selected roles will be able to approve request for '
+                'the created role.'
+            )
+        ),
+    })
+
+
+class GroupForm(forms.Form):
+    """
+    Form for creating a key LDAP group for an object store.
+    """
+    name = forms.CharField(label = 'Name', required = True, max_length = 15)
+    description = forms.CharField(label = 'Description')
 
 
 class DecisionForm(forms.Form):
