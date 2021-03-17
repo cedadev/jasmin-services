@@ -100,6 +100,11 @@ class Service(models.Model):
                     'Services are ordered in ascending order by category, then by '
                     'this field, then alphabetically by name.'
     )
+    #: Indicates if the service is managed by CEDA
+    ceda_managed = models.BooleanField(
+        default = False,
+        help_text = 'Whether the service is managed by CEDA.'
+    )
 
     def __str__(self):
         return '{} : {}'.format(self.category, self.name)
