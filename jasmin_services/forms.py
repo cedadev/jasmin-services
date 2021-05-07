@@ -22,7 +22,8 @@ from django.urls import reverse
 
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
-from .models import Grant, RequestState, LdapGroupBehaviour
+from .models import Grant, RequestState, LdapGroupBehaviour, Role
+from jasmin_auth.models import JASMINUser
 
 
 def message_form_factory(sender, *roles):
@@ -63,6 +64,71 @@ def message_form_factory(sender, *roles):
             )
         ),
     })
+
+
+def grant_form_factory(roles):
+    """
+    Factory function that creates a message form for a set of roles.
+
+    The set of users is those with a valid, active grant for one of the roles.
+    """
+    # The possible users are those that have an active, non-revoked, non-expired
+    # grant for the USER role for the service
+    role_choices = [(role.id, role.name) for role in roles]
+
+    EXPIRES_SIX_MONTHS = 1
+    EXPIRES_ONE_YEAR = 2
+    EXPIRES_TWO_YEARS = 3
+    EXPIRES_THREE_YEARS = 4
+    EXPIRES_FIVE_YEARS = 5
+    EXPIRES_TEN_YEARS = 6
+    EXPIRES_CUSTOM = 7
+
+    return type(uuid.uuid4().hex, (forms.Form, ), {
+        'email' : forms.CharField(
+            max_length = 254, 
+            label = 'Email',
+            validators = [validate_grant_email],
+            help_text = "Email address associated with user's account"
+            ),
+        'role' : forms.ChoiceField(
+            choices = role_choices,
+            label = 'Role',
+        ),
+        'expires' : forms.TypedChoiceField(
+            label = 'Expiry date',
+            help_text = 'Pick a duration from the dropdown list, or pick a custom expiry date',
+            required = False,
+            choices = [
+                (0, '---------'),
+                (EXPIRES_SIX_MONTHS, 'Six months from now'),
+                (EXPIRES_ONE_YEAR, 'One year from now'),
+                (EXPIRES_TWO_YEARS, 'Two years from now'),
+                (EXPIRES_THREE_YEARS, 'Three years from now'),
+                (EXPIRES_FIVE_YEARS, 'Five years from now'),
+                (EXPIRES_TEN_YEARS, 'Ten years from now'),
+                (EXPIRES_CUSTOM, 'Custom expiry date'),
+            ],
+            coerce = int,
+            empty_value = 0
+        ),
+        'expires_custom' : forms.DateField(
+            label = 'Custom expiry date',
+            required = False,
+            input_formats = ['%Y-%m-%d', '%d/%m/%Y'],
+            widget = forms.DateInput(
+                format = '%Y-%m-%d',
+                attrs = { 'type' : 'date' }
+            )
+        )        
+    })
+
+def validate_grant_email(value):
+    # validator to check account exists for given email.
+    try:
+        JASMINUser.objects.get(email=value)
+    except JASMINUser.DoesNotExist:
+        raise ValidationError('user ({}) does not exist.'.format(value))
 
 
 class DecisionForm(forms.Form):

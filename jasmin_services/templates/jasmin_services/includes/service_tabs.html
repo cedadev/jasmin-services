@@ -31,6 +31,13 @@
                     </a>
                 </li>
             {% endif %}
+            {% if approver %}
+                <li {% if active == 'grant_role' %}class="active"{% endif %}>
+                    <a href="{% url 'jasmin_services:grant_role' category=service.category.name service=service.name %}">
+                        Grant role
+                    </a>
+                </li>
+            {% endif %}
         </ul>
     {% endif %}
 {% endwith %}
