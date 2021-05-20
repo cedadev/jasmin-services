@@ -9,6 +9,7 @@ import os
 import logging
 
 import requests
+import re
 
 from django.conf import settings
 from django.db.models import signals
@@ -165,7 +166,7 @@ def grant_created(sender, instance, created, **kwargs):
     """
     Notifies the user when a grant is created.
     """
-    if created and instance.active:
+    if created and instance.active and not re.match(r'train\d{3}', instance.user.username):
         instance.user.notify(
             'grant_created',
             instance,
@@ -181,7 +182,7 @@ def grant_revoked(sender, instance, created, **kwargs):
     """
     Notifies the user when a grant is revoked. Also ensures that access is revoked.
     """
-    if instance.active and instance.revoked:
+    if instance.active and instance.revoked and not re.match(r'train\d{3}', instance.user.username):
         # Only send the notification once
         instance.user.notify_if_not_exists(
             'grant_revoked',
@@ -211,7 +212,7 @@ def account_suspended(sender, instance, created, **kwargs):
     When a user account is suspended, revoke all the active grants and reject all
     the pending requests for that user.
     """
-    if not instance.is_active:
+    if not instance.is_active and not re.match(r'train\d{3}', instance.username):
         for grant in Grant.objects.filter(user = instance, revoked = False)  \
                                   .filter_active():
             grant.revoked = True
