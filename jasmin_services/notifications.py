@@ -212,7 +212,7 @@ def account_suspended(sender, instance, created, **kwargs):
     When a user account is suspended, revoke all the active grants and reject all
     the pending requests for that user.
     """
-    if not instance.is_active and not re.match(r'train\d{3}', instance.username):
+    if not instance.is_active:
         for grant in Grant.objects.filter(user = instance, revoked = False)  \
                                   .filter_active():
             grant.revoked = True
