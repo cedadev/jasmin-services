@@ -73,10 +73,6 @@
                     <label for="id_for_user">Degree</label>
                     <p id="id_for_user">{{ original.user.degree|default:"N/A" }}</p>
                 </div>
-                <div class="form-row">
-                    <label for="id_requested_by">Requested By</label>
-                    <p id="id_requested_by"><code>{{ original.requested_by }}</code></p>
-                </div>
 
                 {% for datum in original.metadata.all %}
                     <div class="form-row">

@@ -13,6 +13,7 @@ import requests
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
+
 from django.conf import settings
 from django.db.models import signals
 from django.dispatch import receiver
@@ -184,7 +185,7 @@ def grant_revoked(sender, instance, created, **kwargs):
     """
     Notifies the user when a grant is revoked. Also ensures that access is revoked.
     """
-    if instance.active and instance.revoked:
+    if instance.active and instance.revoked and not re.match(r'train\d{3}', instance.user.username):
         # Only send the notification once
         instance.user.notify_if_not_exists(
             'grant_revoked',
