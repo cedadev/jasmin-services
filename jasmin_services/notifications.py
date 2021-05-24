@@ -6,10 +6,13 @@ __author__ = "Matt Pryor"
 __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 
 import os
+import re
 import logging
 
 import requests
-import re
+from datetime import date
+from dateutil.relativedelta import relativedelta
+
 
 from django.conf import settings
 from django.db.models import signals
@@ -222,4 +225,36 @@ def account_suspended(sender, instance, created, **kwargs):
                                           state = RequestState.PENDING):
             req.state = RequestState.REJECTED
             req.user_reason = 'Account was suspended'
+            req.save()
+
+
+@receiver(signals.post_save, sender = get_user_model())
+def account_reactivated(sender, instance, created, **kwargs):
+    """
+    When a user account is reactivated, re-instate all the active grants and all
+    the pending requests for that user.
+    """
+    if instance.is_active:
+        for grant in Grant.objects.filter(user = instance, \
+                                          revoked = True, \
+                                          user_reason = 'Account was suspended', \
+                                         ).filter_active():
+            # Re-instate revoked grants if not expired else create new grant with 
+            # one month till expiry.
+            if grant.expires > date.today():
+                grant.user_reason = ''
+                grant.revoked = False
+                grant.save()
+            else:
+                Grant.objects.create(
+                    user=instance,
+                    role=grant.role,
+                    granted_by=grant.granted_by,
+                    expires=date.today() + relativedelta(months=1)
+                )
+        for req in Request.objects.filter(user = instance, \
+                                          state = RequestState.REJECTED, \
+                                          user_reason = 'Account was suspended'):
+            req.user_reason = ''
+            req.state = RequestState.PENDING
             req.save()
