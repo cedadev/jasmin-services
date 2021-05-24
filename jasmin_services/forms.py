@@ -129,11 +129,11 @@ class DecisionForm(forms.Form):
         self._approver = approver
         super().__init__(*args, **kwargs)
 
-    def clean_approved(self):
+    def clean_state(self):
         state = self.cleaned_data.get('state')
-        if approved is None:
+        if state is None:
             raise ValidationError('This field is required')
-        return approved
+        return state
 
     def clean_expires(self):
         state = self.cleaned_data.get('state')
@@ -156,7 +156,7 @@ class DecisionForm(forms.Form):
         state = self.cleaned_data.get('state')
         user_reason = self.cleaned_data.get('user_reason')
         if state != 'APPROVED' and not user_reason:
-            raise ValidationError('Please give a reason for rejection')
+            raise ValidationError('Please give a reason for rejection or incompletion')
         return user_reason
 
     def save(self):

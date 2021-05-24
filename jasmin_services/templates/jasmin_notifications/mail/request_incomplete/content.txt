@@ -3,7 +3,7 @@
 {% block content %}
 Hi {{ user.first_name }},
 
-The following request is requires additional information:
+The following request requires additional information:
 {% if target.user.service_user %}
     Service: {{ target.role.service }}
     Role: {{ target.role.name }}

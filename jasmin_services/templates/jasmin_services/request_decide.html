@@ -99,7 +99,11 @@
                             <aside class="danger">
                                 <header>
                                     <span class="reason-number">{{ forloop.counter }} of {{ rejected|length }}</span>
-                                    Previous request rejected
+                                        {% if req.incomplete %}
+                                            Previous request incomplete
+                                        {% else %}
+                                            Previous request rejected
+                                        {% endif %}
                                 </header>
                                 {{ req.user_reason|markdown }}
                                 {% if req.internal_reason %}
@@ -215,14 +219,14 @@
     var YES = 'APPROVED', NO = 'REJECTED', NO_INCOMPLETE = 'INCOMPLETE', CUSTOM_DATE = '7';
     // This function makes sure only fields which are needed are shown
     var toggle_fields = function() {
-        var approved = $('[name="state"]').val();
+        var state = $('[name="state"]').val();
         var expires = $('[name="expires"]').val();
-        $('[name="expires"]').closest('.form-group')[approved == YES ? 'show' : 'hide']();
-        var show_custom = ( approved == YES && expires == CUSTOM_DATE );
+        $('[name="expires"]').closest('.form-group')[state == YES ? 'show' : 'hide']();
+        var show_custom = ( state == YES && expires == CUSTOM_DATE );
         $('[name="expires_custom"]').closest('.form-group')[show_custom ? 'show' : 'hide']();
-        $('[name$="_reason"]').closest('.form-group')[( approved == NO || approved == NO_INCOMPLETE ) ? 'show' : 'hide']();
-        $('[for="id_user_reason"]')[0].innerHTML = [( approved == NO ) ? 'Reason for rejection (user)' : 'Reason for incomplete (user)'];
-        $('[for="id_internal_reason"]')[0].innerHTML = [( approved == NO ) ? 'Reason for rejection (internal)' : 'Reason for incomplete (internal)'];
+        $('[name$="_reason"]').closest('.form-group')[( state == NO || state == NO_INCOMPLETE ) ? 'show' : 'hide']();
+        $('[for="id_user_reason"]')[0].innerHTML = [( state == NO ) ? 'Reason for rejection (user)' : 'Reason for incomplete (user)'];
+        $('[for="id_internal_reason"]')[0].innerHTML = [( state == NO ) ? 'Reason for rejection (internal)' : 'Reason for incomplete (internal)'];
     }
     toggle_fields();
     $('[name="state"], [name="expires"]').on('change', toggle_fields);

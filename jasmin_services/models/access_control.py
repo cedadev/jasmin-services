@@ -363,7 +363,7 @@ class Request(HasMetadata):
     @active.setter
     def active(self, value):
         self._active = value
-    
+
     @property
     def pending(self):
         """
