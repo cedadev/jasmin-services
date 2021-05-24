@@ -229,10 +229,10 @@ class ServiceAdmin(admin.ModelAdmin):
                     body = render_to_string('admin/jasmin_services/service/email_message.txt', {
                         'sender': 'JASMIN Support',
                         'message': form.cleaned_data['message'],
-                        'reply_to': settings.SUPPORT_EMAIL,
+                        'reply_to': settings.JASMIN_SUPPORT_EMAIL,
                     }),
                     bcc = [u.email for u in form.cleaned_data['users']],
-                    reply_to = [settings.SUPPORT_EMAIL]
+                    reply_to = [settings.JASMIN_SUPPORT_EMAIL]
                 ).send()
                 messages.success(request, 'Message sent')
                 return redirect('/admin/jasmin_services/service/{}'.format(service.pk))
