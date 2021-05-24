@@ -14,7 +14,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django import forms
 from django.core.exceptions import ValidationError
-from django.contrib.admin.widgets import AdminDateWidget
+from django.contrib.admin.widgets import FilteredSelectMultiple, AdminDateWidget
 from django.contrib.auth import get_user_model
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
@@ -275,3 +275,32 @@ class LdapGroupBehaviourAdminForm(forms.ModelForm):
                 for g in settings.JASMIN_SERVICES['LDAP_GROUPS']
             }
         )
+
+def admin_message_form_factory(service):
+    """
+    Factory function that creates a message form for a set of roles.
+
+    The set of users is those with a valid, active grant for one of the roles.
+    """
+    # The possible users are those that have an active, non-revoked, non-expired
+    # grant for the USER role for the service
+    queryset = get_user_model().objects.distinct() \
+        .filter(
+            grant__in = Grant.objects
+                .filter(
+                    role__service = service,
+                    expires__gte = date.today(),
+                    revoked = False
+                )
+                .filter_active()
+        ) \
+        .distinct()
+    return type(uuid.uuid4().hex, (forms.Form, ), {
+        'users' : forms.ModelMultipleChoiceField(
+            queryset = queryset,
+            label = 'Send to',
+            widget = FilteredSelectMultiple("Users", is_stacked=False),
+        ),
+        'subject' : forms.CharField(max_length = 250, label = 'Subject'),
+        'message' : forms.CharField(widget = forms.Textarea, label = 'Message'),
+    })
