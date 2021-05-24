@@ -29,8 +29,8 @@ Username, Role, Link
 
 {% if applications|length != 0 %}
 Outstanding Applications:
-Username, Link
+Email, Link
 {% for ap in applications %}
-{{ ap.user.username }}, {{ url }}/admin/jasmin_registration/application/{{ ap.id }}/decide/
+{{ ap.email }}, {{ url }}/admin/jasmin_registration/application/{{ ap.id }}/decide/
 {% endfor %}
 {% endif %}

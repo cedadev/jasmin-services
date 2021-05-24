@@ -8,7 +8,6 @@ __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 
 from django.core.management.base import BaseCommand, CommandError
 
-from jasmin_auth.models import JASMINUser
 from jasmin_registration.models import Application
 
 from ...models import Request, RequestState
@@ -16,6 +15,7 @@ from ...actions import *
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.contrib.sites.shortcuts import get_current_site
 
 
 class Command(BaseCommand):
@@ -37,18 +37,18 @@ class Command(BaseCommand):
                 ceda_requests.append(request)
 
         context = {
-            'email' : 'support@jasmin.ac.uk',
+            'email' : settings.JASMIN_SUPPORT_EMAIL,
             'manager_requests': manager_requests,
             'no_app_requests': no_app_requests,
             'ceda_requests': ceda_requests,
             'applications': applications,
-            'url': 'https://accounts.jasmin.ac.uk'
+            'url': settings.BASE_URL
         }
         content = render_to_string('jasmin_notifications/mail/pending_summary/content.txt', context)
         send_mail(
             subject = 'Current Pending Requests and Applications',
             message = content,
             from_email = settings.DEFAULT_FROM_EMAIL,
-            recipient_list = ['support@jasmin.ac.uk'],
+            recipient_list = [settings.JASMIN_SUPPORT_EMAIL],
             fail_silently = True
         )
