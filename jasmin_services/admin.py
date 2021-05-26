@@ -232,6 +232,7 @@ class ServiceAdmin(admin.ModelAdmin):
                         'reply_to': settings.JASMIN_SUPPORT_EMAIL,
                     }),
                     bcc = [u.email for u in form.cleaned_data['users']],
+                    from_email = settings.JASMIN_SUPPORT_EMAIL,
                     reply_to = [settings.JASMIN_SUPPORT_EMAIL]
                 ).send()
                 messages.success(request, 'Message sent')
