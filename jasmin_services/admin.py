@@ -591,6 +591,7 @@ class RequestAdmin(HasMetadataModelAdmin):
         'requested_by',
         'requested_at',
         'state',
+        'incomplete',
         'grant',
         'user_reason',
         'internal_reason'
@@ -629,6 +630,10 @@ class RequestAdmin(HasMetadataModelAdmin):
             return 'PENDING'
         elif obj.state == RequestState.APPROVED:
             return mark_safe('<span style="color: #00b300;">APPROVED</span>')
+        elif obj.incomplete:
+            return mark_safe(
+                '<span style="color: #e67a00; font-weight: bold;">INCOMPLETE</span>'
+            )
         else:
             return mark_safe(
                 '<span style="color: #e60000; font-weight: bold;">REJECTED</span>'

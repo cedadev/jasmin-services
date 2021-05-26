@@ -320,6 +320,8 @@ class Request(HasMetadata):
 
     #: The current state of the request
     state = RequestState.model_field(default = RequestState.PENDING)
+    #: True if request requires more information
+    incomplete = models.BooleanField(default = False)
     #: If approved, this is the resulting access grant
     grant = models.OneToOneField(Grant, models.SET_NULL,
                                  null = True, blank = True,
@@ -338,7 +340,7 @@ class Request(HasMetadata):
     )
 
     def __str__(self):
-        return '{} : {} : {}'.format(self.role, self.user, self.state)
+        return '{} : {} : {}'.format(self.role, self.user, 'INCOMPETE' if self.incomplete else self.state)
 
     @property
     def active(self):
@@ -394,6 +396,9 @@ class Request(HasMetadata):
         # If the state is rejected, we need a user reason
         if self.state == RequestState.REJECTED and not self.user_reason:
             errors['user_reason'] = 'Please give a reason for rejection'
+        # If the request is incomplete, it must be rejected
+        if self.incomplete and not self.state == RequestState.REJECTED:
+            errors['state'] = 'Incomplete requests must be in the REJECTED state'
         try:
             user = self.user
             # Ensure that the user is active

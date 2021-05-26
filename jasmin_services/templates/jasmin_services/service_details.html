@@ -65,7 +65,13 @@
                         <tbody>
                             {% if req.rejected %}
                                 <tr class="danger">
-                                    <td class="text-danger" style="width: 1%;"><i class="fa fa-fw fa-ban"></i></td>
+                                    <td class="text-danger" style="width: 1%;">
+                                        {% if req.incomplete %}
+                                            <i class="fa fa-fw fa-info-circle"></i>
+                                        {% else %}
+                                            <i class="fa fa-fw fa-ban"></i>
+                                        {% endif %} 
+                                    </td>
                             {% elif req.pending %}
                                 <tr class="active">
                                     <td class="text-muted" style="width: 1%;"><i class="fa fa-fw fa-hourglass-half"></i></td>
@@ -74,21 +80,29 @@
                                     <td class="text-success" style="width: 1%;"><i class="fa fa-fw fa-check"></i></td>
                             {% endif %}
                                 <td><code>{{ req.role.name }}</code></td>
-                                {% if req.approved %}
-                                    <td><code>APPROVED</code></td>
-                                {% elif req.rejected %}
-                                    <td>
-                                        <code>REJECTED</code>
-                                    </td>
-                                {% else %}
-                                    <td><code>PENDING</code></td>
-                                {% endif %}
+                                <td><code>
+                                    {% if req.approved %}
+                                        APPROVED
+                                    {% elif req.rejected %}
+                                        {% if req.incomplete %}
+                                            INCOMPLETE
+                                        {% else %}
+                                            REJECTED
+                                        {% endif %}
+                                    {% else %}
+                                        PENDING
+                                    {% endif %}
+                                </code></td>
                                 <td>{{ req.requested_at.date }}</td>
                                 {% if req.rejected %}
                                     <td style="width: 1%;">
                                         <a class="btn btn-success btn-sm btn-block"
                                            href="{% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=req.role.name %}">
-                                            <i class="fa fa-fw fa-refresh"></i> Apply again
+                                            {% if req.incomplete %}
+                                                <i class="fa fa-fw fa-info"></i> Add info
+                                            {% else %}
+                                                <i class="fa fa-fw fa-refresh"></i> Apply again
+                                            {% endif %}
                                         </a>
                                     </td>
                                 {% else %}

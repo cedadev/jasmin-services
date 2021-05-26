@@ -54,6 +54,10 @@ def register_notifications(app_config, verbosity = 2, interactive = True, **kwar
         level = NotificationLevel.ERROR,
     )
     NotificationType.create(
+        name = 'request_incomplete',
+        level = NotificationLevel.ERROR,
+    )
+    NotificationType.create(
         name = 'grant_created',
         level = NotificationLevel.SUCCESS,
     )
@@ -154,8 +158,10 @@ def request_rejected(sender, instance, created, **kwargs):
     """
     if instance.active and instance.state == RequestState.REJECTED:
         # Only send the notification once
+        template = 'request_incomplete' if instance.incomplete else 'request_rejected'
+
         instance.user.notify_if_not_exists(
-            'request_rejected',
+            template,
             instance,
             reverse('jasmin_services:service_details', kwargs = {
                 'category' : instance.role.service.category.name,
