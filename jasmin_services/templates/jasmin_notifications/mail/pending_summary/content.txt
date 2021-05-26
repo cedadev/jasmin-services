@@ -1,0 +1,36 @@
+Summary:
+CEDA-managed services Requests: {{ ceda_requests|length }} 
+Manager Requests: {{ manager_requests|length }}
+Applications: {{ applications|length }}
+
+{% if ceda_requests|length != 0 %}
+Outstanding CEDA-managed services Requests:
+Username, Role, Link
+{% for cr in ceda_requests %}
+{{ cr.user.username }}, {{ cr.role.name }}, {{ url }}/services/request/{{ cr.id }}/decide/
+{% endfor %}
+{% endif %}
+
+{% if no_app_requests|length != 0 %}
+Outstanding CEDA-managed services Requests:
+Username, Role, Link
+{% for nar in no_app_requests %}
+{{ cr.user.username }}, {{ nar.role.name }}, {{ url }}/services/request/{{ nar.id }}/decide/
+{% endfor %}
+{% endif %}
+
+{% if manager_requests|length != 0 %}
+Outstanding Manager Requests:
+Username, Role, Link
+{% for mr in manager_requests %}
+{{ mr.user.username }}, {{ mr.role.name }}, {{ url }}/services/request/{{ mr.id }}/decide/
+{% endfor %}
+{% endif %}
+
+{% if applications|length != 0 %}
+Outstanding Applications:
+Email, Link
+{% for ap in applications %}
+{{ ap.email }}, {{ url }}/admin/jasmin_registration/application/{{ ap.id }}/decide/
+{% endfor %}
+{% endif %}
