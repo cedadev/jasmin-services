@@ -17,4 +17,9 @@ class Migration(migrations.Migration):
             name='ceda_managed',
             field=models.BooleanField(default=False, help_text='Whether the service is managed by CEDA.'),
         ),
+        migrations.AddField(
+            model_name='request',
+            name='incomplete',
+            field=models.BooleanField(default=False),
+        ),
     ]
