@@ -225,12 +225,18 @@ def account_suspended(sender, instance, created, **kwargs):
         for grant in Grant.objects.filter(user = instance, revoked = False)  \
                                   .filter_active():
             grant.revoked = True
-            grant.user_reason = 'Account was suspended'
+            if re.match(r'train\d{3}', instance.username):
+                grant.user_reason = 'Training account was torn down'
+            else:
+                grant.user_reason = 'Account was suspended'
             grant.save()
         for req in Request.objects.filter(user = instance, \
                                           state = RequestState.PENDING):
             req.state = RequestState.REJECTED
-            req.user_reason = 'Account was suspended'
+            if re.match(r'train\d{3}', instance.username):
+                req.user_reason = 'Training account was torn down'
+            else:
+                req.user_reason = 'Account was suspended'
             req.save()
 
 

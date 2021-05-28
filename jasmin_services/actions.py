@@ -7,6 +7,7 @@ __author__ = "Matt Pryor"
 __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 
 import logging
+import re
 from dateutil.relativedelta import relativedelta
 
 from django.conf import settings
@@ -44,7 +45,7 @@ def send_expiry_notifications(grant_queryset):
     in the given queryset.
     """
     for grant in grant_queryset.filter_active():
-        if grant.expired:
+        if grant.expired and re.match(r'train\d{3}', grant.user.username):
             grant.user.notify_if_not_exists(
                 'grant_expired',
                 grant,
@@ -53,7 +54,7 @@ def send_expiry_notifications(grant_queryset):
                     'service' : grant.role.service.name,
                 })
             )
-        elif grant.expiring:
+        elif grant.expiring and re.match(r'train\d{3}', grant.user.username):
             grant.user.notify_pending_deadline(
                 grant.expires,
                 settings.JASMIN_SERVICES['NOTIFY_EXPIRE_DELTAS'],
