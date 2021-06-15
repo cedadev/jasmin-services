@@ -67,6 +67,13 @@ def send_expiry_notifications(grant_queryset):
             )
 
 
+def revoke_grants(grant_queryset):
+    """
+    Revokes the active grants in the given queryset.
+    """
+    grant_queryset.filter_active().update(revoked=True)
+
+
 def remind_pending(request_queryset):
     """
     Sends notifications to approvers for requests that have been pending for too long.

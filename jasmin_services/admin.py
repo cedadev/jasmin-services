@@ -39,7 +39,7 @@ from .models import (
 )
 from .forms import AdminDecisionForm, LdapGroupBehaviourAdminForm, admin_message_form_factory
 from .actions import (
-    synchronise_service_access, send_expiry_notifications, remind_pending
+    synchronise_service_access, send_expiry_notifications, remind_pending, revoke_grants
 )
 from .widgets import AdminGfkContentTypeWidget, AdminGfkObjectIdWidget
 
@@ -429,7 +429,7 @@ class GrantAdmin(HasMetadataModelAdmin):
         'user__email',
         'user__last_name'
     )
-    actions = ('synchronise_service_access', 'send_expiry_notifications')
+    actions = ('synchronise_service_access', 'send_expiry_notifications', 'revoke_grants')
     list_select_related = (
         'role',
         'role__service',
@@ -462,6 +462,13 @@ class GrantAdmin(HasMetadataModelAdmin):
         """
         send_expiry_notifications(queryset)
     send_expiry_notifications.short_description = 'Send expiry notifications'
+
+    def revoke_grants(self, request, queryset):
+        """
+        Admin action that revokes the selected grants.
+        """
+        revoke_grants(queryset)
+    revoke_grants.short_description = 'Revoke selected grants'
 
     def active(self, obj):
         """
