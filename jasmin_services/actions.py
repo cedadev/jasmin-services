@@ -45,7 +45,7 @@ def send_expiry_notifications(grant_queryset):
     in the given queryset.
     """
     for grant in grant_queryset.filter_active():
-        if grant.expired and re.match(r'train\d{3}', grant.user.username):
+        if grant.expired and not re.match(r'train\d{3}', grant.user.username):
             grant.user.notify_if_not_exists(
                 'grant_expired',
                 grant,
@@ -54,7 +54,7 @@ def send_expiry_notifications(grant_queryset):
                     'service' : grant.role.service.name,
                 })
             )
-        elif grant.expiring and re.match(r'train\d{3}', grant.user.username):
+        elif grant.expiring and not re.match(r'train\d{3}', grant.user.username):
             grant.user.notify_pending_deadline(
                 grant.expires,
                 settings.JASMIN_SERVICES['NOTIFY_EXPIRE_DELTAS'],
