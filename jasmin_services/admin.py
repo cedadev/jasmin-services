@@ -37,7 +37,7 @@ from .models import (
     Grant, Request, RequestState,
     Behaviour, LdapTagBehaviour, LdapGroupBehaviour, JoinJISCMailListBehaviour
 )
-from .forms import AdminDecisionForm, LdapGroupBehaviourAdminForm, admin_message_form_factory
+from .forms import AdminDecisionForm, AdminRevokeForm, LdapGroupBehaviourAdminForm, admin_message_form_factory
 from .actions import (
     synchronise_service_access, send_expiry_notifications, remind_pending
 )
@@ -429,7 +429,7 @@ class GrantAdmin(HasMetadataModelAdmin):
         'user__email',
         'user__last_name'
     )
-    actions = ('synchronise_service_access', 'send_expiry_notifications')
+    actions = ('synchronise_service_access', 'send_expiry_notifications', 'revoke_grants')
     list_select_related = (
         'role',
         'role__service',
@@ -462,6 +462,20 @@ class GrantAdmin(HasMetadataModelAdmin):
         """
         send_expiry_notifications(queryset)
     send_expiry_notifications.short_description = 'Send expiry notifications'
+
+    def revoke_grants(self, request, queryset):
+        """
+        Admin action that revokes the selected grants.
+        """
+        selected = queryset.values_list('pk', flat=True)
+        selected_ids = '_'.join(str(pk) for pk in selected)
+
+        return redirect(reverse(
+                'admin:jasmin_services_bulk_revoke',
+                kwargs = {'ids': selected_ids},
+                current_app=self.admin_site.name)
+            )
+    revoke_grants.short_description = 'Revoke selected grants'
 
     def active(self, obj):
         """
@@ -551,6 +565,47 @@ class GrantAdmin(HasMetadataModelAdmin):
             )
             return { d.key : d.value for d in metadata.all() }
         return super().get_metadata_form_initial_data(request, obj)
+
+    def get_urls(self):
+        return [
+            url(
+                r'^bulk_revoke/(?P<ids>[0-9_]+)/$',
+                self.admin_site.admin_view(self.bulk_revoke),
+                name = 'jasmin_services_bulk_revoke'
+            ),
+        ] + super().get_urls()
+
+    def bulk_revoke(self, request, ids):
+        ids = ids.split('_')
+        if request.method == 'POST':
+            form = AdminRevokeForm(data = request.POST)
+            if form.is_valid():
+                user_reason = form.cleaned_data['user_reason']
+                internal_reason = form.cleaned_data['internal_reason']
+
+                Grant.objects.filter(pk__in = ids).update(
+                    revoked = True,
+                    user_reason = user_reason,
+                    internal_reason = internal_reason,
+                )
+                return redirect(
+                    f'{self.admin_site.name}:jasmin_services_grant_changelist'
+                )
+        else:
+            form = AdminRevokeForm()
+        context = {
+            'title' : 'Bulk Revoke Grants',
+            'form': form,
+            'opts': self.model._meta,
+            'media' : self.media + form.media,
+        }
+        context.update(self.admin_site.each_context(request))
+        request.current_app = self.admin_site.name
+        return render(
+            request,
+            'admin/jasmin_services/grant/bulk_revoke.html',
+            context
+        )
 
 
 class _StateListFilter(admin.SimpleListFilter):

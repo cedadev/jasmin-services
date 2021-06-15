@@ -210,6 +210,21 @@ class AdminDecisionForm(DecisionForm):
     )
 
 
+class AdminRevokeForm(forms.Form):
+    user_reason = forms.CharField(
+        label = 'Reason for rejection (user)',
+        required = False,
+        widget = forms.Textarea(attrs = { 'rows' : 5 }),
+        help_text = markdown_allowed()
+    )
+    internal_reason = forms.CharField(
+        label = 'Reason for rejection (internal)',
+        required = False,
+        widget = forms.Textarea(attrs = { 'rows' : 5 }),
+        help_text = markdown_allowed()
+    )
+
+
 class AdminSwitchableLookupWidget(forms.TextInput):
     """
     Custom widget to allow the lookup of a single model PK using a popup. The model
