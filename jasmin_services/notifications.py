@@ -6,9 +6,13 @@ __author__ = "Matt Pryor"
 __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 
 import os
+import re
 import logging
 
 import requests
+from datetime import date
+from dateutil.relativedelta import relativedelta
+
 
 from django.conf import settings
 from django.db.models import signals
@@ -47,6 +51,10 @@ def register_notifications(app_config, verbosity = 2, interactive = True, **kwar
     )
     NotificationType.create(
         name = 'request_rejected',
+        level = NotificationLevel.ERROR,
+    )
+    NotificationType.create(
+        name = 'request_incomplete',
         level = NotificationLevel.ERROR,
     )
     NotificationType.create(
@@ -150,8 +158,10 @@ def request_rejected(sender, instance, created, **kwargs):
     """
     if instance.active and instance.state == RequestState.REJECTED:
         # Only send the notification once
+        template = 'request_incomplete' if instance.incomplete else 'request_rejected'
+
         instance.access.user.notify_if_not_exists(
-            'request_rejected',
+            template,
             instance,
             reverse('jasmin_services:service_details', kwargs = {
                 'category' : instance.access.role.service.category.name,
@@ -165,7 +175,7 @@ def grant_created(sender, instance, created, **kwargs):
     """
     Notifies the user when a grant is created.
     """
-    if created and instance.active:
+    if created and instance.active and not re.match(r'train\d{3}', instance.user.username):
         instance.access.user.notify(
             'grant_created',
             instance,
@@ -181,7 +191,7 @@ def grant_revoked(sender, instance, created, **kwargs):
     """
     Notifies the user when a grant is revoked. Also ensures that access is revoked.
     """
-    if instance.active and instance.revoked:
+    if instance.active and instance.revoked and not re.match(r'train\d{3}', instance.user.username):
         # Only send the notification once
         instance.access.user.notify_if_not_exists(
             'grant_revoked',
@@ -212,13 +222,45 @@ def account_suspended(sender, instance, created, **kwargs):
     the pending requests for that user.
     """
     if not instance.is_active:
-        for grant in Grant.objects.filter(user = instance, revoked = False)  \
+        for grant in Grant.objects.filter(access__user = instance, revoked = False)  \
                                   .filter_active():
             grant.revoked = True
             grant.user_reason = 'Account was suspended'
             grant.save()
-        for req in Request.objects.filter(user = instance, \
+        for req in Request.objects.filter(access__user = instance, \
                                           state = RequestState.PENDING):
             req.state = RequestState.REJECTED
             req.user_reason = 'Account was suspended'
+            req.save()
+
+
+@receiver(signals.post_save, sender = get_user_model())
+def account_reactivated(sender, instance, created, **kwargs):
+    """
+    When a user account is reactivated, re-instate all the active grants and all
+    the pending requests for that user.
+    """
+    if instance.is_active:
+        for grant in Grant.objects.filter(access__user = instance, \
+                                          revoked = True, \
+                                          user_reason = 'Account was suspended', \
+                                         ).filter_active():
+            # Re-instate revoked grants if not expired else create new grant with 
+            # one month till expiry.
+            if grant.expires > date.today():
+                grant.user_reason = ''
+                grant.revoked = False
+                grant.save()
+            else:
+                Grant.objects.create(
+                    access__user=instance,
+                    role=grant.role,
+                    granted_by=grant.granted_by,
+                    expires=date.today() + relativedelta(months=1)
+                )
+        for req in Request.objects.filter(access__user = instance, \
+                                          state = RequestState.REJECTED, \
+                                          user_reason = 'Account was suspended'):
+            req.user_reason = ''
+            req.state = RequestState.PENDING
             req.save()

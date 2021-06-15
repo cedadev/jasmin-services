@@ -20,6 +20,8 @@ from django.contrib.admin.utils import quote
 from django import http
 from django.utils.safestring import mark_safe
 from django.contrib.auth.models import Permission
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
 
 from polymorphic.admin import (
     PolymorphicParentModelAdmin,
@@ -35,7 +37,7 @@ from .models import (
     Access, Grant, Request, RequestState,
     Behaviour, LdapTagBehaviour, LdapGroupBehaviour, JoinJISCMailListBehaviour
 )
-from .forms import AdminDecisionForm, LdapGroupBehaviourAdminForm
+from .forms import AdminDecisionForm, LdapGroupBehaviourAdminForm, admin_message_form_factory
 from .actions import (
     synchronise_service_access, send_expiry_notifications, remind_pending
 )
@@ -206,6 +208,49 @@ class ServiceAdmin(admin.ModelAdmin):
             )
             self.create_role_object_permissions(manager_role, user_role)
             self.create_role_object_permissions(manager_role, deputy_role)
+
+    def get_urls(self):
+        return [
+            url(
+                r'^(?P<service>[\w-]+)/message/$',
+                self.admin_site.admin_view(self.support_message),
+                name = 'jasmin_services_support_message'
+            ),
+        ] + super().get_urls()
+
+    def support_message(self, request, service):
+        service = Service.objects.get(pk=service)
+        MessageForm = admin_message_form_factory(service)
+        if request.method == 'POST':
+            form = MessageForm(request.POST)
+            if form.is_valid():
+                EmailMessage(
+                    subject = form.cleaned_data['subject'],
+                    body = render_to_string('admin/jasmin_services/service/email_message.txt', {
+                        'sender': 'JASMIN Support',
+                        'message': form.cleaned_data['message'],
+                        'reply_to': settings.JASMIN_SUPPORT_EMAIL,
+                    }),
+                    bcc = [u.email for u in form.cleaned_data['users']],
+                    from_email = settings.JASMIN_SUPPORT_EMAIL,
+                    reply_to = [settings.JASMIN_SUPPORT_EMAIL]
+                ).send()
+                messages.success(request, 'Message sent')
+                return redirect('/admin/jasmin_services/service/{}'.format(service.pk))
+            else:
+                messages.error(request, 'Error with one or more fields')
+        else:
+            form = MessageForm()
+        context = {
+            'title' : '{}: Send Support Message'.format(service.name),
+            'form': form,
+            'opts': self.model._meta,
+            'service': service,
+            'media' : self.media + form.media,
+        }
+        context.update(self.admin_site.each_context(request))
+        request.current_app = self.admin_site.name
+        return render(request, 'admin/jasmin_services/service/message.html', context)
 
 
 class BehaviourInline(admin.StackedInline):
@@ -573,6 +618,7 @@ class RequestAdmin(HasMetadataModelAdmin):
         'resulting_grant',
         'next_request', 
         'previous_grant', 
+        'incomplete',
         'user_reason',
         'internal_reason'
     )
@@ -610,6 +656,10 @@ class RequestAdmin(HasMetadataModelAdmin):
             return 'PENDING'
         elif obj.state == RequestState.APPROVED:
             return mark_safe('<span style="color: #00b300;">APPROVED</span>')
+        elif obj.incomplete:
+            return mark_safe(
+                '<span style="color: #e67a00; font-weight: bold;">INCOMPLETE</span>'
+            )
         else:
             return mark_safe(
                 '<span style="color: #e60000; font-weight: bold;">REJECTED</span>'

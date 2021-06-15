@@ -45,10 +45,16 @@
     
             {% if req or grant %}
                 <div class="form-group">
-                    <div class="col-8 offset-4">
+                    <div class="col-md-9 col-md-offset-3">
                         {% if req %}
                             <aside class="danger">
-                                <header>Previous request rejected</header>
+                                <header>
+                                    {% if req.incomplete %}
+                                        More infomation required
+                                    {% else %}
+                                        Previous request rejected
+                                    {% endif %}
+                                </header>
                                 {{ req.user_reason|markdown }}
                             </aside>
                         {% elif grant.revoked %}
@@ -96,4 +102,36 @@
         </form>
     </div>
 </div>
+
+<script type="text/javascript">
+    var textAreas = document.getElementsByTagName("textarea");
+    var i;
+    for (i = 0; i < textAreas.length; i++) {
+        textArea = textAreas[i];
+        if ($(textArea).attr('maxlength')) {
+            var maxLength = $(textArea).attr('maxlength');
+            var length = $(textArea).val().length;
+            var remaining = maxLength-length;
+            var textAreaID = $(textArea).attr('id');
+
+            let counter = document.createElement('span');
+            counter.id = textAreaID + '_counter';
+            counter.innerHTML = remaining;
+            $(textArea).after(counter);
+            counter.after(' characters remaining');
+        };
+    };
+
+    $('textarea').keyup(function() {
+        if ($(this).attr('maxlength')) {
+            var maxLength = $(this).attr('maxlength');
+            var length = $(this).val().length;
+            var remaining = maxLength-length;
+
+            let counter = document.getElementById(this.id + '_counter');
+            $(counter).text(remaining);
+        };
+    }); 
+</script>
+
 {% endblock %}

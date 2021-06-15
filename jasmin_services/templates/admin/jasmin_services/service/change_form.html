@@ -5,5 +5,8 @@
     <li>
         <a href="{% url 'admin:jasmin_services_role_add' %}?service={{ original.pk }}" class="addlink">Add role</a>
     </li>
+    <li>
+        <a href="{% url 'admin:jasmin_services_support_message' service=original.pk %}">Send message</a>
+    </li>
     {{ block.super }}
 {% endblock %}
