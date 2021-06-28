@@ -21,8 +21,8 @@ class Command(BaseCommand):
     help = 'Ensures that users confirm their email address periodically, or their account is suspended'
 
     def handle(self, *args, **kwargs):
-        pending_requests = Request.objects.filter(state = RequestState.PENDING)
-        applications = Application.objects.filter(decision__isnull = True)
+        pending_requests = Request.objects.filter(state = RequestState.PENDING).filter_active()
+        applications = Application.objects.filter(decision__isnull = True).filter_active()
         manager_requests = {}
         user_requests = {}
         for request in pending_requests:
