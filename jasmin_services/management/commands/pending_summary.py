@@ -6,7 +6,7 @@ expiring or expired grants.
 __author__ = "Matt Pryor"
 __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 
 from jasmin_registration.models import Application
 
@@ -15,32 +15,33 @@ from ...actions import *
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.contrib.sites.shortcuts import get_current_site
 
 
 class Command(BaseCommand):
     help = 'Ensures that users confirm their email address periodically, or their account is suspended'
 
     def handle(self, *args, **kwargs):
-        pending_requests = Request.objects.filter(state = RequestState.PENDING)
-        applications = Application.objects.filter(decision__isnull = True)
-        manager_requests = []
-        no_app_requests = []
-        ceda_requests = []
+        pending_requests = Request.objects.filter(state = RequestState.PENDING).filter_active()
+        applications = Application.objects.filter(decision__isnull = True).filter_active()
+        manager_requests = {}
+        user_requests = {}
         for request in pending_requests:
             role = request.role
             if role.name == 'MANAGER':
-                manager_requests.append(request)
-            elif role.approvers == []:
-                no_app_requests.append(request)
-            elif role.service.ceda_managed:
-                ceda_requests.append(request)
+                if role.service.category in manager_requests:
+                    manager_requests[role.service.category].append(request)
+                else:
+                    manager_requests[role.service.category] = [request]
+            elif role.service.ceda_managed or role.approvers == []:
+                if role.service.category in user_requests:
+                    user_requests[role.service.category].append(request)
+                else:
+                    user_requests[role.service.category] = [request]
 
         context = {
             'email' : settings.JASMIN_SUPPORT_EMAIL,
             'manager_requests': manager_requests,
-            'no_app_requests': no_app_requests,
-            'ceda_requests': ceda_requests,
+            'user_requests': user_requests,
             'applications': applications,
             'url': settings.BASE_URL
         }
