@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         pending_requests = Request.objects.filter(state = RequestState.PENDING).filter_active()
-        applications = Application.objects.filter(decision__isnull = True).filter_active()
+        applications = Application.objects.filter(decision__isnull = True)
         manager_requests = {}
         user_requests = {}
         for request in pending_requests:
