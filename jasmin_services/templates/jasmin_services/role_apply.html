@@ -42,8 +42,23 @@
                     </div>
                 </div>
             </div>
-    
-            {% if req or grant %}
+
+            {% if licence_url %}
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-2 text-right control-label" for="id_licence"><b>License</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_licence">
+                            <object data="{{ licence_url }}" type="application/pdf" width="600" height="300">
+                                <a href="{{ licence_url }}">Click here</a>
+                            </object>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if req or grant %}
                 <div class="form-group">
                     <div class="col-md-9 col-md-offset-3">
                         {% if req %}
