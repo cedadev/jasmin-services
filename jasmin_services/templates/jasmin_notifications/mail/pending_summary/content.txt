@@ -1,5 +1,5 @@
 Summary:
-USER Requests: {{ ceda_requests|length }}
+USER Requests: {{ user_requests|length }}
 MANAGER Requests: {{ manager_requests|length }}
 Applications: {{ applications|length }}
 
