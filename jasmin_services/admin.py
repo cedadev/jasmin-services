@@ -132,7 +132,7 @@ class RoleInline(admin.TabularInline):
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     inlines = (RoleInline, )
-    list_display = ('full_name', 'summary', 'hidden', 'position')
+    list_display = ('full_name', 'summary', 'hidden', 'position', 'details_link')
     list_editable = ('position', )
     list_filter = ('category', 'hidden')
     search_fields = ('category__long_name', 'category__name', 'name', 'summary')
