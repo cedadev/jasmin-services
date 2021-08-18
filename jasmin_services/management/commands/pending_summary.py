@@ -37,19 +37,20 @@ class Command(BaseCommand):
                     user_requests[role.service.category].append(request)
                 else:
                     user_requests[role.service.category] = [request]
-
-        context = {
-            'email' : settings.JASMIN_SUPPORT_EMAIL,
-            'manager_requests': manager_requests,
-            'user_requests': user_requests,
-            'applications': applications,
-            'url': settings.BASE_URL
-        }
-        content = render_to_string('jasmin_notifications/mail/pending_summary/content.txt', context)
-        send_mail(
-            subject = 'Current Pending Requests and Applications',
-            message = content,
-            from_email = settings.DEFAULT_FROM_EMAIL,
-            recipient_list = [settings.JASMIN_SUPPORT_EMAIL],
-            fail_silently = True
-        )
+        
+        if len(manager_requests) + len(user_requests) + len(applications) > 0:
+            context = {
+                'email' : settings.JASMIN_SUPPORT_EMAIL,
+                'manager_requests': manager_requests,
+                'user_requests': user_requests,
+                'applications': applications,
+                'url': settings.BASE_URL
+            }
+            content = render_to_string('jasmin_notifications/mail/pending_summary/content.txt', context)
+            send_mail(
+                subject = 'Current Pending Requests and Applications',
+                message = content,
+                from_email = settings.DEFAULT_FROM_EMAIL,
+                recipient_list = [settings.JASMIN_SUPPORT_EMAIL],
+                fail_silently = True
+            )
