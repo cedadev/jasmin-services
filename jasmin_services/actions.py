@@ -45,26 +45,27 @@ def send_expiry_notifications(grant_queryset):
     in the given queryset.
     """
     for grant in grant_queryset.filter_active():
-        if grant.expired and not re.match(r'train\d{3}', grant.user.username):
-            grant.user.notify_if_not_exists(
-                'grant_expired',
-                grant,
-                reverse('jasmin_services:service_details', kwargs = {
-                    'category' : grant.role.service.category.name,
-                    'service' : grant.role.service.name,
-                })
-            )
-        elif grant.expiring and not re.match(r'train\d{3}', grant.user.username):
-            grant.user.notify_pending_deadline(
-                grant.expires,
-                settings.JASMIN_SERVICES['NOTIFY_EXPIRE_DELTAS'],
-                'grant_expiring',
-                grant,
-                reverse('jasmin_services:service_details', kwargs = {
-                    'category' : grant.role.service.category.name,
-                    'service' : grant.role.service.name,
-                })
-            )
+        if not (grant.revoked or re.match(r'train\d{3}', grant.user.username)):
+            if grant.expired:
+                grant.user.notify_if_not_exists(
+                    'grant_expired',
+                    grant,
+                    reverse('jasmin_services:service_details', kwargs = {
+                        'category' : grant.role.service.category.name,
+                        'service' : grant.role.service.name,
+                    })
+                )
+            elif grant.expiring:
+                grant.user.notify_pending_deadline(
+                    grant.expires,
+                    settings.JASMIN_SERVICES['NOTIFY_EXPIRE_DELTAS'],
+                    'grant_expiring',
+                    grant,
+                    reverse('jasmin_services:service_details', kwargs = {
+                        'category' : grant.role.service.category.name,
+                        'service' : grant.role.service.name,
+                    })
+                )
 
 
 def remind_pending(request_queryset):
