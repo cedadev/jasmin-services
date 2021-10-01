@@ -2,62 +2,62 @@
 {% load staticfiles bootstrap3 %}
 
 {% block head_js_extra %}{{ block.super }}
-<script src="{% static "jasmin_services/js/jquery.multi-select.js" %}" type="text/javascript"></script>
+    <script src="{% static "jasmin_services/js/jquery.multi-select.js" %}" type="text/javascript"></script>
 {% endblock %}
 
 {% block stylesheets_extra %}{{ block.super }}
-<link href="{% static "jasmin_services/css/multi-select.css" %}" media="screen" rel="stylesheet" type="text/css" />
+    <link href="{% static "jasmin_services/css/multi-select.css" %}" media="screen" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block page_title %}Send a message{% endblock %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li>JASMIN Services</li>
-    <li>
-        <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
-    </li>
-    <li class="active">{{ service.name }}</li>
-</ol>
+    <ol class="breadcrumb">
+        <li>JASMIN Services</li>
+        <li>
+            <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
+        </li>
+        <li class="active">{{ service.name }}</li>
+    </ol>
 {% endblock %}
 
 {% block content_header %}{{ block.super }}
-<div class="row">
-    <div class="col-md-12">
-        {% include "jasmin_services/includes/service_tabs.html" %}
+    <div class="row">
+        <div class="col-md-12">
+            {% include "jasmin_services/includes/service_tabs.html" %}
+        </div>
     </div>
-</div>
 {% endblock %}
 
 {% block content %}
-<div class="col-md-8 col-md-offset-2">
-    <div class="banner banner-info text-center">
-        <p>You can use this form to send an email message to users of your service.</p>
-    </div>
-    <form method="POST" action="" class="form-horizontal" id="message-form">
-        {% csrf_token %}
-
-        {% bootstrap_form form layout='horizontal' %}
-
-        <div class="form-group">
-            <div class="col-sm-offset-3 col-sm-9">
-                <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Send message</button>
-            </div>
+    <div class="col-md-8 col-md-offset-2">
+        <div class="banner banner-info text-center">
+            <p>You can use this form to send an email message to users of your service.</p>
         </div>
-    </form>
-</div>
-<script type="text/javascript">
-    $('#message-form select').removeAttr('required').multiSelect({
-        selectableHeader : '<div class="ms-header"><strong>Available</strong> (<a id="select-all" href="#">select all</a>)</div>',
-        selectionHeader : '<div class="ms-header"><strong>Selected</strong> (<a id="select-none" href="#">remove all</a>)</div>',
-    });
-    $('#select-all').click(function() {
-        $('#message-form select').multiSelect('select_all');
-        return false;
-    });
-    $('#select-none').click(function() {
-        $('#message-form select').multiSelect('deselect_all');
-        return false;
-    });
-</script>
+        <form method="POST" action="" class="form-horizontal" id="message-form">
+            {% csrf_token %}
+
+            {% bootstrap_form form layout='horizontal' %}
+
+            <div class="form-group">
+                <div class="col-sm-offset-3 col-sm-9">
+                    <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Send message</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script type="text/javascript">
+        $('#message-form select').removeAttr('required').multiSelect({
+            selectableHeader : '<div class="ms-header"><strong>Available</strong> (<a id="select-all" href="#">select all</a>)</div>',
+            selectionHeader : '<div class="ms-header"><strong>Selected</strong> (<a id="select-none" href="#">remove all</a>)</div>',
+        });
+        $('#select-all').click(function() {
+            $('#message-form select').multiSelect('select_all');
+            return false;
+        });
+        $('#select-none').click(function() {
+            $('#message-form select').multiSelect('deselect_all');
+            return false;
+        });
+    </script>
 {% endblock %}

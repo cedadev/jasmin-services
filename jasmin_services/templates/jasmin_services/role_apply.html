@@ -4,113 +4,113 @@
 {% block page_title %}Apply for role{% endblock %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li>JASMIN Services</li>
-    <li>
-        <a href="{% url 'jasmin_services:service_list' category=role.service.category.name %}">{{ role.service.category }}</a>
-    </li>
-    <li>
-        <a href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name %}">{{ role.service.name }}</a>
-    </li>
-    <li class="active">Apply</li>
-</ol>
+    <ol class="breadcrumb">
+        <li>JASMIN Services</li>
+        <li>
+            <a href="{% url 'jasmin_services:service_list' category=role.service.category.name %}">{{ role.service.category }}</a>
+        </li>
+        <li>
+            <a href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name %}">{{ role.service.name }}</a>
+        </li>
+        <li class="active">Apply</li>
+    </ol>
 {% endblock %}
 
 {% block content %}
-<div class="col-md-8 col-md-offset-2">
-    <form method="POST" action="" class="form-horizontal">
-        {% csrf_token %}
+    <div class="col-md-8 col-md-offset-2">
+        <form method="POST" action="" class="form-horizontal">
+            {% csrf_token %}
 
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_service">Service</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_service">
-                    <code>{{ role.service }}</code>
-                </p>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_role">Role</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_role">
-                    <code>{{ role.name }}</code>
-                </p>
-            </div>
-        </div>
-
-        {% if req or grant %}
             <div class="form-group">
-                <div class="col-md-9 col-md-offset-3">
-                    {% if req %}
-                        <aside class="danger">
-                            <header>
-                                {% if req.incomplete %}
-                                    More infomation required
-                                {% else %}
-                                    Previous request rejected
-                                {% endif %}
-                            </header>
-                            {{ req.user_reason|markdown }}
-                        </aside>
-                    {% elif grant.revoked %}
-                        <aside class="danger">
-                            <header>Previous access revoked</header>
-                            {{ grant.user_reason|markdown }}
-                        </aside>
-                    {% elif grant.expired %}
-                        <aside class="danger">
-                            <header>Access expired</header>
-                            <p>Expired on {{ grant.expires }}</p>
-                        </aside>
-                    {% elif grant.expiring %}
-                        <aside class="warning">
-                            <header>Access expiring</header>
-                            <p>Expiring on {{ grant.expires }}</p>
-                        </aside>
-                    {% endif %}
+                <label class="col-md-3 control-label" for="id_service">Service</label>
+                <div class="col-md-9">
+                    <p class="form-control-static" id="id_service">
+                        <code>{{ role.service }}</code>
+                    </p>
                 </div>
             </div>
-        {% endif %}
-
-        {% bootstrap_form form layout='horizontal' %}
-
-        <div class="form-group">
-            <div class="col-sm-offset-3 col-sm-9">
-                <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Apply</button>
+            <div class="form-group">
+                <label class="col-md-3 control-label" for="id_role">Role</label>
+                <div class="col-md-9">
+                    <p class="form-control-static" id="id_role">
+                        <code>{{ role.name }}</code>
+                    </p>
+                </div>
             </div>
-        </div>
-    </form>
-</div>
 
-<script type="text/javascript">
-    var textAreas = document.getElementsByTagName("textarea");
-    var i;
-    for (i = 0; i < textAreas.length; i++) {
-        textArea = textAreas[i];
-        if ($(textArea).attr('maxlength')) {
-            var maxLength = $(textArea).attr('maxlength');
-            var length = $(textArea).val().length;
-            var remaining = maxLength-length;
-            var textAreaID = $(textArea).attr('id');
+            {% if req or grant %}
+                <div class="form-group">
+                    <div class="col-md-9 col-md-offset-3">
+                        {% if req %}
+                            <aside class="danger">
+                                <header>
+                                    {% if req.incomplete %}
+                                        More infomation required
+                                    {% else %}
+                                        Previous request rejected
+                                    {% endif %}
+                                </header>
+                                {{ req.user_reason|markdown }}
+                            </aside>
+                        {% elif grant.revoked %}
+                            <aside class="danger">
+                                <header>Previous access revoked</header>
+                                {{ grant.user_reason|markdown }}
+                            </aside>
+                        {% elif grant.expired %}
+                            <aside class="danger">
+                                <header>Access expired</header>
+                                <p>Expired on {{ grant.expires }}</p>
+                            </aside>
+                        {% elif grant.expiring %}
+                            <aside class="warning">
+                                <header>Access expiring</header>
+                                <p>Expiring on {{ grant.expires }}</p>
+                            </aside>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
 
-            let counter = document.createElement('span');
-            counter.id = textAreaID + '_counter';
-            counter.innerHTML = remaining;
-            $(textArea).after(counter);
-            counter.after(' characters remaining');
+            {% bootstrap_form form layout='horizontal' %}
+
+            <div class="form-group">
+                <div class="col-sm-offset-3 col-sm-9">
+                    <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Apply</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        var textAreas = document.getElementsByTagName("textarea");
+        var i;
+        for (i = 0; i < textAreas.length; i++) {
+            textArea = textAreas[i];
+            if ($(textArea).attr('maxlength')) {
+                var maxLength = $(textArea).attr('maxlength');
+                var length = $(textArea).val().length;
+                var remaining = maxLength-length;
+                var textAreaID = $(textArea).attr('id');
+
+                let counter = document.createElement('span');
+                counter.id = textAreaID + '_counter';
+                counter.innerHTML = remaining;
+                $(textArea).after(counter);
+                counter.after(' characters remaining');
+            };
         };
-    };
 
-    $('textarea').keyup(function() {
-        if ($(this).attr('maxlength')) {
-            var maxLength = $(this).attr('maxlength');
-            var length = $(this).val().length;
-            var remaining = maxLength-length;
+        $('textarea').keyup(function() {
+            if ($(this).attr('maxlength')) {
+                var maxLength = $(this).attr('maxlength');
+                var length = $(this).val().length;
+                var remaining = maxLength-length;
 
-            let counter = document.getElementById(this.id + '_counter');
-            $(counter).text(remaining);
-        };
-    }); 
-</script>
+                let counter = document.getElementById(this.id + '_counter');
+                $(counter).text(remaining);
+            };
+        });
+    </script>
 
 {% endblock %}
