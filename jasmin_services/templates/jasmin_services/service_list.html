@@ -9,88 +9,80 @@
     </ol>
 {% endblock %}
 
-{% block content %}
-    <div class="col-md-3">
-        <nav id="categories-nav" class="navbar navbar-default navbar-vertical" role="navigation">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed"
-                    data-toggle="collapse" data-target="#categories-nav .navbar-collapse" aria-expanded="false">
-                    <span class="sr-only">Toggle Navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <span class="visible-sm visible-xs navbar-brand">Categories</span>
-            </div>
-
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav nav-stacked">
-                    <li role="presentation"{% if current_category.name == 'my_services' %} class="active"{% endif %}>
-                        <a href="{% url 'jasmin_services:my_services' %}">My Services</a>
+{% block content_panel %}
+    <div class="row">
+        <div class="col-md-3">
+            <nav id="categories-nav" class="navbar navbar-light bg-light" role="navigation">
+                <ul class="nav navbar-nav flex-column px-3 flex-fill">
+                    <li class="nav-item">
+                        <a class="nav-link navbar-brand" href="{% url 'jasmin_services:my_services' %}">My Services</a>
                     </li>
-                    <li role="separator" class="divider"></li>
-                    <li class="nav-stacked-text"><h3 class="nav-stacked-title">Discover services</h3></li>
+                    <span class="navbar-text navbar-brand">Discover Services</span>
+                    <span class="navbar-text"><hr></span>
                     {% for name, long_name in categories %}
-                        <li role="presentation"{% if name == current_category.name %} class="active"{% endif %}>
-                            <a href="{% url 'jasmin_services:service_list' category=name %}">{{ long_name }}</a>
+                        <li class="nav-item">
+                            <a class="nav-link {% if name == current_category.name %}active{% endif %}"
+                                href="{% url 'jasmin_services:service_list' category=name %}">
+                                {{ long_name }}
+                            </a>
                         </li>
                     {% endfor %}
                 </ul>
-            </div>
-        </nav>
-    </div>
-    <div class="col-md-9">
-        {% block filter_form %}
-            {% if page.paginator.num_pages > 1 or preserved_filters %}
-                <div class="service-search well">
-                    <form method="get" action="">
-                        <div class="form-group">
-                            <div class="input-group">
-                                <input id="query" name="query" type="text" class="form-control"
-                                    value="{{ request.GET.query }}" placeholder="Search {{ current_category.long_name }}" />
-                                <span class="input-group-btn">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fa fa-fw fa-search"></i> Search
-                                    </button>
-                                </span>
+            </nav>
+        </div>
+        <div class="col-md-9">
+            {% block filter_form %}
+                {% if page.paginator.num_pages > 1 or preserved_filters %}
+                    <div class="service-search well">
+                        <form method="get" action="">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input id="query" name="query" type="text" class="form-control"
+                                        value="{{ request.GET.query }}" placeholder="Search {{ current_category.long_name }}" />
+                                    <span class="input-group-btn">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fa fa-fw fa-search"></i> Search
+                                        </button>
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    </form>
-                </div>
-            {% endif %}
-        {% endblock %}
+                        </form>
+                    </div>
+                {% endif %}
+            {% endblock %}
 
-        {% block pagination_top %}
-            {% include "jasmin_services/includes/pagination_links.html" %}
-        {% endblock %}
+            {% block pagination_top %}
+                {% include "jasmin_services/includes/pagination_links.html" %}
+            {% endblock %}
 
-        {% block service_list %}
-            {% block service_list_top %}{% endblock %}
-            {% if services %}
-                <div class="service-list">
-                    {% for service, user_roles in services %}
-                        {% block service_list_item %}
-                            {% include "jasmin_services/includes/service_list_item.html" %}
-                        {% endblock %}
-                    {% endfor %}
-                </div>
-            {% else %}
-                {% block no_services %}
-                    <p class="alert alert-warning">
-                        {% if preserved_filters %}
-                            No matching services.
-                        {% else %}
-                            No services available.
-                        {% endif %}
-                    </p>
-                {% endblock %}
-            {% endif %}
-            {% block service_list_bottom %}{% endblock %}
-        {% endblock %}
+            {% block service_list %}
+                {% block service_list_top %}{% endblock %}
+                {% if services %}
+                    <div class="service-list">
+                        {% for service, user_roles in services %}
+                            {% block service_list_item %}
+                                {% include "jasmin_services/includes/service_list_item.html" %}
+                            {% endblock %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {% block no_services %}
+                        <p class="alert alert-warning">
+                            {% if preserved_filters %}
+                                No matching services.
+                            {% else %}
+                                No services available.
+                            {% endif %}
+                        </p>
+                    {% endblock %}
+                {% endif %}
+                {% block service_list_bottom %}{% endblock %}
+            {% endblock %}
 
-        {% block pagination_bottom %}
-            {% include "jasmin_services/includes/pagination_links.html" %}
-        {% endblock %}
+            {% block pagination_bottom %}
+                {% include "jasmin_services/includes/pagination_links.html" %}
+            {% endblock %}
+        </div>
     </div>
 
     <script type="text/javascript">
@@ -115,4 +107,4 @@
         // Give anything that triggers a popover the help cursor
         $popovers.css({ 'cursor' : 'help' });
     </script>
-{% endblock %}
+{% endblock content_panel %}
