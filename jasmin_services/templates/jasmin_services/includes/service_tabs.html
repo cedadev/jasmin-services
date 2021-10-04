@@ -33,7 +33,7 @@
                         Pending requests
                         {% pending_req_count service=service as n_pending %}
                         {% if n_pending %}
-                            <span class="badge">{{ n_pending }}</span>
+                            <span class="badge bg-danger">{{ n_pending }}</span>
                         {% endif %}
                     </a>
                 </li>

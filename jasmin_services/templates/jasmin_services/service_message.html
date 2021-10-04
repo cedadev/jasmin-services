@@ -13,13 +13,13 @@
 {% block page_title %}Send a message{% endblock %}
 
 {% block breadcrumbs %}
-    <ol class="breadcrumb">
-        <li>JASMIN Services</li>
-        <li>
-            <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
-        </li>
-        <li class="active">{{ service.name }}</li>
-    </ol>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">JASMIN Services</li>
+            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ service.name }}</li>
+        </ol>
+    </nav>
 {% endblock %}
 
 {% block content_header %}{{ block.super }}
@@ -31,22 +31,23 @@
 {% endblock %}
 
 {% block content %}
-    <div class="col-md-8 col-md-offset-2">
-        <div class="banner banner-info text-center">
-            <p>You can use this form to send an email message to users of your service.</p>
-        </div>
-        <form method="POST" action="" class="form-horizontal" id="message-form">
-            {% csrf_token %}
-
-            {% bootstrap_form form layout='horizontal' %}
-
-            <div class="form-group">
-                <div class="col-sm-offset-3 col-sm-9">
-                    <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Send message</button>
-                </div>
-            </div>
-        </form>
+    <div class="alert alert-info text-center">
+        <p>You can use this form to send an email message to users of your service.</p>
     </div>
+    <form method="POST" action="" class="form-horizontal" id="message-form">
+        {% csrf_token %}
+
+        {% bootstrap_form form layout='horizontal' %}
+
+        <div class="form-group row justify-content-end">
+            <div class="col-sm-10">
+                <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Send message</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}
+
+{% block tail_js_page %}
     <script type="text/javascript">
         $('#message-form select').removeAttr('required').multiSelect({
             selectableHeader : '<div class="ms-header"><strong>Available</strong> (<a id="select-all" href="#">select all</a>)</div>',
@@ -61,4 +62,4 @@
             return false;
         });
     </script>
-{% endblock %}
+{% endblock tail_js_page %}
