@@ -3,10 +3,12 @@
 {% block page_title %}{{ current_category.long_name }}{% endblock %}
 
 {% block breadcrumbs %}
-    <ol class="breadcrumb">
-        <li>JASMIN Services</li>
-        <li class="active">{{ current_category.long_name }}</li>
-    </ol>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">JASMIN Services</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ current_category.long_name }}</li>
+        </ol>
+    </nav>
 {% endblock %}
 
 {% block content_panel %}

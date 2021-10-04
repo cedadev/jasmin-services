@@ -5,13 +5,13 @@
 {% block page_title %}<code>{{ service }}</code>{% endblock %}
 
 {% block breadcrumbs %}
-    <ol class="breadcrumb">
-        <li>JASMIN Services</li>
-        <li>
-            <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
-        </li>
-        <li class="active">{{ service.name }}</li>
-    </ol>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">JASMIN Services</li>
+            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ service.name }}</li>
+        </ol>
+    </nav>
 {% endblock %}
 
 {% block content_header %}{{ block.super }}
