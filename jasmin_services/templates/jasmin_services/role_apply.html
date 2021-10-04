@@ -81,7 +81,9 @@
             </form>
         </div>
     </div>
+{% endblock %}
 
+{% block tail_js_page %}
     <script type="text/javascript">
         var textAreas = document.getElementsByTagName("textarea");
         var i;
@@ -112,5 +114,5 @@
             };
         });
     </script>
+{% endblock tail_js_page %}
 
-{% endblock %}

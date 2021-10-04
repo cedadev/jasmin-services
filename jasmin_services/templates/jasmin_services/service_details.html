@@ -204,7 +204,9 @@
             {% endif %}
         </div>
     </div>
+{% endblock content_panel %}
 
+{% block tail_js_page %}
     <script type="text/javascript">
         var $multiple = $('.access-table > tbody > tr:nth-child(2)').parent();
         $multiple.first().children('tr').show();
@@ -233,4 +235,4 @@
             $tbody.children('tr').show();
         });
     </script>
-{% endblock content_panel %}
+{% endblock tail_js_page %}

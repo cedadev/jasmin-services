@@ -87,26 +87,13 @@
         </div>
     </div>
 
-    <script type="text/javascript">
-        // Enable popovers
-        var $popovers = $('*[data-toggle="popover"]');
-        $popovers.popover({
-            'placement' : "left auto",
-            'html' : true,
-            'trigger' : "click",
-            'container' : "body",
-            // We need to add blockquote and aside to the whitelist
-            'whiteList' : $.extend(
-                {},
-                $.fn.tooltip.Constructor.DEFAULTS.whiteList,
-                { aside: [], blockquote: [] }
-            ),
-            'content' : function() {
-                // Get the content from the companion element
-                return $(this).siblings('.popover-companion').html();
-            }
-        });
-        // Give anything that triggers a popover the help cursor
-        $popovers.css({ 'cursor' : 'help' });
-    </script>
 {% endblock content_panel %}
+{% block tail_js_page %}
+    <script type="text/javascript">
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl)
+        })
+
+    </script>
+{% endblock tail_js_page %}

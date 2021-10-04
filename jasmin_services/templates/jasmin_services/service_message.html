@@ -1,13 +1,14 @@
 {% extends 'layout.html' %}
 {% load staticfiles django_bootstrap5 %}
 
-{% block head_js_extra %}{{ block.super }}
+{#{% block head_js_extra %}{{ block.super }}
     <script src="{% static "jasmin_services/js/jquery.multi-select.js" %}" type="text/javascript"></script>
 {% endblock %}
 
 {% block stylesheets_extra %}{{ block.super }}
     <link href="{% static "jasmin_services/css/multi-select.css" %}" media="screen" rel="stylesheet" type="text/css" />
 {% endblock %}
+#}
 
 {% block page_title %}Send a message{% endblock %}
 

@@ -33,13 +33,6 @@
                 </button>
             </p>
         </div>
-        <script type="text/javascript">
-            $('body').on('click', '#toggle-filters', function() {
-                $('#filters').toggleClass('hidden-md').toggleClass('hidden-lg');
-                $(this).find('i').toggleClass('fa-toggle-on').toggleClass('fa-toggle-off');
-                $('#filters + div').toggleClass('col-md-12').toggleClass('col-md-9');
-            });
-        </script>
 
         <div id="filters" class="col-md-3{% if not preserved_filters %} hidden-md hidden-lg{% endif %}">
             <nav id="filters-nav" class="navbar navbar-default navbar-vertical" role="navigation">
@@ -173,3 +166,12 @@
     </table>
     </div>
 {% endblock %}
+{% block tail_js_page %}
+    <script type="text/javascript">
+        $('body').on('click', '#toggle-filters', function() {
+            $('#filters').toggleClass('hidden-md').toggleClass('hidden-lg');
+            $(this).find('i').toggleClass('fa-toggle-on').toggleClass('fa-toggle-off');
+            $('#filters + div').toggleClass('col-md-12').toggleClass('col-md-9');
+        });
+    </script>
+{% endblock tail_js_page %}
