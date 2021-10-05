@@ -1,29 +1,3 @@
-$('.reason-stack').show();
-// Stuff for rotating reasons
-var show_reason = function($reason) {
-    if( $reason.length > 0 ) {
-        $('.reason').not($reason).hide();
-        $reason.show();
-    }
-};
-var prev_reason = function() { show_reason($('.reason:visible').prev()); return false; };
-var next_reason = function() { show_reason($('.reason:visible').next()); return false; }
-var n_reasons = {{ rejected|length }};
-show_reason($('.reason:last-child'));
-// Inject the previous/next reason buttons
-$('.reason').each(function(i, el) {
-    if( i > 0 ) {
-        var $link = $('<a href="#" title="Previous reason"><i class="fa fa-fw fa-caret-left"></i></a>');
-        $link.click(prev_reason);
-        $(el).find('.reason-number').prepend($link);
-    }
-    if( i < n_reasons - 1 ) {
-        var $link = $('<a href="#" title="Next reason"><i class="fa fa-fw fa-caret-right"></i></a>');
-        $link.click(next_reason);
-        $(el).find('.reason-number').append($link);
-    }
-});
-
 // Reset the hiding of form-groups except for those we are worried about
 $('.form-group').not('.reason, :has([name^="expires"]), :has([name$="_reason"])').show();
 // Constants used in the function below
