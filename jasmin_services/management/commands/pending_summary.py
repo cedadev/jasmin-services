@@ -24,7 +24,7 @@ class Command(BaseCommand):
         pending_requests = Request.objects.filter(state = RequestState.PENDING).filter_active()
         applications = Application.objects.filter(decision__isnull = True)
         manager_requests = {}
-        user_requests = {}
+        user_requests = {'length':0}
         for request in pending_requests:
             role = request.role
             if role.name == 'MANAGER':
@@ -33,6 +33,7 @@ class Command(BaseCommand):
                 else:
                     manager_requests[role.service.category] = [request]
             elif role.service.ceda_managed or role.approvers == []:
+                user_requests['length'] += 1
                 if role.service.category in user_requests:
                     user_requests[role.service.category].append(request)
                 else:

@@ -1,16 +1,17 @@
 Summary:
-USER Requests: {{ user_requests|length }}
+USER Requests: {{ user_requests.length }}
 MANAGER Requests: {{ manager_requests|length }}
 Applications: {{ applications|length }}
 
 
 Outstanding requests for the USER role for services with no approver or with the CEDA-managed tag:
-{% if user_requests|length != 0 %}{% for ur_cat, urs in user_requests.items %}
+{% if user_requests|length != 1 %}{% for ur_cat, urs in user_requests.items %}
+{% if ur_cat != 'length' %}
     {{ ur_cat }}
         Username, Serivce, Role, Link
 {% for ur in urs %}
         {{ ur.user.username }}, {{ ur.role.service.name }}, {{ ur.role }}, {{ url }}/services/request/{{ ur.id }}/decide/
-{% endfor %}{% endfor %}
+{% endfor %}{% endif %}{% endfor %}
 {% else %}
     None
 
