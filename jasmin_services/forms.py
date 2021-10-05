@@ -48,7 +48,16 @@ def message_form_factory(sender, *roles):
     return type(uuid.uuid4().hex, (forms.Form, ), {
         'users' : forms.ModelMultipleChoiceField(
             queryset = queryset,
-            label = 'Send to'
+            label = 'Send to',
+            widget=forms.SelectMultiple(attrs={
+                'class': 'selectpicker',
+                'data-actions-box': 'true',
+                'data-live-search': 'true',
+                'data-live-search-normalize': 'true',
+                'data-width': '100%',
+                'data-style': '',
+                'data-style-base': 'form-control',
+                }),
         ),
         'subject' : forms.CharField(max_length = 250, label = 'Subject'),
         'message' : forms.CharField(widget = forms.Textarea, label = 'Message'),
