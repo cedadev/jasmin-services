@@ -45,7 +45,7 @@
                 <div class="well text-center">
                     <a class="btn btn-success btn-lg"
                         href="{% url 'jasmin_services:role_apply' category=access.0.0.service.category.name service=access.0.0.service.name role=access.0.0.name %}">
-                        <i class="fa fa-fw fa-plus"></i> Apply for access
+                        <i class="fas fa-fw fa-plus"></i> Apply for access
                     </a>
                 </div>
             {% else %}
@@ -70,17 +70,17 @@
                                         <tr class="danger">
                                             <td class="text-danger" style="width: 1%;">
                                                 {% if req.incomplete %}
-                                                    <i class="fa fa-fw fa-info-circle"></i>
+                                                    <i class="fas fa-fw fa-info-circle"></i>
                                                 {% else %}
-                                                    <i class="fa fa-fw fa-ban"></i>
+                                                    <i class="fas fa-fw fa-ban"></i>
                                                 {% endif %}
                                             </td>
                                     {% elif req.pending %}
                                         <tr class="active">
-                                            <td class="text-muted" style="width: 1%;"><i class="fa fa-fw fa-hourglass-half"></i></td>
+                                            <td class="text-muted" style="width: 1%;"><i class="fas fa-fw fa-hourglass-half"></i></td>
                                     {% else %}
                                         <tr class="success">
-                                            <td class="text-success" style="width: 1%;"><i class="fa fa-fw fa-check"></i></td>
+                                            <td class="text-success" style="width: 1%;"><i class="fas fa-fw fa-check"></i></td>
                                     {% endif %}
                                     <td><code>{{ req.role.name }}</code></td>
                                     <td><code>
@@ -102,9 +102,9 @@
                                             <a class="btn btn-success btn-sm btn-block"
                                                 href="{% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=req.role.name %}">
                                                 {% if req.incomplete %}
-                                                    <i class="fa fa-fw fa-info"></i> Add info
+                                                    <i class="fas fa-fw fa-info"></i> Add info
                                                 {% else %}
-                                                    <i class="fa fa-fw fa-refresh"></i> Apply again
+                                                    <i class="fas fa-fw fa-sync"></i> Apply again
                                                 {% endif %}
                                             </a>
                                         </td>
@@ -177,7 +177,7 @@
                                     {% if grant.revoked or grant.expired or grant.expiring %}
                                         <td style="width: 1%;">
                                             <a class="btn btn-success btn-sm btn-block" href="{{ apply_url }}">
-                                                <i class="fa fa-fw fa-refresh"></i> Apply again
+                                                <i class="fa fa-fw fa-sync"></i> Apply again
                                             </a>
                                         </td>
                                     {% else %}

@@ -28,7 +28,7 @@
         <div class="col-md-12 hidden-sm hidden-xs">
             <p>
                 <button id="toggle-filters" class="btn btn-default">
-                    <i class="fa fa-fw {% if preserved_filters %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i>&nbsp;
+                    <i class="fas fa-fw {% if preserved_filters %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i>&nbsp;
                     Toggle filters
                 </button>
             </p>
@@ -139,13 +139,13 @@
                         <td style="background-color: inherit !important; border-right: 1px solid #ddd;" rowspan="{{ grants|length }}">{{ user.institution }}</td>
                     {% endif %}
                     {% if grant.revoked %}
-                        <td class="text-danger"><i class="fa fa-fw fa-ban"></i></td>
+                        <td class="text-danger"><i class="fas fa-fw fa-ban"></i></td>
                     {% elif grant.expired %}
-                        <td class="text-danger"><i class="fa fa-fw fa-clock-o"></i></td>
+                        <td class="text-danger"><i class="fas fa-fw fa-clock"></i></td>
                     {% elif grant.expiring %}
-                        <td class="text-warning"><i class="fa fa-fw fa-clock-o"></i></td>
+                        <td class="text-warning"><i class="fas fa-fw fa-clock"></i></td>
                     {% else %}
-                        <td class="text-success"><i class="fa fa-fw fa-check"></i></td>
+                        <td class="text-success"><i class="fas fa-fw fa-check"></i></td>
                     {% endif %}
                     <td><code>{{ grant.role.name }}</code></td>
                     {% if grant.revoked %}
