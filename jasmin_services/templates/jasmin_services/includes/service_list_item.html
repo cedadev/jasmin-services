@@ -1,4 +1,4 @@
-<div class="card service-list-item">
+<div class="card my-3">
     <div class="card-header">
         {% if user_roles %}
             <div class="float-end">
@@ -11,7 +11,7 @@
     </div>
     <div class="card-body">
         <div class="row">
-            <div class="col-lg-9 col-md-8 col-sm-8 service-summary"><p>{{ service.summary }}</p></div>
+            <div class="col-lg-9 col-md-8 col-sm-8"><p>{{ service.summary }}</p></div>
             <div class="col-lg-3 col-md-4 col-sm-4 d-grid gap-2">
                 <a class="btn btn-primary"
                     href="{% url 'jasmin_services:service_details' category=service.category.name service=service.name %}">

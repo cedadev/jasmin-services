@@ -6,6 +6,7 @@
             data-bs-toggle="popover"
             data-bs-content="{{ req.user_reason|markdown }}"
             data-bs-placement="left"
+            data-bs-html='true'
             title="Request rejected">
             <i class="fas fa-ban"></i> {{ role.name }}
         </button>
@@ -24,6 +25,7 @@
             data-bs-toggle="popover"
             data-bs-content="{{ grant.user_reason|markdown }}"
             data-bs-placement="left"
+            data-bs-html='true'
             title="Access revoked">
             <i class="fas fa-ban"></i> {{ role.name }}
         </button>

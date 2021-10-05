@@ -60,13 +60,11 @@
             {% block service_list %}
                 {% block service_list_top %}{% endblock %}
                 {% if services %}
-                    <div class="service-list">
-                        {% for service, user_roles in services %}
-                            {% block service_list_item %}
-                                {% include "jasmin_services/includes/service_list_item.html" %}
-                            {% endblock %}
-                        {% endfor %}
-                    </div>
+                    {% for service, user_roles in services %}
+                        {% block service_list_item %}
+                            {% include "jasmin_services/includes/service_list_item.html" %}
+                        {% endblock %}
+                    {% endfor %}
                 {% else %}
                     {% block no_services %}
                         <p class="alert alert-warning">
@@ -88,12 +86,3 @@
     </div>
 
 {% endblock content_panel %}
-{% block tail_js_page %}
-    <script type="text/javascript">
-        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
-        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-            return new bootstrap.Popover(popoverTriggerEl)
-        })
-
-    </script>
-{% endblock tail_js_page %}
