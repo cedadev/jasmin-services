@@ -166,7 +166,7 @@
     </table>
     </div>
 {% endblock %}
-{% block tail_js_page %}
+{% block js_page %}
     <script type="text/javascript">
         $('body').on('click', '#toggle-filters', function() {
             $('#filters').toggleClass('hidden-md').toggleClass('hidden-lg');
@@ -174,4 +174,4 @@
             $('#filters + div').toggleClass('col-md-12').toggleClass('col-md-9');
         });
     </script>
-{% endblock tail_js_page %}
+{% endblock %}

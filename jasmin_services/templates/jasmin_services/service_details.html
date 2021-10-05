@@ -98,8 +98,16 @@
                                     </code></td>
                                     <td>{{ req.requested_at.date }}</td>
                                     {% if req.rejected %}
-                                        <td style="width: 1%;">
-                                            <a class="btn btn-success btn-sm btn-block"
+                                        <td>
+                                            <button type="button"
+                                                class="btn btn-danger btn-sm"
+                                                data-bs-toggle="popover"
+                                                title="Reason"
+                                                data-bs-html="true"
+                                                data-bs-content="{{ req.user_reason|markdown}}"
+                                                data-bs-placement="left"
+                                            >See Reason</button>
+                                            <a class="btn btn-success btn-sm"
                                                 href="{% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=req.role.name %}">
                                                 {% if req.incomplete %}
                                                     <i class="fas fa-fw fa-info"></i> Add info
@@ -112,14 +120,6 @@
                                         <td></td>
                                     {% endif %}
                                 </tr>
-                                {% if req.rejected %}
-                                    <tr>
-                                        <th colspan="2" class="text-muted">Reason:</th>
-                                        <td colspan="3">
-                                            <blockquote class="danger">{{ req.user_reason|markdown }}</blockquote>
-                                        </td>
-                                    </tr>
-                                {% endif %}
                                 </tbody>
                             {% endfor %}
                         </table>
@@ -205,34 +205,3 @@
         </div>
     </div>
 {% endblock content_panel %}
-
-{% block tail_js_page %}
-    <script type="text/javascript">
-        var $multiple = $('.access-table > tbody > tr:nth-child(2)').parent();
-        $multiple.first().children('tr').show();
-        var $controlRows = $multiple.children('tr:first-child');
-        $controlRows.css('cursor', 'pointer');
-        $controlRows.tooltip({
-            'placement' : 'auto left',
-            'title' : 'Click for reason',
-            'trigger' : 'manual',
-            'container' : 'body'
-        })
-        $controlRows.hover(
-            function() {
-                var $row = $(this);
-                if( $row.siblings(':nth-child(2)').is(':visible') ) return;
-                $row.tooltip('show');
-            },
-            function() {
-                $(this).tooltip('hide');
-            }
-        );
-        $controlRows.click(function() {
-            $controlRows.tooltip('hide');
-            var $tbody = $(this).parent();
-            $multiple.not($tbody).children('tr:not(:first-child)').hide();
-            $tbody.children('tr').show();
-        });
-    </script>
-{% endblock tail_js_page %}
