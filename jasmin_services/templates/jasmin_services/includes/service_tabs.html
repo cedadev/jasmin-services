@@ -6,7 +6,7 @@
 
 {% with active=request.resolver_match.url_name %}
     {% if view_users or approver or send_message %}
-        <ul class="nav nav-tabs">
+        <ul class="nav nav-tabs mb-2">
             <li class="nav-item">
                 <a class="nav-link {% if active == 'service_details' %}active{%endif%}"
                     href="{% url 'jasmin_services:service_details' category=service.category.name service=service.name %}">
