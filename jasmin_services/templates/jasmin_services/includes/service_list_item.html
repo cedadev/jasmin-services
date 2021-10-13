@@ -12,7 +12,7 @@
     <div class="card-body">
         <div class="row">
             <div class="col-lg-9 col-md-8 col-sm-8"><p>{{ service.summary }}</p></div>
-            <div class="col-lg-3 col-md-4 col-sm-4 d-grid gap-2">
+            <div class="col-lg-3 col-md-4 col-sm-4 d-grid gap-2 align-items-center">
                 <a class="btn btn-primary"
                     href="{% url 'jasmin_services:service_details' category=service.category.name service=service.name %}">
                     <i class="fas fa-fw fa-info"></i> More information</a>
