@@ -16,7 +16,7 @@ $('[name="state"], [name="expires"]').on('change', toggle_fields);
 
 // Replace the textareas with markdown editors
 $('textarea').each(function() {
-    new SimpleMDE({
+    new EasyMDE({
         element : this,
         forceSync : true,
         hideIcons : ['heading', 'heading-smaller', 'heading-bigger',
