@@ -1,23 +1,20 @@
 {% extends 'layout.html' %}
-{% load bootstrap3 markdown_deux_tags %}
+{% load django_bootstrap5 markdown_deux_tags %}
 
 {% block page_title %}Apply for role{% endblock %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li>JASMIN Services</li>
-    <li>
-        <a href="{% url 'jasmin_services:service_list' category=role.service.category.name %}">{{ role.service.category }}</a>
-    </li>
-    <li>
-        <a href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name %}">{{ role.service.name }}</a>
-    </li>
-    <li class="active">Apply</li>
-</ol>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">JASMIN Services</li>
+            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=role.service.category.name %}">{{ role.service.category }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name %}">{{ role.service.name }}</a></li>
+            <li class="breadcrumb-item active">Apply</li>
+        </ol>
+    </nav>
 {% endblock %}
 
 {% block content %}
-<div class="col-md-8 col-md-offset-2">
     <form method="POST" action="" class="form-horizontal">
         {% csrf_token %}
 
@@ -80,37 +77,38 @@
             </div>
         </div>
     </form>
-</div>
-
-<script type="text/javascript">
-    var textAreas = document.getElementsByTagName("textarea");
-    var i;
-    for (i = 0; i < textAreas.length; i++) {
-        textArea = textAreas[i];
-        if ($(textArea).attr('maxlength')) {
-            var maxLength = $(textArea).attr('maxlength');
-            var length = $(textArea).val().length;
-            var remaining = maxLength-length;
-            var textAreaID = $(textArea).attr('id');
-
-            let counter = document.createElement('span');
-            counter.id = textAreaID + '_counter';
-            counter.innerHTML = remaining;
-            $(textArea).after(counter);
-            counter.after(' characters remaining');
-        };
-    };
-
-    $('textarea').keyup(function() {
-        if ($(this).attr('maxlength')) {
-            var maxLength = $(this).attr('maxlength');
-            var length = $(this).val().length;
-            var remaining = maxLength-length;
-
-            let counter = document.getElementById(this.id + '_counter');
-            $(counter).text(remaining);
-        };
-    }); 
-</script>
-
 {% endblock %}
+
+{% block js_page %}
+    <script type="text/javascript">
+        var textAreas = document.getElementsByTagName("textarea");
+        var i;
+        for (i = 0; i < textAreas.length; i++) {
+            textArea = textAreas[i];
+            if ($(textArea).attr('maxlength')) {
+                var maxLength = $(textArea).attr('maxlength');
+                var length = $(textArea).val().length;
+                var remaining = maxLength-length;
+                var textAreaID = $(textArea).attr('id');
+
+                let counter = document.createElement('span');
+                counter.id = textAreaID + '_counter';
+                counter.innerHTML = remaining;
+                $(textArea).after(counter);
+                counter.after(' characters remaining');
+            };
+        };
+
+        $('textarea').keyup(function() {
+            if ($(this).attr('maxlength')) {
+                var maxLength = $(this).attr('maxlength');
+                var length = $(this).val().length;
+                var remaining = maxLength-length;
+
+                let counter = document.getElementById(this.id + '_counter');
+                $(counter).text(remaining);
+            };
+        });
+    </script>
+{% endblock %}
+

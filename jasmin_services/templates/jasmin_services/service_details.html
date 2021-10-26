@@ -5,226 +5,203 @@
 {% block page_title %}<code>{{ service }}</code>{% endblock %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li>JASMIN Services</li>
-    <li>
-        <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
-    </li>
-    <li class="active">{{ service.name }}</li>
-</ol>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">JASMIN Services</li>
+            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ service.name }}</li>
+        </ol>
+    </nav>
 {% endblock %}
 
 {% block content_header %}{{ block.super }}
-<div class="row">
-    <div class="col-md-12">
-        {% include "jasmin_services/includes/service_tabs.html" %}
+    <div class="row py-2">
+        <div class="col-md-12">
+            {% include "jasmin_services/includes/service_tabs.html" %}
+        </div>
     </div>
-</div>
 {% endblock %}
 
-{% block content %}
-<script type="text/javascript">
-    // Initially, hide any secondary rows
-    // By inserting this using Javascript, we ensure the rows are visible for
-    // people without Javascript
-    document.write('<style>.access-table > tbody > tr:not(:first-child) { display: none; }</style>')
-</script>
+{% block content_panel %}
+    <div class="row">
+        <script type="text/javascript">
+            // Initially, hide any secondary rows
+            // By inserting this using Javascript, we ensure the rows are visible for
+            // people without Javascript
+            document.write('<style>.access-table > tbody > tr:not(:first-child) { display: none; }</style>')
+        </script>
 
-<div class="col-lg-7 col-md-6">
-    {% block description %}
-        {% if service.description %}
-            {{ service.description|markdown }}
-        {% else %}
-            <p>{{ service.summary }}</p>
-        {% endif %}
-    {% endblock %}
-</div>
-<div class="col-lg-5 col-md-6">
-    {% if not requests and access|length == 1 and not access.0.1 and not access.0.2 %}
-        <div class="well text-center">
-            <a class="btn btn-success btn-lg"
-               href="{% url 'jasmin_services:role_apply' category=access.0.0.service.category.name service=access.0.0.service.name role=access.0.0.name %}">
-                <i class="fa fa-fw fa-plus"></i> Apply for access
-            </a>
+        <div class="col-lg-7 col-md-6">
+            {% block description %}
+                {% if service.description %}
+                    {{ service.description|markdown }}
+                {% else %}
+                    <p>{{ service.summary }}</p>
+                {% endif %}
+            {% endblock %}
         </div>
-    {% else %}
-        {% if requests %}
-            <div class="panel panel-default">
-                <div class="panel-heading"><h3 class="panel-title">Current Requests</h3></div>
-                <table class="table table-hover access-table">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Requested</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    {% for req in requests %}
-                        <tbody>
-                            {% if req.rejected %}
-                                <tr class="danger">
-                                    <td class="text-danger" style="width: 1%;">
-                                        {% if req.incomplete %}
-                                            <i class="fa fa-fw fa-info-circle"></i>
-                                        {% else %}
-                                            <i class="fa fa-fw fa-ban"></i>
-                                        {% endif %} 
-                                    </td>
-                            {% elif req.pending %}
-                                <tr class="active">
-                                    <td class="text-muted" style="width: 1%;"><i class="fa fa-fw fa-hourglass-half"></i></td>
-                            {% else %}
-                                <tr class="success">
-                                    <td class="text-success" style="width: 1%;"><i class="fa fa-fw fa-check"></i></td>
-                            {% endif %}
-                                <td><code>{{ req.role.name }}</code></td>
-                                <td><code>
-                                    {% if req.approved %}
-                                        APPROVED
-                                    {% elif req.rejected %}
-                                        {% if req.incomplete %}
-                                            INCOMPLETE
-                                        {% else %}
-                                            REJECTED
-                                        {% endif %}
-                                    {% else %}
-                                        PENDING
-                                    {% endif %}
-                                </code></td>
-                                <td>{{ req.requested_at.date }}</td>
-                                {% if req.rejected %}
-                                    <td style="width: 1%;">
-                                        <a class="btn btn-success btn-sm btn-block"
-                                           href="{% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=req.role.name %}">
-                                            {% if req.incomplete %}
-                                                <i class="fa fa-fw fa-info"></i> Add info
-                                            {% else %}
-                                                <i class="fa fa-fw fa-refresh"></i> Apply again
-                                            {% endif %}
-                                        </a>
-                                    </td>
-                                {% else %}
-                                    <td></td>
-                                {% endif %}
-                            </tr>
-                            {% if req.rejected %}
+        <div class="col-lg-5 col-md-6">
+            {% if not requests and access|length == 1 and not access.0.1 and not access.0.2 %}
+                <div class="well text-center">
+                    <a class="btn btn-success btn-lg"
+                        href="{% url 'jasmin_services:role_apply' category=access.0.0.service.category.name service=access.0.0.service.name role=access.0.0.name %}">
+                        <i class="fas fa-fw fa-plus"></i> Apply for access
+                    </a>
+                </div>
+            {% else %}
+                {% if requests %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Current Requests</h3>
+                        </div>
+                        <table class="table table-hover access-table">
+                            <thead>
                                 <tr>
-                                    <th colspan="2" class="text-muted">Reason:</th>
-                                    <td colspan="3">
-                                        <blockquote class="danger">{{ req.user_reason|markdown }}</blockquote>
-                                    </td>
+                                    <th></th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Requested</th>
+                                    <th></th>
                                 </tr>
-                            {% endif %}
-                        </tbody>
-                    {% endfor %}
-                </table>
-            </div>
-        {% endif %}
-        <div class="panel panel-default">
-            <div class="panel-heading"><h3 class="panel-title">Current Access</h3></div>
-            <table class="table table-hover access-table">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Role</th>
-                        <th>Status</th>
-                        <th>Expires</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                {% for role, grant, has_request in access %}
-                    {% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name as apply_url %}
-                    <tbody>
-                        {% if grant.revoked %}
-                            <tr class="danger">
-                                <td class="text-danger" style="width: 1%;"><i class="fa fa-fw fa-ban"></i></td>
-                        {% elif grant.expired %}
-                            <tr class="danger">
-                                <td class="text-danger" style="width: 1%;"><i class="fa fa-fw fa-clock-o"></i></td>
-                        {% elif grant.expiring %}
-                            <tr class="warning">
-                                <td class="text-warning" style="width: 1%;"><i class="fa fa-fw fa-clock-o"></i></td>
-                        {% elif grant %}
-                            <tr class="success">
-                                <td class="text-success" style="width: 1%;"><i class="fa fa-fw fa-check"></i></td>
-                        {% else %}
-                            <tr class="active">
-                                <td class="text-muted" style="width: 1%;"><i class="fa fa-fw fa-circle-thin"></i></td>
-                        {% endif %}
-                            <td><code>{{ role.name }}</code></td>
-                            {% if grant.revoked %}
-                                <td><code>REVOKED</code></td>
-                            {% elif grant.expired %}
-                                <td><code>EXPIRED</code></td>
-                            {% elif grant.expiring %}
-                                <td><code>EXPIRING</code></td>
-                            {% elif grant %}
-                                <td><code>ACTIVE</code></td>
-                            {% else %}
-                                <td><code>-</code></td>
-                            {% endif %}
-                            <td>{{ grant.expires }}</td>
-                            {% if has_request %}
-                                <td></td>
-                            {% elif grant %}
-                                {% if grant.revoked or grant.expired or grant.expiring %}
+                            </thead>
+                            {% for req in requests %}
+                                <tbody>
+                                    {% if req.rejected %}
+                                        <tr class="danger">
+                                            <td class="text-danger" style="width: 1%;">
+                                                {% if req.incomplete %}
+                                                    <i class="fas fa-fw fa-info-circle"></i>
+                                                {% else %}
+                                                    <i class="fas fa-fw fa-ban"></i>
+                                                {% endif %}
+                                            </td>
+                                    {% elif req.pending %}
+                                        <tr class="active">
+                                            <td class="text-muted" style="width: 1%;"><i class="fas fa-fw fa-hourglass-half"></i></td>
+                                    {% else %}
+                                        <tr class="success">
+                                            <td class="text-success" style="width: 1%;"><i class="fas fa-fw fa-check"></i></td>
+                                    {% endif %}
+                                    <td><code>{{ req.role.name }}</code></td>
+                                    <td><code>
+                                        {% if req.approved %}
+                                            APPROVED
+                                        {% elif req.rejected %}
+                                            {% if req.incomplete %}
+                                                INCOMPLETE
+                                            {% else %}
+                                                REJECTED
+                                            {% endif %}
+                                        {% else %}
+                                            PENDING
+                                        {% endif %}
+                                    </code></td>
+                                    <td>{{ req.requested_at.date }}</td>
+                                    {% if req.rejected %}
+                                        <td>
+                                            <button type="button"
+                                                class="btn btn-danger btn-sm"
+                                                data-bs-toggle="popover"
+                                                title="Reason"
+                                                data-bs-html="true"
+                                                data-bs-content="{{ req.user_reason|markdown}}"
+                                                data-bs-placement="left"
+                                            >See Reason</button>
+                                            <a class="btn btn-success btn-sm"
+                                                href="{% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=req.role.name %}">
+                                                {% if req.incomplete %}
+                                                    <i class="fas fa-fw fa-info"></i> Add info
+                                                {% else %}
+                                                    <i class="fas fa-fw fa-sync"></i> Apply again
+                                                {% endif %}
+                                            </a>
+                                        </td>
+                                    {% else %}
+                                        <td></td>
+                                    {% endif %}
+                                </tr>
+                                </tbody>
+                            {% endfor %}
+                        </table>
+                    </div>
+                {% endif %}
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Current Access</h3>
+                    </div>
+                    <table class="table table-hover access-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Expires</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        {% for role, grant, has_request in access %}
+                            {% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name as apply_url %}
+                            <tbody>
+                                {% if grant.revoked %}
+                                    <tr class="danger">
+                                        <td class="text-danger" style="width: 1%;"><i class="fa fa-fw fa-ban"></i></td>
+                                {% elif grant.expired %}
+                                    <tr class="danger">
+                                        <td class="text-danger" style="width: 1%;"><i class="fa fa-fw fa-clock-o"></i></td>
+                                {% elif grant.expiring %}
+                                    <tr class="warning">
+                                        <td class="text-warning" style="width: 1%;"><i class="fa fa-fw fa-clock-o"></i></td>
+                                {% elif grant %}
+                                    <tr class="success">
+                                        <td class="text-success" style="width: 1%;"><i class="fa fa-fw fa-check"></i></td>
+                                {% else %}
+                                    <tr class="active">
+                                        <td class="text-muted" style="width: 1%;"><i class="fa fa-fw fa-circle-thin"></i></td>
+                                {% endif %}
+                                <td><code>{{ role.name }}</code></td>
+                                {% if grant.revoked %}
+                                    <td><code>REVOKED</code></td>
+                                {% elif grant.expired %}
+                                    <td><code>EXPIRED</code></td>
+                                {% elif grant.expiring %}
+                                    <td><code>EXPIRING</code></td>
+                                {% elif grant %}
+                                    <td><code>ACTIVE</code></td>
+                                {% else %}
+                                    <td><code>-</code></td>
+                                {% endif %}
+                                <td>{{ grant.expires }}</td>
+                                {% if has_request %}
+                                    <td></td>
+                                {% elif grant %}
+                                    {% if grant.revoked or grant.expired or grant.expiring %}
+                                        <td style="width: 1%;">
+                                            <a class="btn btn-success btn-sm btn-block" href="{{ apply_url }}">
+                                                <i class="fa fa-fw fa-sync"></i> Apply again
+                                            </a>
+                                        </td>
+                                    {% else %}
+                                        <td></td>
+                                    {% endif %}
+                                {% else %}
                                     <td style="width: 1%;">
                                         <a class="btn btn-success btn-sm btn-block" href="{{ apply_url }}">
-                                            <i class="fa fa-fw fa-refresh"></i> Apply again
+                                            <i class="fa fa-fw fa-plus"></i> Apply
                                         </a>
                                     </td>
-                                {% else %}
-                                    <td></td>
                                 {% endif %}
-                            {% else %}
-                                <td style="width: 1%;">
-                                    <a class="btn btn-success btn-sm btn-block" href="{{ apply_url }}">
-                                        <i class="fa fa-fw fa-plus"></i> Apply
-                                    </a>
-                                </td>
-                            {% endif %}
-                        </tr>
-                        {% if grant.revoked %}
-                            <tr>
-                                <th class="text-muted" colspan="2">Reason:</th>
-                                <td colspan="3"><blockquote class="danger">{{ grant.user_reason|markdown }}</blockquote></td>
                             </tr>
-                        {% endif %}
-                    </tbody>
-                {% endfor %}
-            </table>
+                            {% if grant.revoked %}
+                                <tr>
+                                    <th class="text-muted" colspan="2">Reason:</th>
+                                    <td colspan="3"><blockquote class="danger">{{ grant.user_reason|markdown }}</blockquote></td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        {% endfor %}
+                    </table>
+                </div>
+            {% endif %}
         </div>
-    {% endif %}
-</div>
-
-<script type="text/javascript">
-    var $multiple = $('.access-table > tbody > tr:nth-child(2)').parent();
-    $multiple.first().children('tr').show();
-    var $controlRows = $multiple.children('tr:first-child');
-    $controlRows.css('cursor', 'pointer');
-    $controlRows.tooltip({
-        'placement' : 'auto left',
-        'title' : 'Click for reason',
-        'trigger' : 'manual',
-        'container' : 'body'
-    })
-    $controlRows.hover(
-        function() {
-            var $row = $(this);
-            if( $row.siblings(':nth-child(2)').is(':visible') ) return;
-            $row.tooltip('show');
-        },
-        function() {
-            $(this).tooltip('hide');
-        }
-    );
-    $controlRows.click(function() {
-        $controlRows.tooltip('hide');
-        var $tbody = $(this).parent();
-        $multiple.not($tbody).children('tr:not(:first-child)').hide();
-        $tbody.children('tr').show();
-    });
-</script>
-{% endblock %}
+    </div>
+{% endblock content_panel %}
