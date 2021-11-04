@@ -261,6 +261,12 @@ def my_services(request):
             'rejected',
             'pending'
         }
+
+    # Make the grants and requests queries be evaluated here.
+    # This makes the following query less complex and allows a significant speedup.
+    grants = list(grants)
+    requests = list(requests)
+
     # Get the services that match the grants
     # Since the count for this takes as long as the query, force it to
     # a list now
