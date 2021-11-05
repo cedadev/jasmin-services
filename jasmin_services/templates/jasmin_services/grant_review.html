@@ -1,0 +1,108 @@
+{% extends 'layout.html' %}
+{% load staticfiles django_bootstrap5 markdown_deux_tags pretty_name artefacts %}
+
+{% block page_title %}Review Grant{% endblock %}
+
+{% block breadcrumbs %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">JASMIN Services</li>
+            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ service.name }}</li>
+        </ol>
+    </nav>
+{% endblock %}
+
+{% block content_header %}{{ block.super }}
+    <div class="row">
+        <div class="col-md-12">
+            {% include "jasmin_services/includes/service_tabs.html" %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block content_panel %}
+    <div class="row">
+        <div class="col-md-9">
+            <form method="POST" action="" class="form-horizontal" id="review-form">
+                {% csrf_token %}
+
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="id_role">Role</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-plaintext" id="id_role">
+                            <code>{{ grant.role }}</code>
+                        </p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="id_for_username">Username</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-plaintext" id="id_for_username">
+                            <code>{{ grant.user.username }}</code>
+                        </p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="id_for_full_name">Full name</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-plaintext" id="id_for_full_name">
+                            {{ grant.user.get_full_name }}
+                        </p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="id_for_institution">Institution</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-plaintext" id="id_for_institution">
+                            {{ grant.user.institution }}
+                        </p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="id_for_discipline">Discipline</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-plaintext" id="id_for_discipline">
+                            {{ grant.user.discipline }}
+                        </p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="id_for_degree">Degree</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-plaintext" id="id_for_degree">
+                            {{ grant.user.degree|default:"N/A" }}
+                        </p>
+                    </div>
+                </div>
+
+                {% for datum in grant.metadata.all %}
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="id_{{ datum.key }}">{{ datum.key|pretty_name }}</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-plaintext" id="id_{{ datum.key }}">{{ datum.value }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                    
+                {% block extra_context %}{% endblock %}
+
+                {% bootstrap_form form layout='horizontal' %}
+
+                <div class="row justify-content-end">
+                    <div class="col-sm-10">
+                        <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Revoke</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets_page %}
+    <link rel="stylesheet" href="{% artefact "vendor/css/easymde.min.css" %}">
+{% endblock %}
+
+{% block js_page %}
+    <script src="{% artefact "vendor/js/easymde.min.js" %}"></script>
+{% endblock %}

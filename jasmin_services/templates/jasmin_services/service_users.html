@@ -114,6 +114,7 @@
                         <th>Status</th>
                         <th>Expires</th>
                         <th style="white-space: nowrap;">Granted By</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -138,9 +139,9 @@
                             {% if grant.revoked %}
                                 <td class="text-danger"><i class="fa fa-fw fa-ban"></i></td>
                             {% elif grant.expired %}
-                                <td class="text-danger"><i class="fa fa-fw fa-clock-o"></i></td>
+                                <td class="text-danger"><i class="far fa-fw fa-clock"></i></td>
                             {% elif grant.expiring %}
-                                <td class="text-warning"><i class="fa fa-fw fa-clock-o"></i></td>
+                                <td class="text-warning"><i class="far fa-fw fa-clock"></i></td>
                             {% else %}
                                 <td class="text-success"><i class="fa fa-fw fa-check"></i></td>
                             {% endif %}
@@ -156,6 +157,7 @@
                             {% endif %}
                             <td style="white-space: nowrap;">{{ grant.expires }}</td>
                             <td><code>{{ grant.granted_by }}</code></td>
+                            <td><a class="btn btn-primary" href="{% url 'jasmin_services:grant_review' pk=grant.id %}">Review</a></td>
                             </tr>
                         {% endfor %}
                     {% endfor %}

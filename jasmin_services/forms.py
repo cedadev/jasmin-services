@@ -206,6 +206,32 @@ class DecisionForm(forms.Form):
         return self._request
 
 
+class GrantReviewForm(forms.Form):
+    """
+    Form for revoking a grant.
+    """
+    user_reason = forms.CharField(label = 'Reason for revocation (user)',
+                                  required = True,
+                                  widget = forms.Textarea(attrs = { 'rows' : 5 }),
+                                  help_text = markdown_allowed())
+    internal_reason = forms.CharField(label = 'Reason for revocation (internal)',
+                                      required = False,
+                                      widget = forms.Textarea(attrs = { 'rows' : 5 }),
+                                      help_text = markdown_allowed())
+
+    def __init__(self, grant, *args, **kwargs):
+        self._grant = grant
+        super().__init__(*args, **kwargs)
+
+    def save(self):
+        # Update the grant from the form
+        self._grant.revoked =  True
+        self._grant.user_reason = self.cleaned_data['user_reason']
+        self._grant.internal_reason = self.cleaned_data['internal_reason']
+        self._grant.save()
+        return self._grant
+
+
 ######
 ## ADMIN FORMS
 ######
