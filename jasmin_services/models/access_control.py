@@ -367,7 +367,7 @@ class Request(HasMetadata):
     )
 
     def __str__(self):
-        return '{} : {} : {}'.format(self.access, 'INCOMPETE' if self.incomplete else self.state)
+        return '{} : {}'.format(self.access, 'INCOMPETE' if self.incomplete else self.state)
 
     @property
     def active(self):

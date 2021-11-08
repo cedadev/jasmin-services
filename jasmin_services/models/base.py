@@ -16,6 +16,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth import get_user_model
 from django_countries.fields import CountryField
+from django.utils.html import mark_safe
+from django.urls import reverse_lazy
 
 
 from jasmin_metadata.models import Form
@@ -66,6 +68,16 @@ class Service(models.Model):
             'position',
             'name'
         )
+
+    @property
+    def details_link(self):
+
+        details_url = reverse_lazy(
+            'jasmin_services:service_details',
+            kwargs={'category': self.category.name, 'service': self.name})
+
+        anchor = f'<a href="{details_url}">Details</a>'
+        return mark_safe(anchor)
 
     #: The category that the service belongs to
     category = models.ForeignKey(Category, models.CASCADE,

@@ -9,6 +9,7 @@ import logging
 import functools
 import socket
 from datetime import date
+import requests as reqs
 
 from dateutil.relativedelta import relativedelta
 
@@ -29,7 +30,7 @@ from django.contrib.auth.decorators import user_passes_test
 
 from django.contrib.auth.decorators import login_required
 
-from .models import Access, Grant, Request, RequestState, Category, Service, Role
+from .models import Access, Grant, Request, RequestState, Category, Service, Role, Group
 from .forms import DecisionForm, message_form_factory
 
 
@@ -442,6 +443,18 @@ def role_apply(request, service, role, bool_grant = None, previous=None):
                 "You have already have an active request for the specified grant"
             )
             return redirect_to_service(service)
+
+    # ONLY FOR CEDA SERVICES: has an active request for this chain it must be rejected
+    licence_url = None
+    if request.user._wrapped.__class__.__name__ == 'CedaUser':
+        group = next(b for b in role.behaviours if isinstance(b, Group))
+        if group:
+            response = reqs.get(
+                settings.licence_url,
+                params={'group': group.name},
+            )
+            json_response = response.json()
+            licence_url = json_response['licence']
  
     # Otherwise, attempt to do something
     form_class = role.metadata_form_class
@@ -522,6 +535,7 @@ def role_apply(request, service, role, bool_grant = None, previous=None):
         'grant': previous_grant,
         'req': previous_request,
         'form': form,
+        'licence_url': licence_url
     })
 
 

@@ -175,7 +175,7 @@ def grant_created(sender, instance, created, **kwargs):
     """
     Notifies the user when a grant is created.
     """
-    if created and instance.active and not re.match(r'train\d{3}', instance.user.username):
+    if created and instance.active and not re.match(r'train\d{3}', instance.access.user.username):
         instance.access.user.notify(
             'grant_created',
             instance,
@@ -222,7 +222,7 @@ def account_suspended(sender, instance, created, **kwargs):
     the pending requests for that user.
     """
     if not instance.is_active:
-        for grant in Grant.objects.filter(user = instance, revoked = False)  \
+        for grant in Grant.objects.filter(access__user = instance, revoked = False)  \
                                   .filter_active():
             grant.revoked = True
             if re.match(r'train\d{3}', instance.username):
@@ -230,7 +230,7 @@ def account_suspended(sender, instance, created, **kwargs):
             else:
                 grant.user_reason = 'Account was suspended'
             grant.save()
-        for req in Request.objects.filter(user = instance, \
+        for req in Request.objects.filter(access__user = instance, \
                                           state = RequestState.PENDING):
             req.state = RequestState.REJECTED
             if re.match(r'train\d{3}', instance.username):
@@ -247,7 +247,7 @@ def account_reactivated(sender, instance, created, **kwargs):
     the pending requests for that user.
     """
     if instance.is_active:
-        for grant in Grant.objects.filter(user = instance, \
+        for grant in Grant.objects.filter(access__user = instance, \
                                           revoked = True, \
                                           user_reason = 'Account was suspended', \
                                          ).filter_active():
@@ -259,12 +259,12 @@ def account_reactivated(sender, instance, created, **kwargs):
                 grant.save()
             else:
                 Grant.objects.create(
-                    user=instance,
+                    access__user=instance,
                     role=grant.role,
                     granted_by=grant.granted_by,
                     expires=date.today() + relativedelta(months=1)
                 )
-        for req in Request.objects.filter(user = instance, \
+        for req in Request.objects.filter(access__user = instance, \
                                           state = RequestState.REJECTED, \
                                           user_reason = 'Account was suspended'):
             req.user_reason = ''
