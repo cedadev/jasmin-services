@@ -2,38 +2,38 @@
 
 {% block filter_form %}
     {% if page.paginator.num_pages > 1 or preserved_filters %}
-        <div class="service-search well">
-            <form method="get" action="" class="form-inline">
+        <div class="card my-3 ps-1">
+            <form method="get" action="" class="form-inline d-flex justify-content-between">
                 <input type="hidden" name="page" value="{{ page.number }}" />
-                <div class="form-group" style="width: 100%;">
-                    <div class="input-group" style="width: 100%;">
-                        <div class="form-control">
-                            <label class="checkbox-inline">
-                                <input type="checkbox" name="active" value="1" {% if 'active' in checked %}checked{% endif %} /> Active
-                            </label>
-                            <label class="checkbox-inline">
-                                <input type="checkbox" name="revoked" value="1" {% if 'revoked' in checked %}checked{% endif %} /> Revoked
-                            </label>
-                            <label class="checkbox-inline">
-                                <input type="checkbox" name="expired" value="1" {% if 'expired' in checked %}checked{% endif %} /> Expired
-                            </label>
-                            <label class="checkbox-inline">
-                                <input type="checkbox" name="expiring" value="1" {% if 'expiring' in checked %}checked{% endif %} /> Expiring
-                            </label>
-                            <label class="checkbox-inline">
-                                <input type="checkbox" name="rejected" value="1" {% if 'rejected' in checked %}checked{% endif %} /> Rejected
-                            </label>
-                            <label class="checkbox-inline">
-                                <input type="checkbox" name="pending" value="1" {% if 'pending' in checked %}checked{% endif %} /> Pending
-                            </label>
-                        </div>
-                        <span class="input-group-btn" style="width: 1%;">
-                            <button type="submit" class="btn btn-primary" name="_apply_filters" value="1">
-                                <i class="fa fa-fw fa-filter"></i> Filter services
-                            </button>
-                        </span>
+                <div class="my-auto">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="active" id="check-active" value="1" {% if 'active' in checked %}checked{% endif %} />
+                        <label class="form-check-label" for="check-active">Active</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="revoked" id="check-revoked" value="1" {% if 'revoked' in checked %}checked{% endif %} />
+                        <label class="form-check-label" for="check-revoked">Revoked</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="expired" id="check-expired" value="1" {% if 'expired' in checked %}checked{% endif %} />
+                        <label class="form-check-label" for="check-expired">Expired</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="expiring" id="check-expiring" value="1" {% if 'expiring' in checked %}checked{% endif %} />
+                        <label class="form-check-label" for="check-expiring">Expiring</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="rejected" id="check-rejected" value="1" {% if 'rejected' in checked %}checked{% endif %} />
+                        <label class="form-check-label" for="check-rejected">Rejected</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="pending" id="cehck-pending" value="1" {% if 'pending' in checked %}checked{% endif %} />
+                        <label class="form-check-label">Pending</label>
                     </div>
                 </div>
+                <button type="submit" class="btn btn-primary" name="_apply_filters" value="1">
+                    <i class="fas fa-fw fa-filter"></i> Filter services
+                </button>
             </form>
         </div>
     {% endif %}
