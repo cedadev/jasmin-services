@@ -28,6 +28,9 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = 'Categories'
         ordering = ('position', 'long_name')
+        indexes = [
+                models.Index(fields=['position', 'long_name'])
+                ]
 
     #: A short name for the category
     name = models.SlugField(
@@ -64,6 +67,9 @@ class Service(models.Model):
             'position',
             'name'
         )
+        indexes = [
+                models.Index(fields=['position', 'name'])
+                ]
 
     #: The category that the service belongs to
     category = models.ForeignKey(Category, models.CASCADE,

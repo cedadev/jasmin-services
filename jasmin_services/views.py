@@ -268,8 +268,8 @@ def my_services(request):
 
     # Make the grants and requests queries be evaluated here.
     # This makes the following query less complex and allows a significant speedup.
-    grants = list(grants)
-    requests = list(requests)
+    grants = list(grants.order_by('id'))
+    requests = list(requests.order_by('id'))
 
     # Get the services that match the grants
     # Since the count for this takes as long as the query, force it to
