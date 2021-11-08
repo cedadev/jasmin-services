@@ -83,37 +83,41 @@ def service_list(request, category):
         )  \
         .distinct()  \
         .values_list('name', 'long_name')
+
     # Get the services in this category that are visible to the user
-    services = category.services  \
-        .annotate(
-            has_grant = Exists(
-                Grant.objects.filter(
-                    role__service = OuterRef('pk'),
-                    user = request.user
-                )
-            ),
-            has_request = Exists(
-                Request.objects.filter(
-                    role__service = OuterRef('pk'),
-                    user = request.user
-                )
-            )
-        )  \
-        .filter(
-            Q(hidden = False) |
-            Q(has_grant = True) |
-            Q(has_request = True)
-        )
+    # Split into two to make the database query less complex and more efficient.
+    request_services = category.services.annotate(
+        has_request=Exists(
+            Request.objects.filter(role__service=OuterRef("pk"), user=request.user)
+        ),
+    ).filter(Q(hidden=False) | Q(has_request=True))
+    grant_services = category.services.annotate(
+        has_grant=Exists(
+            Grant.objects.filter(role__service=OuterRef("pk"), user=request.user)
+        ),
+    ).filter(Q(hidden=False) | Q(has_grant=True))
+
     # If there is a search term, factor that in
     query = request.GET.get('query', '')
     if query:
-        services = services.filter(
-            Q(name__icontains = query) |
-            Q(summary__icontains = query) |
-            Q(description__icontains = query)
+        request_services = request_services.filter(
+            Q(name__icontains=query)
+            | Q(summary__icontains=query)
+            | Q(description__icontains=query)
         )
-    # A count of this queryset is almost as expensive as the query, so force it
-    services = list(services.distinct().prefetch_related('roles'))
+        grant_services = grant_services.filter(
+            Q(name__icontains=query)
+            | Q(summary__icontains=query)
+            | Q(description__icontains=query)
+        )
+
+    # Force execution of the services query now.
+    request_services = set(request_services.distinct().prefetch_related("roles"))
+    grant_services = set(grant_services.distinct().prefetch_related("roles"))
+
+    # Combine services with requests and with grants together.
+    services = list(grant_services | request_services)
+
     # Get a paginator for the services
     paginator = Paginator(
         services,
