@@ -7,6 +7,7 @@ __author__ = "Matt Pryor"
 __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 
 import logging
+import re
 from dateutil.relativedelta import relativedelta
 
 from django.conf import settings
@@ -44,26 +45,27 @@ def send_expiry_notifications(grant_queryset):
     in the given queryset.
     """
     for grant in grant_queryset.filter_active():
-        if grant.expired:
-            grant.access.user.notify_if_not_exists(
-                'grant_expired',
-                grant,
-                reverse('jasmin_services:service_details', kwargs = {
-                    'category' : grant.access.role.service.category.name,
-                    'service' : grant.access.role.service.name,
-                })
-            )
-        elif grant.expiring:
-            grant.access.user.notify_pending_deadline(
-                grant.expires,
-                settings.JASMIN_SERVICES['NOTIFY_EXPIRE_DELTAS'],
-                'grant_expiring',
-                grant,
-                reverse('jasmin_services:service_details', kwargs = {
-                    'category' : grant.access.access.role.service.category.name,
-                    'service' : grant.access.access.role.service.name,
-                })
-            )
+        if not (grant.revoked or re.match(r'train\d{3}', grant.user.username)):
+            if grant.expired:
+                grant.access.user.notify_if_not_exists(
+                    'grant_expired',
+                    grant,
+                    reverse('jasmin_services:service_details', kwargs = {
+                        'category' : grant.access.role.service.category.name,
+                        'service' : grant.access.role.service.name,
+                    })
+                )
+            elif grant.expiring:
+                grant.access.user.notify_pending_deadline(
+                    grant.expires,
+                    settings.JASMIN_SERVICES['NOTIFY_EXPIRE_DELTAS'],
+                    'grant_expiring',
+                    grant,
+                    reverse('jasmin_services:service_details', kwargs = {
+                        'category' : grant.access.role.service.category.name,
+                        'service' : grant.access.role.service.name,
+                    })
+                )
 
 
 def remind_pending(request_queryset):

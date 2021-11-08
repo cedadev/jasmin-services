@@ -76,25 +76,9 @@ class JoinJISCMailListBehaviour(Behaviour):
         self.save()
 
     def unapply(self, user):
-        # If the user has no email address, they can't be subscribed
-        if not user.email: return
-        # If the user is not in joined_users, there is nothing to do
-        if not self.joined_users.filter(pk = user.pk).exists():
-            return
-        # Send the email command to remove the user from the list
-        send_mail(
-            "Removing {} ({}) from {} mailing list".format(
-                user.email, user.get_full_name(), self.list_name.lower()
-            ),
-            "del {} {}".format(self.list_name.lower(), user.email),
-            settings.SUPPORT_EMAIL,
-            settings.JASMIN_SERVICES['JISCMAIL_TO_ADDRS'],
-            fail_silently = True,
-        )
-        # Remove the user from the joined_users
-        self.joined_users.remove(user)
-        self.save()
-
+        # users must now unsubscribe themselves
+        pass
+    
     def __str__(self):
         return "Join JISCMail List <{}>".format(self.list_name)
 

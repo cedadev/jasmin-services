@@ -14,7 +14,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django import forms
 from django.core.exceptions import ValidationError
-from django.contrib.admin.widgets import AdminDateWidget
+from django.contrib.admin.widgets import FilteredSelectMultiple, AdminDateWidget
 from django.contrib.auth import get_user_model
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
@@ -48,7 +48,16 @@ def message_form_factory(sender, *roles):
     return type(uuid.uuid4().hex, (forms.Form, ), {
         'users' : forms.ModelMultipleChoiceField(
             queryset = queryset,
-            label = 'Send to'
+            label = 'Send to',
+            widget=forms.SelectMultiple(attrs={
+                'class': 'selectpicker',
+                'data-actions-box': 'true',
+                'data-live-search': 'true',
+                'data-live-search-normalize': 'true',
+                'data-width': '100%',
+                'data-style': '',
+                'data-style-base': 'form-control',
+                }),
         ),
         'subject' : forms.CharField(max_length = 250, label = 'Subject'),
         'message' : forms.CharField(widget = forms.Textarea, label = 'Message'),
@@ -78,11 +87,16 @@ class DecisionForm(forms.Form):
     EXPIRES_TEN_YEARS = 6
     EXPIRES_CUSTOM = 7
 
-    approved = forms.NullBooleanField(
+    state = forms.TypedChoiceField(
         label = 'Decision',
-        widget = forms.Select(choices = [(None, '---------'),
-                                         (True, 'APPROVED'),
-                                         (False, 'REJECTED')])
+        choices = [
+            (None, '---------'),
+            ('APPROVED', 'APPROVED'),
+            ('INCOMPLETE', 'INCOMPLETE'),
+            ('REJECTED', 'REJECTED')
+        ],
+        coerce = str,
+        empty_value = None
     )
     expires = forms.TypedChoiceField(
         label = 'Expiry date',
@@ -124,39 +138,39 @@ class DecisionForm(forms.Form):
         self._approver = approver
         super().__init__(*args, **kwargs)
 
-    def clean_approved(self):
-        approved = self.cleaned_data.get('approved')
-        if approved is None:
+    def clean_state(self):
+        state = self.cleaned_data.get('state')
+        if state is None:
             raise ValidationError('This field is required')
-        return approved
+        return state
 
     def clean_expires(self):
-        approved = self.cleaned_data.get('approved')
+        state = self.cleaned_data.get('state')
         expires = self.cleaned_data.get('expires')
-        if approved and not expires:
+        if state == 'APPROVED' and not expires:
             raise ValidationError('Please give an expiry date for access')
         return expires
 
     def clean_expires_custom(self):
-        approved = self.cleaned_data.get('approved')
+        state = self.cleaned_data.get('state')
         expires = self.cleaned_data.get('expires')
         expires_custom = self.cleaned_data.get('expires_custom')
-        if approved and expires == self.EXPIRES_CUSTOM and not expires_custom:
+        if state == 'APPROVED' and expires == self.EXPIRES_CUSTOM and not expires_custom:
             raise ValidationError('Please give an expiry date for access')
         if expires_custom and expires_custom < date.today():
             raise ValidationError('Expiry date must be in the future')
         return expires_custom
 
     def clean_user_reason(self):
-        approved = self.cleaned_data.get('approved')
+        state = self.cleaned_data.get('state')
         user_reason = self.cleaned_data.get('user_reason')
-        if approved is False and not user_reason:
-            raise ValidationError('Please give a reason for rejection')
+        if state != 'APPROVED' and not user_reason:
+            raise ValidationError('Please give a reason for rejection or incompletion')
         return user_reason
 
     def save(self):
         # Update the request from the form
-        if self.cleaned_data['approved']:
+        if self.cleaned_data['state'] == 'APPROVED':
             # Get the expiry date
             expires = self.cleaned_data['expires']
             if expires == self.EXPIRES_SIX_MONTHS:
@@ -201,6 +215,7 @@ class DecisionForm(forms.Form):
             self._request.copy_metadata_to(self._request.resulting_grant)
         else:
             self._request.state = RequestState.REJECTED
+            self._request.incomplete =  True if self.cleaned_data['state'] == 'INCOMPLETE' else False
             self._request.user_reason = self.cleaned_data['user_reason']
             self._request.internal_reason = self.cleaned_data['internal_reason']
         self._request.save()
@@ -217,6 +232,21 @@ class AdminDecisionForm(DecisionForm):
         required = False,
         input_formats = ['%Y-%m-%d', '%d/%m/%Y'],
         widget = AdminDateWidget
+    )
+
+
+class AdminRevokeForm(forms.Form):
+    user_reason = forms.CharField(
+        label = 'Reason for rejection (user)',
+        required = False,
+        widget = forms.Textarea(attrs = { 'rows' : 5 }),
+        help_text = markdown_allowed()
+    )
+    internal_reason = forms.CharField(
+        label = 'Reason for rejection (internal)',
+        required = False,
+        widget = forms.Textarea(attrs = { 'rows' : 5 }),
+        help_text = markdown_allowed()
     )
 
 
@@ -291,3 +321,32 @@ class LdapGroupBehaviourAdminForm(forms.ModelForm):
                 for g in settings.JASMIN_SERVICES['LDAP_GROUPS']
             }
         )
+
+def admin_message_form_factory(service):
+    """
+    Factory function that creates a message form for a set of roles.
+
+    The set of users is those with a valid, active grant for one of the roles.
+    """
+    # The possible users are those that have an active, non-revoked, non-expired
+    # grant for the USER role for the service
+    queryset = get_user_model().objects.distinct() \
+        .filter(
+            grant__in = Grant.objects
+                .filter(
+                    role__service = service,
+                    expires__gte = date.today(),
+                    revoked = False
+                )
+                .filter_active()
+        ) \
+        .distinct()
+    return type(uuid.uuid4().hex, (forms.Form, ), {
+        'users' : forms.ModelMultipleChoiceField(
+            queryset = queryset,
+            label = 'Send to',
+            widget = FilteredSelectMultiple("Users", is_stacked=False),
+        ),
+        'subject' : forms.CharField(max_length = 250, label = 'Subject'),
+        'message' : forms.CharField(widget = forms.Textarea, label = 'Message'),
+    })

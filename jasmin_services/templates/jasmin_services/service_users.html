@@ -5,175 +5,169 @@
 {% block page_title %}<code>{{ service }}</code>{% endblock %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li class="breadcrumb-item">JASMIN Services</li>
-    <li class="breadcrumb-item">
-        <a class="breadcrumb-link" href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
-    </li>
-    <li  class="breadcrumb-item active">{{ service.name }}</li>
-</ol>
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">JASMIN Services</li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
+        </li>
+        <li class="breadcrumb-item active">{{ service.name }}</li>
+    </ol>
 {% endblock %}
 
 {% block content_header %}{{ block.super }}
-<div class="container">
     <div class="row">
         <div class="col-md-12">
             {% include "jasmin_services/includes/service_tabs.html" %}
         </div>
     </div>
-</div>
 {% endblock %}
 
-{% block content %}
-{# Only show the filters if there are enough grants #}
-{% if grants.paginator.num_pages > 1 or preserved_filters %}
-<div class="container">
-    <div class="col-md-12 hidden-sm hidden-xs">
-        <p>
-            <button id="toggle-filters" class="btn btn-default">
-                <i class="fa fa-fw {% if preserved_filters %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i>&nbsp;
-                Toggle filters
-            </button>
-        </p>
-    </div>
-    <script type="text/javascript">
-        $('body').on('click', '#toggle-filters', function() {
-            $('#filters').toggleClass('hidden-md').toggleClass('hidden-lg');
-            $(this).find('i').toggleClass('fa-toggle-on').toggleClass('fa-toggle-off');
-            $('#filters + div').toggleClass('col-md-12').toggleClass('col-md-9');
-        });
-    </script>
-
-    <div id="filters" class="col-md-3{% if not preserved_filters %} hidden-md hidden-lg{% endif %}">
-        <nav id="filters-nav" class="navbar navbar-default navbar-vertical" role="navigation">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed"
-                        data-toggle="collapse" data-target="#filters-nav .navbar-collapse" aria-expanded="false">
-                    <span class="sr-only">Toggle Navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <span class="navbar-brand">Filter grants</span>
+{% block content_panel %}
+    <div class="row">
+        {# Only show the filters if there are enough grants #}
+        {% if grants.paginator.num_pages > 1 or preserved_filters %}
+            <div class="col-md-12 d-none d-md-block">
+                <p>
+                    <button
+                        id="toggle-filters"
+                        class="btn btn-default"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#filters"
+                    >
+                        <i class="fas fa-fw {% if preserved_filters %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i>&nbsp;
+                        Toggle filters
+                    </button>
+                </p>
             </div>
-
-            <div class="navbar-collapse collapse">
-                <form class="navbar-form" action="" method="GET">
-                    <input type="hidden" name="_apply_filters" value="1" />
-                    <input type="hidden" name="page" value="1" />
-                    {% if roles|length > 1 %}
-                        <h3 class="navbar-form-title">Role</h3>
-                        {% for role in roles %}
-                            <div class="checkbox">
+        {% endif %}
+    </div>
+    <div class="d-flex">
+        <div id="filters" class="{% if preserved_filters %}show{% endif %} collapse collapse-horizontal">
+            <div style="width: 8vw;" class="card me-2">
+                <div class="card-header">
+                    <h3>Filters</h3>
+                </div>
+                <div class="card-body">
+                    <form class="" action="" method="GET">
+                        <input type="hidden" name="_apply_filters" value="1" />
+                        <input type="hidden" name="page" value="1" />
+                        {% if roles|length > 1 %}
+                            <div class="row mt-2">
+                                <h4>Role</h4>
+                            </div>
+                            {% for role in roles %}
+                                <div class="row">
+                                    <label>
+                                        <input type="checkbox" name="{{ role.name }}" {% if role.checked %}checked{% endif %} value="1" />
+                                        <code>{{ role.name }}</code>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        {% elif roles %}
+                            <input type="hidden" name="{{ roles.0.name }}" value="1" />
+                        {% endif %}
+                        <div class="row mt-2">
+                            <h4>Status</h4>
+                        </div>
+                        {% for status in statuses %}
+                            <div class="row">
                                 <label>
-                                    <input type="checkbox" name="{{ role.name }}" {% if role.checked %}checked{% endif %} value="1" />
-                                    <code>{{ role.name }}</code>
+                                    <input type="checkbox" name="{{ status.name }}" {% if status.checked %}checked{% endif %} value="1" />
+                                    <code>{{ status.name|upper }}</code>
                                 </label>
                             </div>
                         {% endfor %}
-                    {% elif roles %}
-                        <input type="hidden" name="{{ roles.0.name }}" value="1" />
-                    {% endif %}
-                    <h3 class="navbar-form-title">Status</h3>
-                    {% for status in statuses %}
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="{{ status.name }}" {% if status.checked %}checked{% endif %} value="1" />
-                                <code>{{ status.name|upper }}</code>
-                            </label>
-                        </div>
-                    {% endfor %}
-                    <button type="submit" class="btn btn-default">Apply</button>
-                </form>
+                        <button type="submit" class="btn btn-primary mt-1">Apply</button>
+                    </form>
+                </div>
             </div>
-        </nav>
-    </div>
-    {% if preserved_filters %}
-        <div class="col-md-9 table-responsive">
-    {% else %}
-        <div class="col-md-12 table-responsive">
-    {% endif %}
-{% else %}
-    <div class="col-md-12 table-responsive">
-{% endif %}
-    <table class="table grants-table">
-        <caption class="clearfix">
-            {% with total=grants.paginator.count %}
-                <span class="pull-left">{{ total }} grant{{ total|pluralize }} / {{ n_users }} user{{ n_users|pluralize }}</span>
-                {% if grants.has_other_pages %}
-                    <ul class="pull-right pagination pagination-sm">
-                        {% if grants.has_previous %}
-                            <li><a title="Previous" href="?page={{ grants.previous_page_number }}{% if preserved_filters %}&{{ preserved_filters }}{% endif %}">&laquo;</a></li>
-                        {% else %}
-                            <li class="disabled"><a title="Previous" href="#">&laquo;</a></li>
+        </div>
+        <div class="table-responsive flex-grow-1">
+            <table class="table grants-table">
+                <caption class="clearfix">
+                    {% with total=grants.paginator.count %}
+                        <span class="pull-left">{{ total }} grant{{ total|pluralize }} / {{ n_users }} user{{ n_users|pluralize }}</span>
+                        {% if grants.has_other_pages %}
+                            <ul class="pull-right pagination pagination-sm">
+                                {% if grants.has_previous %}
+                                    <li><a title="Previous" href="?page={{ grants.previous_page_number }}{% if preserved_filters %}&{{ preserved_filters }}{% endif %}">&laquo;</a></li>
+                                {% else %}
+                                    <li class="disabled"><a title="Previous" href="#">&laquo;</a></li>
+                                {% endif %}
+                                <li class="page-info"><span>Page {{ grants.number }} of {{ grants.paginator.num_pages }}</span></li>
+                                {% if grants.has_next %}
+                                    <li><a title="Next" href="?page={{ grants.next_page_number }}{% if preserved_filters %}&{{ preserved_filters }}{% endif %}">&raquo;</a></li>
+                                {% else %}
+                                    <li class="disabled"><a title="Next" href="#">&raquo;</a></li>
+                                {% endif %}
+                            </ul>
                         {% endif %}
-                        <li class="page-info"><span>Page {{ grants.number }} of {{ grants.paginator.num_pages }}</span></li>
-                        {% if grants.has_next %}
-                            <li><a title="Next" href="?page={{ grants.next_page_number }}{% if preserved_filters %}&{{ preserved_filters }}{% endif %}">&raquo;</a></li>
-                        {% else %}
-                            <li class="disabled"><a title="Next" href="#">&raquo;</a></li>
-                        {% endif %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
-        </caption>
-        <thead>
-            <tr>
-                <th>Username</th>
-                <th>Name</th>
-                <th>Institution</th>
-                <th></th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Expires</th>
-                <th style="white-space: nowrap;">Granted By</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% regroup grants by access.user as grouped_grants %}
-            {% for user, grants in grouped_grants %}
-                {% for grant in grants %}
-                    {% if grant.revoked %}
-                        <tr class="danger">
-                    {% elif grant.expired %}
-                        <tr class="danger">
-                    {% elif grant.expiring %}
-                        <tr class="warning">
-                    {% else %}
-                        <tr class="success">
-                    {% endif %}
-                        {% if forloop.first %}
-                            {# Disable the coloring for the user info cells #}
-                            <td style="background-color: inherit !important;" rowspan="{{ grants|length }}"><code>{{ user.username }}</code></td>
-                            <td style="background-color: inherit !important;" rowspan="{{ grants|length }}">{{ user.get_full_name }}</td>
-                            <td style="background-color: inherit !important; border-right: 1px solid #ddd;" rowspan="{{ grants|length }}">{{ user.institution }}</td>
-                        {% endif %}
-                        {% if grant.revoked %}
-                            <td class="text-danger"><i class="fa fa-fw fa-ban"></i></td>
-                        {% elif grant.expired %}
-                            <td class="text-danger"><i class="fa fa-fw fa-clock"></i></td>
-                        {% elif grant.expiring %}
-                            <td class="text-warning"><i class="fa fa-fw fa-clock"></i></td>
-                        {% else %}
-                            <td class="text-success"><i class="fa fa-fw fa-check"></i></td>
-                        {% endif %}
-                        <td><code>{{ grant.access.role.name }}</code></td>
-                        {% if grant.revoked %}
-                            <td><code>REVOKED</code></td>
-                        {% elif grant.expired %}
-                            <td><code>EXPIRED</code></td>
-                        {% elif grant.expiring %}
-                            <td><code>EXPIRING</code></td>
-                        {% else %}
-                            <td><code>ACTIVE</code></td>
-                        {% endif %}
-                        <td style="white-space: nowrap;">{{ grant.expires }}</td>
-                        <td><code>{{ grant.granted_by }}</code></td>
+                    {% endwith %}
+                </caption>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Name</th>
+                        <th>Institution</th>
+                        <th></th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Expires</th>
+                        <th style="white-space: nowrap;">Granted By</th>
                     </tr>
-                {% endfor %}
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-</div>
+                </thead>
+                <tbody>
+                    {% regroup grants by user as grouped_grants %}
+                    {% for user, grants in grouped_grants %}
+                        {% for grant in grants %}
+                            {% if grant.revoked %}
+                                <tr class="danger">
+                            {% elif grant.expired %}
+                                <tr class="danger">
+                            {% elif grant.expiring %}
+                                <tr class="warning">
+                            {% else %}
+                                <tr class="success">
+                            {% endif %}
+                            {% if forloop.first %}
+                                {# Disable the coloring for the user info cells #}
+                                <td style="background-color: inherit !important;" rowspan="{{ grants|length }}"><code>{{ user.username }}</code></td>
+                                <td style="background-color: inherit !important;" rowspan="{{ grants|length }}">{{ user.get_full_name }}</td>
+                                <td style="background-color: inherit !important; border-right: 1px solid #ddd;" rowspan="{{ grants|length }}">{{ user.institution }}</td>
+                            {% endif %}
+                            {% if grant.revoked %}
+                                <td class="text-danger"><i class="fa fa-fw fa-ban"></i></td>
+                            {% elif grant.expired %}
+                                <td class="text-danger"><i class="fa fa-fw fa-clock-o"></i></td>
+                            {% elif grant.expiring %}
+                                <td class="text-warning"><i class="fa fa-fw fa-clock-o"></i></td>
+                            {% else %}
+                                <td class="text-success"><i class="fa fa-fw fa-check"></i></td>
+                            {% endif %}
+                            <td><code>{{ grant.role.name }}</code></td>
+                            {% if grant.revoked %}
+                                <td><code>REVOKED</code></td>
+                            {% elif grant.expired %}
+                                <td><code>EXPIRED</code></td>
+                            {% elif grant.expiring %}
+                                <td><code>EXPIRING</code></td>
+                            {% else %}
+                                <td><code>ACTIVE</code></td>
+                            {% endif %}
+                            <td style="white-space: nowrap;">{{ grant.expires }}</td>
+                            <td><code>{{ grant.granted_by }}</code></td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+{% endblock %}
+
+{% block js_page %}
+    <script type="text/javascript">
+        $('body').on('click', '#toggle-filters', function() {
+            $(this).find('i').toggleClass('fa-toggle-on').toggleClass('fa-toggle-off');
+        });
+    </script>
 {% endblock %}

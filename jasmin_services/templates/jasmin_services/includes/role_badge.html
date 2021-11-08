@@ -2,55 +2,51 @@
 
 {% if req %}
     {% if req.rejected %}
-        <span class="label label-danger"
-            data-toggle="popover"
-            data-title="Request rejected">
-            <i class="fa fa-ban"></i> {{ role.name }}
-        </span>
-        <div class="popover-companion" style="display: none;">
-            <blockquote class="danger">{{ req.user_reason|markdown }}</blockquote>
-        </div>
+        <button class="badge bg-danger"
+            data-bs-toggle="popover"
+            data-bs-content="{{ req.user_reason|markdown }}"
+            data-bs-placement="left"
+            data-bs-html='true'
+            title="Request rejected">
+            <i class="fas fa-ban"></i> {{ role.name }}
+        </button>
     {% else %}
-        <span class="label label-default"
-            data-toggle="popover"
-            data-title="Request pending">
-            <i class="fa fa-hourglass-half"></i> {{ role.name }}
-        </span>
-        <div class="popover-companion" style="display: none;">
-            <aside class="info">Request for access awaiting approval</aside>
-        </div>
+        <button class="btn badge bg-primary"
+            data-bs-toggle="popover"
+            data-bs-content="Request for access awaiting approval."
+            data-bs-placement="left"
+            title="Request pending">
+            <i class="fas fa-hourglass-half"></i> {{ role.name }}
+        </button>
     {% endif %}
 {% elif grant %}
     {% if grant.revoked %}
-        <span class="label label-danger"
-            data-toggle="popover"
-            data-title="Access revoked">
-            <i class="fa fa-ban"></i> {{ role.name }}
-        </span>
-        <div class="popover-companion" style="display: none;">
-            <blockquote class="danger">{{ grant.user_reason|markdown }}</blockquote>
-        </div>
+        <button class="btn badge bg-danger"
+            data-bs-toggle="popover"
+            data-bs-content="{{ grant.user_reason|markdown }}"
+            data-bs-placement="left"
+            data-bs-html='true'
+            title="Access revoked">
+            <i class="fas fa-ban"></i> {{ role.name }}
+        </button>
     {% elif grant.expired %}
-        <span class="label label-danger"
-            data-toggle="popover"
-            data-title="Access expired">
-            <i class="fa fa-clock"></i> {{ role.name }}
-        </span>
-        <div class="popover-companion" style="display: none;">
-            <aside class="danger">Access expired on {{ grant.expires }}</aside>
-        </div>
+        <button class="btn badge bg-danger"
+            data-bs-toggle="popover"
+            data-bs-content="Access expired on {{ grant.expires }}"
+            data-bs-placement="left"
+            title="Access expired">
+            <i class="fas fa-clock-o"></i> {{ role.name }}
     {% elif grant.expiring %}
-        <span class="label label-warning"
-            data-toggle="popover"
-            data-title="Access expiring">
-            <i class="fa fa-clock"></i> {{ role.name }}
-        </span>
-        <div class="popover-companion" style="display: none;">
-            <aside class="warning">Access expires on {{ grant.expires }}</aside>
-        </div>
+        <button class="btn badge bg-warning"
+            data-bs-toggle="popover"
+            data-bs-content="Access expiring on {{ grant.expires }}"
+            data-bs-placement="left"
+            title="Access expiring">
+            <i class="fas fa-clock-o"></i> {{ role.name }}
+        </button>
     {% else %}
-        <span class="label label-success">
-            <i class="fa fa-check"></i> {{ role.name }}
+        <span class="badge bg-success">
+            <i class="fas fa-check"></i> {{ role.name }}
         </span>
     {% endif %}
 {% endif %}

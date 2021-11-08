@@ -1,26 +1,22 @@
 {% extends 'layout.html' %}
-{% load widget_tweaks markdown_deux_tags %}
+{% load widget_tweaks django_bootstrap5 markdown_deux_tags %}
 
 {% block page_title %}Apply for role{% endblock %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li class="breadcrumb-item">JASMIN Services</li>
-    <li class="breadcrumb-item">
-        <a class="breadcrumb-link" href="{% url 'jasmin_services:service_list' category=role.service.category.name %}">{{ role.service.category }}</a>
-    </li>
-    <li class="breadcrumb-item">
-        <a class="breadcrumb-link" href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name %}">{{ role.service.name }}</a>
-    </li>
-    <li  class="breadcrumb-item active">Apply</li>
-</ol>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">JASMIN Services</li>
+            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=role.service.category.name %}">{{ role.service.category }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name %}">{{ role.service.name }}</a></li>
+            <li class="breadcrumb-item active">Apply</li>
+        </ol>
+    </nav>
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-lg-center">
-    <div class="col-lg-8 col-12">
-        <form method="POST" action="" class="form-horizontal" id="apply-form">
-            {% csrf_token %}
+    <form method="POST" action="" class="form-horizontal">
+        {% csrf_token %}
 
             <div class="form-group">
                 <div class="row">
@@ -44,11 +40,17 @@
             </div>
     
             {% if req or grant %}
-                <div class="form-group">
-                    <div class="col-8 offset-4">
+                <div class="row">
+                    <div class="col-md-9 col-md-offset-3">
                         {% if req %}
                             <aside class="danger">
-                                <header>Previous request rejected</header>
+                                <header>
+                                {% if req.incomplete %}
+                                    More infomation required
+                                {% else %}
+                                    Previous request rejected
+                                {% endif %}
+                                </header>
                                 {{ req.user_reason|markdown }}
                             </aside>
                         {% elif grant.revoked %}
@@ -71,21 +73,8 @@
                 </div>
             {% endif %}
             
-    
-            {% for field in form.visible_fields %}
-            <div class="form-group">
-                <div class="row">
-                    <label class="col-4 text-right control-label" for="id_service"><b>{{ field.label }}</b></label>
-                    <div class="col">
-                            {% render_field field class="form-control" placeholder=field.label %}
-                        {% if field.help_text %}
-                            <small class="form-text text-muted">{{ field.help_text }}</small>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-
+            {% bootstrap_form form layout='horizontal' %}
+            
             <div class="form-group">
                 <div class="row">
                     <div class="ml-auto">
@@ -93,7 +82,40 @@
                     </div>
                 </div>
             </div>
-        </form>
-    </div>
-</div>
+        </div>
+    </form>
 {% endblock %}
+
+{% block js_page %}
+    <script type="text/javascript">
+        var textAreas = document.getElementsByTagName("textarea");
+        var i;
+        for (i = 0; i < textAreas.length; i++) {
+            textArea = textAreas[i];
+            if ($(textArea).attr('maxlength')) {
+                var maxLength = $(textArea).attr('maxlength');
+                var length = $(textArea).val().length;
+                var remaining = maxLength-length;
+                var textAreaID = $(textArea).attr('id');
+
+                let counter = document.createElement('span');
+                counter.id = textAreaID + '_counter';
+                counter.innerHTML = remaining;
+                $(textArea).after(counter);
+                counter.after(' characters remaining');
+            };
+        };
+
+        $('textarea').keyup(function() {
+            if ($(this).attr('maxlength')) {
+                var maxLength = $(this).attr('maxlength');
+                var length = $(this).val().length;
+                var remaining = maxLength-length;
+
+                let counter = document.getElementById(this.id + '_counter');
+                $(counter).text(remaining);
+            };
+        });
+    </script>
+{% endblock %}
+

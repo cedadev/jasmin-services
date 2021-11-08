@@ -20,6 +20,8 @@ from django.contrib.admin.utils import quote
 from django import http
 from django.utils.safestring import mark_safe
 from django.contrib.auth.models import Permission
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
 
 from polymorphic.admin import (
     PolymorphicParentModelAdmin,
@@ -35,7 +37,7 @@ from .models import (
     Access, Grant, Request, RequestState,
     Behaviour, LdapTagBehaviour, LdapGroupBehaviour, JoinJISCMailListBehaviour
 )
-from .forms import AdminDecisionForm, LdapGroupBehaviourAdminForm
+from .forms import AdminDecisionForm, AdminRevokeForm, LdapGroupBehaviourAdminForm, admin_message_form_factory
 from .actions import (
     synchronise_service_access, send_expiry_notifications, remind_pending
 )
@@ -206,6 +208,49 @@ class ServiceAdmin(admin.ModelAdmin):
             )
             self.create_role_object_permissions(manager_role, user_role)
             self.create_role_object_permissions(manager_role, deputy_role)
+
+    def get_urls(self):
+        return [
+            url(
+                r'^(?P<service>[\w-]+)/message/$',
+                self.admin_site.admin_view(self.support_message),
+                name = 'jasmin_services_support_message'
+            ),
+        ] + super().get_urls()
+
+    def support_message(self, request, service):
+        service = Service.objects.get(pk=service)
+        MessageForm = admin_message_form_factory(service)
+        if request.method == 'POST':
+            form = MessageForm(request.POST)
+            if form.is_valid():
+                EmailMessage(
+                    subject = form.cleaned_data['subject'],
+                    body = render_to_string('admin/jasmin_services/service/email_message.txt', {
+                        'sender': 'JASMIN Support',
+                        'message': form.cleaned_data['message'],
+                        'reply_to': settings.JASMIN_SUPPORT_EMAIL,
+                    }),
+                    bcc = [u.email for u in form.cleaned_data['users']],
+                    from_email = settings.JASMIN_SUPPORT_EMAIL,
+                    reply_to = [settings.JASMIN_SUPPORT_EMAIL]
+                ).send()
+                messages.success(request, 'Message sent')
+                return redirect('/admin/jasmin_services/service/{}'.format(service.pk))
+            else:
+                messages.error(request, 'Error with one or more fields')
+        else:
+            form = MessageForm()
+        context = {
+            'title' : '{}: Send Support Message'.format(service.name),
+            'form': form,
+            'opts': self.model._meta,
+            'service': service,
+            'media' : self.media + form.media,
+        }
+        context.update(self.admin_site.each_context(request))
+        request.current_app = self.admin_site.name
+        return render(request, 'admin/jasmin_services/service/message.html', context)
 
 
 class BehaviourInline(admin.StackedInline):
@@ -409,7 +454,7 @@ class GrantAdmin(HasMetadataModelAdmin):
         'access__user__email',
         'access__user__last_name'
     )
-    actions = ('synchronise_service_access', 'send_expiry_notifications')
+    actions = ('synchronise_service_access', 'send_expiry_notifications', 'revoke_grants')
     list_select_related = (
         'access__role',
         'access__role__service',
@@ -442,6 +487,20 @@ class GrantAdmin(HasMetadataModelAdmin):
         """
         send_expiry_notifications(queryset)
     send_expiry_notifications.short_description = 'Send expiry notifications'
+
+    def revoke_grants(self, request, queryset):
+        """
+        Admin action that revokes the selected grants.
+        """
+        selected = queryset.values_list('pk', flat=True)
+        selected_ids = '_'.join(str(pk) for pk in selected)
+
+        return redirect(reverse(
+                'admin:jasmin_services_bulk_revoke',
+                kwargs = {'ids': selected_ids},
+                current_app=self.admin_site.name)
+            )
+    revoke_grants.short_description = 'Revoke selected grants'
 
     def active(self, obj):
         """
@@ -532,6 +591,47 @@ class GrantAdmin(HasMetadataModelAdmin):
             return { d.key : d.value for d in metadata.all() }
         return super().get_metadata_form_initial_data(request, obj)
 
+    def get_urls(self):
+        return [
+            url(
+                r'^bulk_revoke/(?P<ids>[0-9_]+)/$',
+                self.admin_site.admin_view(self.bulk_revoke),
+                name = 'jasmin_services_bulk_revoke'
+            ),
+        ] + super().get_urls()
+
+    def bulk_revoke(self, request, ids):
+        ids = ids.split('_')
+        if request.method == 'POST':
+            form = AdminRevokeForm(data = request.POST)
+            if form.is_valid():
+                user_reason = form.cleaned_data['user_reason']
+                internal_reason = form.cleaned_data['internal_reason']
+
+                Grant.objects.filter(pk__in = ids).update(
+                    revoked = True,
+                    user_reason = user_reason,
+                    internal_reason = internal_reason,
+                )
+                return redirect(
+                    f'{self.admin_site.name}:jasmin_services_grant_changelist'
+                )
+        else:
+            form = AdminRevokeForm()
+        context = {
+            'title' : 'Bulk Revoke Grants',
+            'form': form,
+            'opts': self.model._meta,
+            'media' : self.media + form.media,
+        }
+        context.update(self.admin_site.each_context(request))
+        request.current_app = self.admin_site.name
+        return render(
+            request,
+            'admin/jasmin_services/grant/bulk_revoke.html',
+            context
+        )
+
 
 class _StateListFilter(admin.SimpleListFilter):
     title = 'State'
@@ -573,6 +673,7 @@ class RequestAdmin(HasMetadataModelAdmin):
         'resulting_grant',
         'next_request', 
         'previous_grant', 
+        'incomplete',
         'user_reason',
         'internal_reason'
     )
@@ -610,6 +711,10 @@ class RequestAdmin(HasMetadataModelAdmin):
             return 'PENDING'
         elif obj.state == RequestState.APPROVED:
             return mark_safe('<span style="color: #00b300;">APPROVED</span>')
+        elif obj.incomplete:
+            return mark_safe(
+                '<span style="color: #e67a00; font-weight: bold;">INCOMPLETE</span>'
+            )
         else:
             return mark_safe(
                 '<span style="color: #e60000; font-weight: bold;">REJECTED</span>'
