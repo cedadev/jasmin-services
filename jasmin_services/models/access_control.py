@@ -93,6 +93,9 @@ class Grant(HasMetadata):
             '-granted_at',
         )
         get_latest_by = 'granted_at'
+        indexes = [
+                    models.Index(fields=['role', 'user', 'granted_at'])
+                ]
 
     objects = GrantQuerySet.as_manager()
 
