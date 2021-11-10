@@ -37,8 +37,8 @@
                 </tr>
             </thead>
             <tbody>
-                {% regroup requests by user as grouped_requests %}
-                {% for user, requests in grouped_requests %}
+                {% regroup requests by access as grouped_requests %}
+                {% for access, requests in grouped_requests %}
                     {% for req in requests %}
                         <tr>
                             {% if forloop.first %}

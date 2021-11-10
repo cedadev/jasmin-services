@@ -406,7 +406,7 @@ def service_details(request, service):
 @require_http_methods(['GET', 'POST'])
 @login_required
 @with_service
-def role_apply(request, service, role, bool_grant = None, previous=None):
+def role_apply(request, service, role, bool_grant=None, previous=None):
     """
     Handler for ``/<category>/<service>/apply/<role>/``.
 
@@ -422,27 +422,30 @@ def role_apply(request, service, role, bool_grant = None, previous=None):
     
     previous_grant = None
     previous_request = None
+    # bool_grant = 1 if the new request is being made from a previous grant
     if bool_grant == 1:
         previous_grant = Grant.objects.get(pk = previous)
+        previous_request = Request.objects.filter_active().filter(previous_grant = previous_grant).first()
+    # bool_grant = 0 if the new request is being made from a previous request
     elif bool_grant == 0:
         previous_request = Request.objects.get(pk = previous)
         if previous_request.previous_grant:
             previous_grant = previous_request.previous_grant
     
+    if (previous_request and previous_request.next_request) or (previous_grant and previous_grant.next_grant):
+        messages.info(
+            request,
+            "Please use the most recent request or grant"
+        )
+        return redirect_to_service(service)
+    
     # If the user has an active request for this chain it must be rejected
-    if previous_grant or previous_request:
-        requests = Request.objects.filter_active()
-        current_req = requests.filter(previous_grant = previous_grant).first()
-
-        if not current_req:
-            current_req = requests.filter(next_request = previous_request).first()
-
-        if current_req and current_req.state != RequestState.REJECTED:
-            messages.info(
-                request,
-                "You have already have an active request for the specified grant"
-            )
-            return redirect_to_service(service)
+    if previous_request and previous_request.state != RequestState.REJECTED:
+        messages.info(
+            request,
+            "You have already have an active request for the specified grant"
+        )
+        return redirect_to_service(service)
 
     # ONLY FOR CEDA SERVICES: has an active request for this chain it must be rejected
     licence_url = None

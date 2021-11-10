@@ -23,13 +23,6 @@
 
 {% block content_panel %}
     <div class="row">
-        <script type="text/javascript">
-            // Initially, hide any secondary rows
-            // By inserting this using Javascript, we ensure the rows are visible for
-            // people without Javascript
-            document.write('<style>.access-table > tbody > tr:not(:first-child) { display: none; }</style>')
-        </script>
-
         <div class="col-lg-7 col-md-6">
             {% if service.instution_countries and user_country not in service.instution_countries %}
                 <div class="alert alert-warning text-center">
@@ -184,7 +177,8 @@
                                             </code></td>
                                             <td>{{ req.requested_at.date }}</td>
                                             {% if req.rejected %}
-                                                <td>
+                                                <td style="width: 1%;">
+                                                    <div style="display: table-cell; padding: 0.5rem;">
                                                     <button type="button"
                                                         class="btn btn-danger btn-sm"
                                                         data-bs-toggle="popover"
@@ -193,6 +187,7 @@
                                                         data-bs-content="{{ req.user_reason|markdown}}"
                                                         data-bs-placement="left"
                                                     >See Reason</button>
+                                                </div><div style="display: table-cell;">
                                                     <a class="btn btn-success btn-sm"
                                                         href="{{ apply_url }}">
                                                         {% if req.incomplete %}
@@ -200,14 +195,14 @@
                                                         {% else %}
                                                             <i class="fas fa-fw fa-sync"></i> Apply again
                                                         {% endif %}
-                                                    </a>
+                                                    </a></div>
                                                 </td>
                                             {% else %}
                                                 <td></td>
                                             {% endif %}
                                         </tr>
                                         {% if req.rejected %}
-                                            <tr>
+                                            <tr class="reason">
                                                 <th colspan="2" class="text-muted">Reason:</th>
                                                 <td colspan="3">
                                                     <blockquote class="danger">{{ req.user_reason|markdown }}</blockquote>
@@ -221,8 +216,8 @@
                     </div>
                 {% endif %}
                 {% if roles %}
-                    <div class="panel panel-default">
-                        <div class="panel-heading"><h3 class="panel-title">Apply for Access</h3></div>
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title">Apply for Access</h3></div>
                         <table class="table table-hover access-table">
                             <thead>
                                 <tr>
@@ -236,6 +231,7 @@
                                     <tr class="active">
                                         <td class="text-muted" style="width: 1%;"><i class="far fa-fw fa-circle"></i></td>
                                         <td><code>{{ role.name }}</code></td>
+                                        <td></td>
                                         <td></td>
                                         <td style="width: 1%;">
                                             <a class="btn btn-success btn-sm btn-block"
@@ -254,7 +250,18 @@
     </div>
 </div>
 
-{% block tail_js_extra %}
+{% block footer_js %}
+<script type="text/javascript">
+    // Initially, hide any secondary rows
+    // By inserting this using Javascript, we ensure the rows are visible for
+    // people without Javascript
+    var reasons = document.getElementsByClassName('reason');
+    for(var i = 0; i < reasons.length; i++){
+        console.log(reasons[i])
+        reasons[i].style.display = "none";
+    }
+</script>
+
 <script type="text/javascript">
     var $multiple = $('.access-table > tbody > tr:nth-child(2)').parent();
     $multiple.first().children('tr').show();
@@ -283,5 +290,5 @@
         $tbody.children('tr').show();
     });
 </script>
-{% endblock tail_js_extra %}
+{% endblock footer_js %}
 {% endblock content_panel %}

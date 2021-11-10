@@ -22,13 +22,6 @@
 {% endblock %}
 
 {% block content_panel %}
-    <script type="text/javascript">
-        // Hide the reason stack for now
-        document.write('<style>.reason-stack { display: none; }</style>');
-        // Initially hide all the mb-3
-        // Using document.write allows us to hide fields only when Javascript is enabled
-        document.write('<style>.mb-3 { display: none; }</style>');
-    </script>
     <div class="row">
         <div class="col-md-9">
             <form method="POST" action="" class="form-horizontal" id="decision-form">
@@ -38,7 +31,7 @@
                     <label class="col-sm-2 col-form-label" for="id_role">Role</label>
                     <div class="col-sm-10">
                         <p class="form-control-plaintext" id="id_role">
-                            <code>{{ pending.role }}</code>
+                            <code>{{ pending.access.role }}</code>
                         </p>
                     </div>
                 </div>
@@ -46,7 +39,7 @@
                     <label class="col-sm-2 col-form-label" for="id_for_username">Username</label>
                     <div class="col-sm-10">
                         <p class="form-control-plaintext" id="id_for_username">
-                            <code>{{ pending.user.username }}</code>
+                            <code>{{ pending.access.user.username }}</code>
                         </p>
                     </div>
                 </div>
@@ -54,7 +47,7 @@
                     <label class="col-sm-2 col-form-label" for="id_for_full_name">Full name</label>
                     <div class="col-sm-10">
                         <p class="form-control-plaintext" id="id_for_full_name">
-                            {{ pending.user.get_full_name }}
+                            {{ pending.access.user.get_full_name }}
                         </p>
                     </div>
                 </div>
@@ -62,7 +55,7 @@
                     <label class="col-sm-2 col-form-label" for="id_for_institution">Institution</label>
                     <div class="col-sm-10">
                         <p class="form-control-plaintext" id="id_for_institution">
-                            {{ pending.user.institution }}
+                            {{ pending.access.user.institution }}
                         </p>
                     </div>
                 </div>
@@ -70,7 +63,7 @@
                     <label class="col-sm-2 col-form-label" for="id_for_discipline">Discipline</label>
                     <div class="col-sm-10">
                         <p class="form-control-plaintext" id="id_for_discipline">
-                            {{ pending.user.discipline }}
+                            {{ pending.access.user.discipline }}
                         </p>
                     </div>
                 </div>
@@ -78,7 +71,7 @@
                     <label class="col-sm-2 col-form-label" for="id_for_degree">Degree</label>
                     <div class="col-sm-10">
                         <p class="form-control-plaintext" id="id_for_degree">
-                            {{ pending.user.degree|default:"N/A" }}
+                            {{ pending.access.user.degree|default:"N/A" }}
                         </p>
                     </div>
                 </div>
@@ -157,7 +150,7 @@
                 {% block extra_context %}{% endblock %}
 
                 {% for datum in pending.metadata.all %}
-                    <div class="form-group">
+                    <div class="row mb-3">
                         <label class="col-sm-2 col-form-label" for="id_{{ datum.key }}">{{ datum.key|pretty_name }}</label>
                         <div class="col-sm-10">
                             <p class="form-control-plaintext" id="id_{{ datum.key }}" style="white-space: pre-wrap;">{{ datum.value }}</p>
