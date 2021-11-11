@@ -447,7 +447,7 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
         )
         return redirect_to_service(service)
 
-    # ONLY FOR CEDA SERVICES: has an active request for this chain it must be rejected
+    # ONLY FOR CEDA SERVICES: Get licence url
     licence_url = None
     if request.user._wrapped.__class__.__name__ == 'CedaUser':
         group = next(b for b in role.behaviours if isinstance(b, Group))
