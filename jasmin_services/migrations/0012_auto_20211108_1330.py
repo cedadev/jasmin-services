@@ -26,4 +26,19 @@ class Migration(migrations.Migration):
             name='instution_countries',
             field=django_countries.fields.CountryField(blank=True, help_text="Coutries a user's institute must be located to begin approval. Hold ctrl or cmd for mac to select multiple countries. Leave blank for any country.", max_length=746, multiple=True)
         ),
+        migrations.AddIndex(
+            model_name='category',
+            index=models.Index(fields=['position', 'long_name'], name='jasmin_serv_positio_fd6e81_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='service',
+            index=models.Index(fields=['position', 'name'], name='jasmin_serv_positio_95ece6_idx'),
+        ),
+        migrations.AddIndex(
+            model_name="grant",
+            index=models.Index(
+                fields=["access__role", "access__user", "granted_at"],
+                name="jasmin_serv_role_id_f8ad17_idx",
+            ),
+        ),
     ]
