@@ -1,17 +1,19 @@
 {% if page.paginator.num_pages > 1 %}
-    <nav class="text-center">
-        <ul class="pagination">
-            {% if page.has_previous %}
-                <li><a title="Previous" href="?page={{ page.previous_page_number }}{% if preserved_filters %}&{{ preserved_filters }}{% endif %}">&laquo;</a></li>
-            {% else %}
-                <li class="disabled"><a title="Previous" href="#">&laquo;</a></li>
-            {% endif %}
-            <li class="page-info"><span>Page {{ page.number }} of {{ page.paginator.num_pages }}</span></li>
-            {% if page.has_next %}
-                <li><a title="Next" href="?page={{ page.next_page_number }}{% if preserved_filters %}&{{ preserved_filters }}{% endif %}">&raquo;</a></li>
-            {% else %}
-                <li class="disabled"><a title="Next" href="#">&raquo;</a></li>
-            {% endif %}
-        </ul>
-    </nav>
+    <div class="d-flex justify-content-center">
+        <nav class="text-center">
+            <ul class="pagination">
+                {% if page.has_previous %}
+                    <li class="page-item"><a class="page-link" title="Previous" href="?page={{ page.previous_page_number }}{% if preserved_filters %}&{{ preserved_filters }}{% endif %}">&laquo;</a></li>
+                {% else %}
+                    <li class="page-item disabled"><a class="page-link" title="Previous" href="#">&laquo;</a></li>
+                {% endif %}
+                <li class="page-item"><span class="page-link bg-white text-dark">Page {{ page.number }} of {{ page.paginator.num_pages }}</span></li>
+                {% if page.has_next %}
+                    <li class="page-item"><a class="page-link" title="Next" href="?page={{ page.next_page_number }}{% if preserved_filters %}&{{ preserved_filters }}{% endif %}">&raquo;</a></li>
+                {% else %}
+                    <li class="page-item disabled"><a class="page-link" title="Next" href="#">&raquo;</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
 {% endif %}
