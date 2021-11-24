@@ -544,7 +544,7 @@ class GrantAdmin(HasMetadataModelAdmin):
         # If there is data from a referring request to populate, do that
         referring = self.get_referring_request(request)
         if referring:
-            initial.update(role = referring.role, user = referring.user)
+            initial.update(role = referring.access.role, user = referring.access.user)
         return initial
 
     def add_view(self, request, form_url = '', extra_context = None):

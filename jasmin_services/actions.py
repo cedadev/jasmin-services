@@ -45,7 +45,7 @@ def send_expiry_notifications(grant_queryset):
     in the given queryset.
     """
     for grant in grant_queryset.filter_active():
-        if not (grant.revoked or re.match(r'train\d{3}', grant.user.username)):
+        if not (grant.revoked or re.match(r'train\d{3}', grant.access.user.username)):
             if grant.expired:
                 grant.access.user.notify_if_not_exists(
                     'grant_expired',

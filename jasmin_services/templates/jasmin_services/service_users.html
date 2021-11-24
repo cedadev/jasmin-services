@@ -144,7 +144,7 @@
                             {% else %}
                                 <td class="text-success"><i class="fa fa-fw fa-check"></i></td>
                             {% endif %}
-                            <td><code>{{ grant.role.name }}</code></td>
+                            <td><code>{{ grant.access.role.name }}</code></td>
                             {% if grant.revoked %}
                                 <td><code>REVOKED</code></td>
                             {% elif grant.expired %}

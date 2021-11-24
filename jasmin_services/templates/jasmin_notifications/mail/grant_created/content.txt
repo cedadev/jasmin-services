@@ -7,7 +7,7 @@ The following access has been granted:
 
     Service: {{ target.access.role.service }}
     Role: {{ target.access.role.name }}
-    User: {{ target.user }}
+    User: {{ target.access.user }}
     Expires: {{ target.expires }}
 
 You are receiving this email as a designated responsible user for this service user.

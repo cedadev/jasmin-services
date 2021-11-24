@@ -334,7 +334,7 @@ def admin_message_form_factory(service):
         .filter(
             grant__in = Grant.objects
                 .filter(
-                    role__service = service,
+                    access__role__service = service,
                     expires__gte = date.today(),
                     revoked = False
                 )

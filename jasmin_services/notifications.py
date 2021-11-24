@@ -260,7 +260,7 @@ def account_reactivated(sender, instance, created, **kwargs):
             else:
                 Grant.objects.create(
                     access__user=instance,
-                    role=grant.role,
+                    access__role=grant.access.role,
                     granted_by=grant.granted_by,
                     expires=date.today() + relativedelta(months=1)
                 )

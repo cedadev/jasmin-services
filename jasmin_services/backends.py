@@ -37,7 +37,7 @@ class RoleObjectPermissionsBackend:
                     role__grant__in = Grant.objects \
                         .filter_active() \
                         .filter(
-                            user = user,
+                            access__user = user,
                             revoked = False,
                             expires__gte = date.today()
                         )
