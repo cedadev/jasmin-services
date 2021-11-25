@@ -34,7 +34,7 @@ class RoleObjectPermissionsBackend:
         if not hasattr(user, "_role_perm_cache"):
             obj_perms = RoleObjectPermission.objects \
                 .filter(
-                    role__grant__in = Grant.objects \
+                    role__access__grant__in = Grant.objects \
                         .filter_active() \
                         .filter(
                             access__user = user,
