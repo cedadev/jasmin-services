@@ -89,12 +89,12 @@ def service_list(request, category):
     # Split into two to make the database query less complex and more efficient.
     request_services = category.services.annotate(
         has_request=Exists(
-            Request.objects.filter(access__role__service=OuterRef("pk"), user=request.user)
+            Request.objects.filter(access__role__service=OuterRef("pk"), access__user=request.user)
         ),
     ).filter(Q(hidden=False) | Q(has_request=True))
     grant_services = category.services.annotate(
         has_grant=Exists(
-            Grant.objects.filter(access__role__service=OuterRef("pk"), user=request.user)
+            Grant.objects.filter(access__role__service=OuterRef("pk"), access__user=request.user)
         ),
     ).filter(Q(hidden=False) | Q(has_grant=True))
 
