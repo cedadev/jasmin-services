@@ -391,8 +391,13 @@ def service_details(request, service):
         role_grants = all_grants.filter(access__role = role)
         role_requests = all_requests.filter(access__role = role)
         if role_grants:
+            # Add metadata so users can tell grants apart
+            role_grants = [(rg, getattr(rg.metadata.filter(key="supporting_information").first(), "value", None)) for rg in role_grants]
+            print(role_grants)
             grants.append((role, role_grants))
         if role_requests:
+            # Add metadata so users can tell requests apart
+            role_requests = [(rr, getattr(rr.metadata.filter(key="supporting_information").first(), "value", None)) for rr in role_requests]
             requests.append((role, role_requests))
         if not role.hidden or role_requests or role_grants:
             roles.append(role)
@@ -491,7 +496,6 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
                         granted_by = 'automatic',
                         expires = date.today() + relativedelta(years = 1)
                     )
-                    req.copy_metadata_to(req.resulting_grant)
                     
                     if previous_request:
                         previous_request.next_request = req
@@ -504,6 +508,7 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
                     
                     req.save()
                     form.save(req)
+                    req.copy_metadata_to(req.resulting_grant)
                 else:
                     req = Request.objects.create(
                         access = access,

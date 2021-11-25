@@ -34,11 +34,4 @@ class Migration(migrations.Migration):
             model_name='service',
             index=models.Index(fields=['position', 'name'], name='jasmin_serv_positio_95ece6_idx'),
         ),
-        migrations.AddIndex(
-            model_name="grant",
-            index=models.Index(
-                fields=["access__role", "access__user", "granted_at"],
-                name="jasmin_serv_role_id_f8ad17_idx",
-            ),
-        ),
     ]

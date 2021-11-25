@@ -123,8 +123,8 @@ class Grant(HasMetadata):
         )
         get_latest_by = 'granted_at'
         indexes = [
-                    models.Index(fields=['access__role', 'access__user', 'granted_at'])
-                ]
+            models.Index(fields=['access', 'granted_at'])
+        ]
 
     objects = GrantQuerySet.as_manager()
 

@@ -20,4 +20,11 @@ class Migration(migrations.Migration):
             name='granted_at',
             field=models.DateTimeField(auto_now_add=True),
         ),
+        migrations.AddIndex(
+            model_name="grant",
+            index=models.Index(
+                fields=["access", "granted_at"],
+                name="jasmin_serv_role_id_f8ad17_idx",
+            ),
+        ),
     ]

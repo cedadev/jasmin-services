@@ -62,7 +62,7 @@
                                 </tr>
                             </thead>
                             {% for role, role_grants in grants %}
-                                {% for grant in role_grants %}
+                                {% for grant, meta_data in role_grants %}
                                     {% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name bool_grant=1 previous=grant.pk as apply_url %}
                                     <tbody>
                                         {% if grant.revoked %}
@@ -110,8 +110,8 @@
                                         </tr>
                                         {% if role_grants|length > 1 %}
                                             <tr>
-                                                <th class="text-muted" colspan="2">Reason:</th>
-                                                <td colspan="3"><blockquote class="active">{{ grant.meta_data.reason|markdown }}</blockquote></td>
+                                                <th class="text-muted" colspan="2">Supporting info:</th>
+                                                <td colspan="3"><blockquote class="active">{{ meta_data|markdown }}</blockquote></td>
                                             </tr>
                                         {% endif %}
                                         {% if grant.revoked %}
@@ -142,7 +142,7 @@
                                 </tr>
                             </thead>
                             {% for role, role_requests in requests %}
-                                {% for req in role_requests %}
+                                {% for req, meta_data in role_requests %}
                                     {% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name bool_grant=0 previous=req.pk as apply_url %}
                                     <tbody>
                                         {% if req.rejected %}
@@ -201,6 +201,12 @@
                                                 <td></td>
                                             {% endif %}
                                         </tr>
+                                        {% if role_requests|length > 1 %}
+                                            <tr>
+                                                <th class="text-muted" colspan="2">Supporting info:</th>
+                                                <td colspan="3"><blockquote class="active">{{ meta_data|markdown }}</blockquote></td>
+                                            </tr>
+                                        {% endif %}
                                         {% if req.rejected %}
                                             <tr class="reason">
                                                 <th colspan="2" class="text-muted">Reason:</th>
