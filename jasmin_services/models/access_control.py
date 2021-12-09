@@ -203,6 +203,14 @@ class Grant(HasMetadata):
             # Ensure that the user is active
             if not user.is_active:
                 errors['user'] = 'User is suspended'
+            if not settings.MULTIPLE_REQUESTS_ALLOWED:
+                active_grant = Grant.objects.filter(access=self.access, next_grant__isnull = True)
+                active_request = Request.objects.filter(access=self.access, resulting_grant__isnull = True, next_request__isnull = True)
+                if active_grant:
+                    errors = 'There is already an existing grant for this acess'
+                if active_request:
+                    errors = 'There is already an existing request for this acess'
+
         except ObjectDoesNotExist:
             pass
         # Ensure that at least a user reason is given if the grant is revoked
@@ -431,6 +439,14 @@ class Request(HasMetadata):
             # Ensure that the user is active
             if not user.is_active:
                 errors['user'] = 'User is suspended'
+            # 
+            if not settings.MULTIPLE_REQUESTS_ALLOWED:
+                active_grant = Grant.objects.filter(access=self.access, next_grant__isnull = True)
+                active_request = Request.objects.filter(access=self.access, resulting_grant__isnull = True, next_request__isnull = True)
+                if active_grant and self.previous_grant != active_grant[0]:
+                    errors = 'There is already an existing grant for this acess'
+                if active_request:
+                    errors = 'There is already an existing request for this acess'
         except ObjectDoesNotExist:
             pass
         # Check that the grant is for the same service/role/user combination

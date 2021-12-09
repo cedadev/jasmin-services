@@ -393,15 +393,17 @@ def service_details(request, service):
         if role_grants:
             # Add metadata so users can tell grants apart
             role_grants = [(rg, getattr(rg.metadata.filter(key="supporting_information").first(), "value", None)) for rg in role_grants]
-            print(role_grants)
             grants.append((role, role_grants))
         if role_requests:
             # Add metadata so users can tell requests apart
             role_requests = [(rr, getattr(rr.metadata.filter(key="supporting_information").first(), "value", None)) for rr in role_requests]
             requests.append((role, role_requests))
         if not role.hidden or role_requests or role_grants:
+            # if multiple requests aren't allowed only add to "aply list" if there isn't an existing request or grant
+            if not settings.MULTIPLE_REQUESTS_ALLOWED and (role_requests or role_grants):
+                continue
             roles.append(role)
-            
+    
     templates = [
         'jasmin_services/{}/{}/service_details.html'.format(
             service.category.name,
