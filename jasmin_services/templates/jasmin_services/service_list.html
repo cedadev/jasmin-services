@@ -19,8 +19,12 @@
                 <li class="nav-item">
                     <a class="nav-link navbar-brand" href="{% url 'jasmin_services:my_services' %}">My Services</a>
                 </li>
-                <span class="navbar-text navbar-brand">Discover Services</span>
-                <span class="navbar-text"><hr></span>
+                <li class="nav-item">
+                    <li class="nav-item">
+                        <span class="nav-link text-decoration-none"><hr></span>
+                    </li>
+                    <h4 class="nav-link text-decoration-none">Discover Services</h4>
+                </li>
                 {% for name, long_name in categories %}
                     <li class="nav-item">
                         <a class="nav-link {% if name == current_category.name %}active{% endif %}"
@@ -35,12 +39,12 @@
     <div class="col-md-9">
         {% block filter_form %}
             {% if page.paginator.num_pages > 1 or preserved_filters %}
-                <div class="service-search well">
+                <div class="card my-3">
                     <form method="get" action="">
                         <div class="form-group">
                             <div class="input-group">
                                 <input id="query" name="query" type="text" class="form-control"
-                                        value="{{ request.GET.query }}" placeholder="Search {{ current_category.long_name }}" />
+                                    value="{{ request.GET.query }}" placeholder="Search {{ current_category.long_name }}" />
                                 <span class="input-group-btn">
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fa fa-fw fa-search"></i> Search
