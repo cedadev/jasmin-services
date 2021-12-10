@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='request',
             name='previous_grant',
-            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='next_request', to='jasmin_services.Grant_new'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='next_requests', to='jasmin_services.Grant_new'),
         ),
         migrations.AddField(
             model_name='request',

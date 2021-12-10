@@ -392,7 +392,14 @@ def service_details(request, service):
         role_requests = all_requests.filter(access__role = role)
         if role_grants:
             # Add metadata so users can tell grants apart
-            role_grants = [(rg, getattr(rg.metadata.filter(key="supporting_information").first(), "value", None)) for rg in role_grants]
+            role_grants = [
+                (
+                    rg,
+                    getattr(rg.metadata.filter(key="supporting_information").first(), "value", None),
+                    rg.next_requests.all(),
+                )
+                for rg in role_grants
+            ]
             grants.append((role, role_grants))
         if role_requests:
             # Add metadata so users can tell requests apart
@@ -449,6 +456,7 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
         if previous_request.previous_grant:
             previous_grant = previous_request.previous_grant
     
+    # If the user has a more recent request or grant for this chain they must use that
     if (previous_request and previous_request.next_request) or (previous_grant and previous_grant.next_grant):
         messages.info(
             request,
@@ -466,7 +474,7 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
 
     # ONLY FOR CEDA SERVICES: Get licence url
     licence_url = None
-    if request.user._wrapped.__class__.__name__ == 'CedaUser':
+    if settings.LICENCE_REQUIRED:
         group = next(b for b in role.behaviours if isinstance(b, Group))
         if group:
             response = reqs.get(

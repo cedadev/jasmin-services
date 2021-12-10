@@ -357,9 +357,9 @@ class Request(HasMetadata):
                                            null = True, blank = True,
                                            related_name = 'request')
     #: If approved, this is the access grant being superceeded
-    previous_grant = models.OneToOneField(Grant, models.SET_NULL,
+    previous_grant = models.ForeignKey(Grant, models.SET_NULL,
                                           null = True, blank = True,
-                                          related_name = 'next_request')
+                                          related_name = 'next_requests')
     #: Request that superceeds this request
     next_request = models.OneToOneField('self', models.SET_NULL,
                                         null = True, blank = True,

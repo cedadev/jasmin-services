@@ -62,7 +62,7 @@
                                 </tr>
                             </thead>
                             {% for role, role_grants in grants %}
-                                {% for grant, meta_data in role_grants %}
+                                {% for grant, meta_data, next_requests in role_grants %}
                                     {% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name bool_grant=1 previous=grant.pk as apply_url %}
                                     <tbody>
                                         {% if grant.revoked %}
@@ -94,18 +94,22 @@
                                             <td><code>-</code></td>
                                         {% endif %}
                                         <td>{{ grant.expires }}</td>
-                                        {% if grant.revoked %}
-                                            <td style="width: 1%;">
-                                                <a class="btn btn-success btn-sm btn-block {% if service.instution_countries and user_country not in service.instution_countries %} disabled {% endif %}" href="{{ apply_url }}">
-                                                    <i class="fa fa-fw fa-plus"></i> Apply again
-                                                </a>
-                                            </td>
+                                        {% if not next_requests %}
+                                            {% if grant.revoked %}
+                                                <td style="width: 1%;">
+                                                    <a class="btn btn-success btn-sm btn-block {% if service.instution_countries and user_country not in service.instution_countries %} disabled {% endif %}" href="{{ apply_url }}">
+                                                        <i class="fa fa-fw fa-plus"></i> Apply again
+                                                    </a>
+                                                </td>
+                                            {% else %}
+                                                <td style="width: 1%;">
+                                                    <a class="btn btn-success btn-sm btn-block {% if service.instution_countries and user_country not in service.instution_countries %} disabled {% endif %}" href="{{ apply_url }}">
+                                                        <i class="fa fa-fw fa-sync-alt"></i> Apply extend
+                                                    </a>
+                                                </td>
+                                            {% endif %}
                                         {% else %}
-                                            <td style="width: 1%;">
-                                                <a class="btn btn-success btn-sm btn-block {% if service.instution_countries and user_country not in service.instution_countries %} disabled {% endif %}" href="{{ apply_url }}">
-                                                    <i class="fa fa-fw fa-sync-alt"></i> Apply extend
-                                                </a>
-                                            </td>
+                                            <td></td>
                                         {% endif %}
                                         </tr>
                                         {% if role_grants|length > 1 %}
