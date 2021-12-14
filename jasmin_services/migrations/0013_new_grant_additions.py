@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
                 ('revoked', models.BooleanField(default=False)),
                 ('user_reason', models.TextField(blank=True, help_text='<a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown syntax</a> allowed, but no raw HTML. Examples: **bold**, *italic*, indent 4 spaces for a code block.', verbose_name='Reason for revocation (user)')),
                 ('internal_reason', models.TextField(blank=True, help_text='<a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown syntax</a> allowed, but no raw HTML. Examples: **bold**, *italic*, indent 4 spaces for a code block.', verbose_name='Reason for revocation (internal)')),
-                ('next_grant', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.SET_NULL, related_name='previous_grant', to='jasmin_services.Grant_new')),
+                ('previous_grant', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.SET_NULL, related_name='next_grant', to='jasmin_services.Grant_new')),
             ],
             options={
                 'ordering': ('access__role__service__category__position', 'access__role__service__category__long_name', 'access__role__service__position', 'access__role__service__name', 'access__role__position', 'access__role__name', '-granted_at'),
@@ -46,8 +46,8 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='request',
-            name='next_request',
-            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='previous_request', to='jasmin_services.Request'),
+            name='previous_request',
+            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='next_request', to='jasmin_services.Request'),
         ),
         migrations.AddField(
             model_name='request',

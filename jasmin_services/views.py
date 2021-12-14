@@ -457,7 +457,7 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
             previous_grant = previous_request.previous_grant
     
     # If the user has a more recent request or grant for this chain they must use that
-    if (previous_request and previous_request.next_request) or (previous_grant and previous_grant.next_grant):
+    if (previous_request and hasattr(previous_request, 'next_request')) or (previous_grant and hasattr(previous_grant, 'next_grant')):
         messages.info(
             request,
             "Please use the most recent request or grant"
@@ -508,13 +508,13 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
                     )
                     
                     if previous_request:
-                        previous_request.next_request = req
-                        previous_request.save()
+                        req.previous_request = previous_request
+                        req.save()
 
                     if previous_grant:
-                        previous_grant.next_grant = req.resulting_grant
+                        req.resulting_grant.previous_grant = previous_grant
                         req.previous_grant = previous_grant
-                        previous_grant.save()
+                        req.resulting_grant.save()
                     
                     req.save()
                     form.save(req)

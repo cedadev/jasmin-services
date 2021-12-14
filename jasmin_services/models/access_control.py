@@ -151,13 +151,13 @@ class Grant(HasMetadata):
     internal_reason = models.TextField(blank = True,
                                        verbose_name = 'Reason for revocation (internal)',
                                        help_text = markdown_allowed())
-    #: Grant that superceeds this grant
-    next_grant = models.OneToOneField('self', models.SET_NULL,
+    #: Grant that this grant superceeds
+    previous_grant = models.OneToOneField('self', models.SET_NULL,
                                       null = True, blank = True,
-                                      related_name = 'previous_grant')
+                                      related_name = 'next_grant')
 
     def __str__(self):
-        if self.next_grant:
+        if hasattr(self, 'next_grant'):
             return '{} : old'.format(self.access)
         else:
             return '{} : active'.format(self.access)
@@ -169,7 +169,7 @@ class Grant(HasMetadata):
         service/role/user combination.
         """
         if not hasattr(self, '_active'):
-            if not self.next_grant:
+            if not hasattr(self, 'next_grant'):
                 self._active = True
             else:
                 # Unsaved grants are never active
@@ -206,10 +206,10 @@ class Grant(HasMetadata):
             if not settings.MULTIPLE_REQUESTS_ALLOWED:
                 active_grant = Grant.objects.filter(access=self.access, next_grant__isnull = True)
                 active_request = Request.objects.filter(access=self.access, resulting_grant__isnull = True, next_request__isnull = True)
-                if active_grant:
-                    errors = 'There is already an existing grant for this acess'
+                if active_grant and self.previous_grant != active_grant[0] and self != active_grant[0]:
+                    errors = 'There is already an existing active grant for this access'
                 if active_request:
-                    errors = 'There is already an existing request for this acess'
+                    errors = 'There is already an existing active request for this access'
 
         except ObjectDoesNotExist:
             pass
@@ -360,10 +360,10 @@ class Request(HasMetadata):
     previous_grant = models.ForeignKey(Grant, models.SET_NULL,
                                           null = True, blank = True,
                                           related_name = 'next_requests')
-    #: Request that superceeds this request
-    next_request = models.OneToOneField('self', models.SET_NULL,
-                                        null = True, blank = True,
-                                        related_name = 'previous_request')
+    #: Request that this request superceeds
+    previous_request = models.OneToOneField('self', models.SET_NULL,
+                                            null = True, blank = True,
+                                            related_name = 'next_request')
     #: If rejected, this is a reason for the user
     user_reason = models.TextField(
         blank = True,
@@ -387,7 +387,7 @@ class Request(HasMetadata):
         service/role/user combination.
         """
         if not hasattr(self, '_active'):
-            if self.resulting_grant or self.next_request:
+            if self.resulting_grant or hasattr(self, 'next_request'):
                 # Unsaved requests won't have a resulting grant
                 self._active = False
             else:
@@ -439,14 +439,14 @@ class Request(HasMetadata):
             # Ensure that the user is active
             if not user.is_active:
                 errors['user'] = 'User is suspended'
-            # 
+            #
             if not settings.MULTIPLE_REQUESTS_ALLOWED:
                 active_grant = Grant.objects.filter(access=self.access, next_grant__isnull = True)
                 active_request = Request.objects.filter(access=self.access, resulting_grant__isnull = True, next_request__isnull = True)
                 if active_grant and self.previous_grant != active_grant[0]:
-                    errors = 'There is already an existing grant for this acess'
-                if active_request:
-                    errors = 'There is already an existing request for this acess'
+                    errors = 'There is already an existing active grant for this access'
+                if active_request and self != active_request[0]:
+                    errors = 'There is already an existing active request for this access'
         except ObjectDoesNotExist:
             pass
         # Check that the grant is for the same service/role/user combination

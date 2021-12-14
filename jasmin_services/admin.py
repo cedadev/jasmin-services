@@ -466,14 +466,14 @@ class GrantAdmin(HasMetadataModelAdmin):
 
     change_form_template = "admin/jasmin_services/grant/change_form.html"
 
-    fields = ('access', 'granted_by', 'next_grant',
+    fields = ('access', 'granted_by', 'previous_grant', 
               'expires', 'revoked', 'user_reason', 'internal_reason')
-    autocomplete_fields = ('access', 'next_grant')
+    autocomplete_fields = ('access', 'previous_grant')
 
     def get_queryset(self, request):
         # Annotate with information about active status
         return super().get_queryset(request).annotate_active()
-
+    
     def synchronise_service_access(self, request, queryset):
         """
         Admin action that synchronises actual service access with the selected grants.
@@ -671,7 +671,7 @@ class RequestAdmin(HasMetadataModelAdmin):
         'requested_at',
         'state',
         'resulting_grant',
-        'next_request', 
+        'previous_request', 
         'previous_grant', 
         'incomplete',
         'user_reason',

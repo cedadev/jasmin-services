@@ -22,7 +22,7 @@ def create_grant_new(Grant_new,
         revoked = old_grant.revoked,
         user_reason = old_grant.user_reason,
         internal_reason = old_grant.internal_reason,
-        next_grant = None
+        previous_grant = None
     )
     
 
@@ -45,12 +45,12 @@ def migrate(apps, schema_editor):
         request.save()
         
     for access in Access.objects.all():
-        next_grant = None
-        for grant_new in Grant_new.objects.filter(access=access).order_by('-granted_at'):
-            if next_grant:
-                grant_new.next_grant = next_grant
+        previous_grant = None
+        for grant_new in Grant_new.objects.filter(access=access).order_by('granted_at'):
+            if previous_grant:
+                grant_new.previous_grant = previous_grant
                 grant_new.save()
-            next_grant = grant_new
+            previous_grant = grant_new
 
 
 class Migration(migrations.Migration):

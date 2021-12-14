@@ -188,17 +188,16 @@ class DecisionForm(forms.Form):
             else:
                 expires_date = self.cleaned_data['expires_custom']
             self._request.state = RequestState.APPROVED
-            # If the request has a previous_grant create a new grant 
+            # If the request has a previous_grant create a new grant
             # and link with the old grant
             previous_grant = self._request.previous_grant
             if previous_grant:
                 self._request.resulting_grant = Grant.objects.create(
                     access = self._request.access,
                     granted_by = self._approver.username,
-                    expires = expires_date
+                    expires = expires_date,
+                    previous_grant = previous_grant
                 )
-                previous_grant.next_grant = self._request.resulting_grant
-                previous_grant.save()
             else:
             # Else create the access if it does not already exist and
             # then create the new grant
