@@ -36,16 +36,16 @@ def migrate_service(RoleObjectPermission, RoleContentType, permissions, service)
     # If the user had VIEW_USERS but not APPROVER, migrate their VIEW_USERS grant
     # If the user had VIEW_USERS and APPROVER, delete their VIEW_USERS grant
     for grant in deputy_role.grants.all():
-        if manager_role.grants.filter(user = grant.user).exists():
+        if manager_role.grants.filter(access__user = grant.user).exists():
             grant.delete()
         else:
-            grant.role = manager_role
+            grant.access.role = manager_role
             grant.save()
     for request in deputy_role.requests.all():
-        if manager_role.requests.filter(user = request.user).exists():
+        if manager_role.requests.filter(access__user = request.user).exists():
             request.delete()
         else:
-            request.role = manager_role
+            request.access.role = manager_role
             request.save()
 
 

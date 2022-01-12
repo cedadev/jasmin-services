@@ -3,3 +3,12 @@
 {% block form_top %}
     {% if from_request %}<input type="hidden" name="_from_request" value="{{ from_request }}" />{% endif %}
 {% endblock %}
+
+{% block content %}
+{% if original.next_grant %}
+<h3><b>There is a newer grant in this chain: <a href="{% url 'admin:jasmin_services_grant_change' object_id=original.next_grant %}">next grant</a></b></h3>
+{% elif original %}
+<h3><b>This is the latest grant in the chain</b></h3>
+{% endif %}
+{{ block.super }}
+{% endblock %}

@@ -26,7 +26,7 @@ class Command(BaseCommand):
         manager_requests = {}
         user_requests = {'length':0}
         for request in pending_requests:
-            role = request.role
+            role = request.access.role
             if role.name == 'MANAGER':
                 if role.service.category in manager_requests:
                     manager_requests[role.service.category].append(request)

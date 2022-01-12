@@ -1,1 +1,1 @@
-IMPORTANT: Access revoked for {{ target.role.service }}
+IMPORTANT: Access revoked for {{ target.access.role.service }}

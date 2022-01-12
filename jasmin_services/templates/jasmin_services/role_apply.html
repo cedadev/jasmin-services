@@ -18,34 +18,53 @@
     <form method="POST" action="" class="form-horizontal">
         {% csrf_token %}
 
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_service">Service</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_service">
-                    <code>{{ role.service }}</code>
-                </p>
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_service"><b>Service</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_service">
+                            <code>{{ role.service }}</code>
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_role">Role</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_role">
-                    <code>{{ role.name }}</code>
-                </p>
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_role"><b>Role</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_role">
+                            <code>{{ role.name }}</code>
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            {% if licence_url %}
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-2 text-right control-label" for="id_licence"><b>License</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_licence">
+                            <object data="{{ licence_url }}" type="application/pdf" width="600" height="300">
+                                <a href="{{ licence_url }}">Click here</a>
+                            </object>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
 
         {% if req or grant %}
-            <div class="form-group">
+            <div class="row">
                 <div class="col-md-9 col-md-offset-3">
                     {% if req %}
                         <aside class="danger">
                             <header>
-                                {% if req.incomplete %}
-                                    More infomation required
-                                {% else %}
-                                    Previous request rejected
-                                {% endif %}
+                            {% if req.incomplete %}
+                                More infomation required
+                            {% else %}
+                                Previous request rejected
+                            {% endif %}
                             </header>
                             {{ req.user_reason|markdown }}
                         </aside>
@@ -68,12 +87,14 @@
                 </div>
             </div>
         {% endif %}
-
+            
         {% bootstrap_form form layout='horizontal' %}
-
+            
         <div class="form-group">
-            <div class="col-sm-offset-3 col-sm-9">
-                <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Apply</button>
+            <div class="row">
+                <div class="ml-auto">
+                    <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Apply</button>
+                </div>
             </div>
         </div>
     </form>
