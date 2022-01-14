@@ -15,6 +15,10 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth import get_user_model
+from django_countries.fields import CountryField
+from django.utils.html import mark_safe
+from django.urls import reverse_lazy
+
 
 from jasmin_metadata.models import Form
 
@@ -28,6 +32,9 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = 'Categories'
         ordering = ('position', 'long_name')
+        indexes = [
+                models.Index(fields=['position', 'long_name'])
+                ]
 
     #: A short name for the category
     name = models.SlugField(
@@ -64,6 +71,19 @@ class Service(models.Model):
             'position',
             'name'
         )
+        indexes = [
+                models.Index(fields=['position', 'name'])
+                ]
+
+    @property
+    def details_link(self):
+
+        details_url = reverse_lazy(
+            'jasmin_services:service_details',
+            kwargs={'category': self.category.name, 'service': self.name})
+
+        anchor = f'<a href="{details_url}">Details</a>'
+        return mark_safe(anchor)
 
     #: The category that the service belongs to
     category = models.ForeignKey(Category, models.CASCADE,
@@ -85,6 +105,18 @@ class Service(models.Model):
         help_text = 'Full description of the service, shown on the details page. '
                     'Markdown formatting is allowed.'
     )
+    #: Additional text to send to approvers of the service
+    approver_message = models.TextField(
+        blank = True, null = True, default = '',
+        help_text = 'Service specific instructions to be added to the external '
+                    'approver message.'
+    )
+    #: Countries a users institution must be from to gain access
+    instution_countries = CountryField(
+        multiple = True, blank = True,
+        help_text = 'Coutries a user\'s institute must be located to begin '
+                    'approval. Hold ctrl or cmd for mac to select multiple '
+                    'countries. Leave blank for any country.')
     #: Indicates if the service should be shown in listings
     hidden = models.BooleanField(
         default = True,
@@ -100,10 +132,14 @@ class Service(models.Model):
                     'Services are ordered in ascending order by category, then by '
                     'this field, then alphabetically by name.'
     )
+    #: Indicates if the service is managed by CEDA
+    ceda_managed = models.BooleanField(
+        default = False,
+        help_text = 'Whether the service is managed by CEDA.'
+    )
 
     def __str__(self):
         return '{} : {}'.format(self.category, self.name)
-
 
 class RoleQuerySet(models.QuerySet):
     """
@@ -171,6 +207,11 @@ class Role(models.Model):
         help_text = 'Prevents the role appearing in listings unless the user '
                     'has an active grant or request for it.'
     )
+    auto_accept = models.BooleanField(
+        default = False,
+        help_text = 'Auto accepts all requested access giving users with a 1 '
+                    'year experation date '
+    )
     #: Determines the order that the roles appear when listed.
     position = models.PositiveIntegerField(
         default = 9999,
@@ -223,9 +264,9 @@ class Role(models.Model):
         from .access_control import Grant
         return get_user_model().objects \
             .filter(
-                grant__in = Grant.objects
+                access__grant__in = Grant.objects
                     .filter(
-                        role__in = Role.objects.filter_permission(
+                        access__role__in = Role.objects.filter_permission(
                             'jasmin_services.decide_request',
                             self.service,
                             self
@@ -272,7 +313,7 @@ class Role(models.Model):
             from .access_control import Grant
             grants = Grant.objects \
                 .filter(
-                    role__behaviours = behaviour,
+                    access__role__behaviours = behaviour,
                     user = user,
                     revoked = False,
                     expires__gte = date.today()

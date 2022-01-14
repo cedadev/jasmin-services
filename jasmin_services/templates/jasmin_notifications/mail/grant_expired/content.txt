@@ -4,19 +4,19 @@
 Hi {{ user.first_name }},
 
 The following access has expired:
-{% if target.user.service_user %}
-    Service: {{ target.role.service }}
-    Role: {{ target.role.name }}
-    User: {{ target.user }}
-    Expired: {{ target.expires }}
+{% if target.access.user.service_user %}
+    Service: {{ target.access.role.service }}
+    Role: {{ target.access.role.name }}
+    User: {{ target.access.user }}
+    Expired: {{ target.access.expires }}
 
 You are receiving this email as a designated responsible user for this service user.
 
 Please contact the system administrator to renew this access.
 {% else %}
-    Service: {{ target.role.service }}
-    Role: {{ target.role.name }}
-    Expired: {{ target.expires }}
+    Service: {{ target.access.role.service }}
+    Role: {{ target.access.role.name }}
+    Expired: {{ target.access.expires }}
 
 Please visit {{ follow_link }} to apply for an extension.
 {% endif %}

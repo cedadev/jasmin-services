@@ -1,49 +1,71 @@
 {% extends 'layout.html' %}
-{% load bootstrap3 markdown_deux_tags %}
+{% load django_bootstrap5 markdown_deux_tags %}
 
 {% block page_title %}Apply for role{% endblock %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li>JASMIN Services</li>
-    <li>
-        <a href="{% url 'jasmin_services:service_list' category=role.service.category.name %}">{{ role.service.category }}</a>
-    </li>
-    <li>
-        <a href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name %}">{{ role.service.name }}</a>
-    </li>
-    <li class="active">Apply</li>
-</ol>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">JASMIN Services</li>
+            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=role.service.category.name %}">{{ role.service.category }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name %}">{{ role.service.name }}</a></li>
+            <li class="breadcrumb-item active">Apply</li>
+        </ol>
+    </nav>
 {% endblock %}
 
 {% block content %}
-<div class="col-md-8 col-md-offset-2">
     <form method="POST" action="" class="form-horizontal">
         {% csrf_token %}
 
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_service">Service</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_service">
-                    <code>{{ role.service }}</code>
-                </p>
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_service"><b>Service</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_service">
+                            <code>{{ role.service }}</code>
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-3 control-label" for="id_role">Role</label>
-            <div class="col-md-9">
-                <p class="form-control-static" id="id_role">
-                    <code>{{ role.name }}</code>
-                </p>
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-4 text-right control-label" for="id_role"><b>Role</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_role">
+                            <code>{{ role.name }}</code>
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            {% if licence_url %}
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-2 text-right control-label" for="id_licence"><b>License</b></label>
+                    <div class="col">
+                        <p class="form-control-static" id="id_licence">
+                            <object data="{{ licence_url }}" type="application/pdf" width="600" height="300">
+                                <a href="{{ licence_url }}">Click here</a>
+                            </object>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
 
         {% if req or grant %}
-            <div class="form-group">
+            <div class="row">
                 <div class="col-md-9 col-md-offset-3">
                     {% if req %}
                         <aside class="danger">
-                            <header>Previous request rejected</header>
+                            <header>
+                            {% if req.incomplete %}
+                                More infomation required
+                            {% else %}
+                                Previous request rejected
+                            {% endif %}
+                            </header>
                             {{ req.user_reason|markdown }}
                         </aside>
                     {% elif grant.revoked %}
@@ -65,14 +87,49 @@
                 </div>
             </div>
         {% endif %}
-
+            
         {% bootstrap_form form layout='horizontal' %}
-
+            
         <div class="form-group">
-            <div class="col-sm-offset-3 col-sm-9">
-                <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Apply</button>
+            <div class="row">
+                <div class="ml-auto">
+                    <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Apply</button>
+                </div>
             </div>
         </div>
     </form>
-</div>
 {% endblock %}
+
+{% block js_page %}
+    <script type="text/javascript">
+        var textAreas = document.getElementsByTagName("textarea");
+        var i;
+        for (i = 0; i < textAreas.length; i++) {
+            textArea = textAreas[i];
+            if ($(textArea).attr('maxlength')) {
+                var maxLength = $(textArea).attr('maxlength');
+                var length = $(textArea).val().length;
+                var remaining = maxLength-length;
+                var textAreaID = $(textArea).attr('id');
+
+                let counter = document.createElement('span');
+                counter.id = textAreaID + '_counter';
+                counter.innerHTML = remaining;
+                $(textArea).after(counter);
+                counter.after(' characters remaining');
+            };
+        };
+
+        $('textarea').keyup(function() {
+            if ($(this).attr('maxlength')) {
+                var maxLength = $(this).attr('maxlength');
+                var length = $(this).val().length;
+                var remaining = maxLength-length;
+
+                let counter = document.getElementById(this.id + '_counter');
+                $(counter).text(remaining);
+            };
+        });
+    </script>
+{% endblock %}
+

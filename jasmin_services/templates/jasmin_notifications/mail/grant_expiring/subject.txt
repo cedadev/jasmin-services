@@ -1,1 +1,1 @@
-{% if i == n %}FINAL WARNING{% else %}IMPORTANT{% endif %}: Access expiring for {{ target.role.service }}
+{% if i == n %}FINAL WARNING{% else %}IMPORTANT{% endif %}: Access expiring for {{ target.access.role.service }}

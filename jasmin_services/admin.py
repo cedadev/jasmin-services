@@ -20,6 +20,8 @@ from django.contrib.admin.utils import quote
 from django import http
 from django.utils.safestring import mark_safe
 from django.contrib.auth.models import Permission
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
 
 from polymorphic.admin import (
     PolymorphicParentModelAdmin,
@@ -32,10 +34,10 @@ from jasmin_metadata.admin import HasMetadataModelAdmin
 
 from .models import (
     Category, Service, Role, RoleObjectPermission,
-    Grant, Request, RequestState,
+    Access, Grant, Request, RequestState,
     Behaviour, LdapTagBehaviour, LdapGroupBehaviour, JoinJISCMailListBehaviour
 )
-from .forms import AdminDecisionForm, LdapGroupBehaviourAdminForm
+from .forms import AdminDecisionForm, AdminRevokeForm, LdapGroupBehaviourAdminForm, admin_message_form_factory
 from .actions import (
     synchronise_service_access, send_expiry_notifications, remind_pending
 )
@@ -130,7 +132,7 @@ class RoleInline(admin.TabularInline):
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     inlines = (RoleInline, )
-    list_display = ('full_name', 'summary', 'hidden', 'position')
+    list_display = ('full_name', 'summary', 'hidden', 'position', 'details_link')
     list_editable = ('position', )
     list_filter = ('category', 'hidden')
     search_fields = ('category__long_name', 'category__name', 'name', 'summary')
@@ -206,6 +208,49 @@ class ServiceAdmin(admin.ModelAdmin):
             )
             self.create_role_object_permissions(manager_role, user_role)
             self.create_role_object_permissions(manager_role, deputy_role)
+
+    def get_urls(self):
+        return [
+            url(
+                r'^(?P<service>[\w-]+)/message/$',
+                self.admin_site.admin_view(self.support_message),
+                name = 'jasmin_services_support_message'
+            ),
+        ] + super().get_urls()
+
+    def support_message(self, request, service):
+        service = Service.objects.get(pk=service)
+        MessageForm = admin_message_form_factory(service)
+        if request.method == 'POST':
+            form = MessageForm(request.POST)
+            if form.is_valid():
+                EmailMessage(
+                    subject = form.cleaned_data['subject'],
+                    body = render_to_string('admin/jasmin_services/service/email_message.txt', {
+                        'sender': 'JASMIN Support',
+                        'message': form.cleaned_data['message'],
+                        'reply_to': settings.JASMIN_SUPPORT_EMAIL,
+                    }),
+                    bcc = [u.email for u in form.cleaned_data['users']],
+                    from_email = settings.JASMIN_SUPPORT_EMAIL,
+                    reply_to = [settings.JASMIN_SUPPORT_EMAIL]
+                ).send()
+                messages.success(request, 'Message sent')
+                return redirect('/admin/jasmin_services/service/{}'.format(service.pk))
+            else:
+                messages.error(request, 'Error with one or more fields')
+        else:
+            form = MessageForm()
+        context = {
+            'title' : '{}: Send Support Message'.format(service.name),
+            'form': form,
+            'opts': self.model._meta,
+            'service': service,
+            'media' : self.media + form.media,
+        }
+        context.update(self.admin_site.each_context(request))
+        request.current_app = self.admin_site.name
+        return render(request, 'admin/jasmin_services/service/message.html', context)
 
 
 class BehaviourInline(admin.StackedInline):
@@ -363,14 +408,39 @@ class _ActiveListFilter(admin.SimpleListFilter):
             return queryset.filter_active()
 
 
+class GrantInline(admin.TabularInline):
+    model = Grant
+    fields = ('active', 'revoked', 'expired', 'expires')
+    readonly_fields = fields[:-1]
+    max_num = 0
+    can_delete = False
+    show_change_link = True
+
+
+class RequestInline(admin.TabularInline):
+    model = Request
+    fields = ('active', 'state')
+    readonly_fields = fields[:-1]
+    max_num = 0
+    can_delete = False
+    show_change_link = True
+
+
+@admin.register(Access)
+class AccessAdmin(admin.ModelAdmin):
+    inlines = (GrantInline, RequestInline)
+    list_display = ('role', 'user')
+    search_fields = ('role', 'user')
+
+
 @admin.register(Grant)
 class GrantAdmin(HasMetadataModelAdmin):
-    list_display = ('role', 'user', 'active',
+    list_display = ('access', 'active',
                     'revoked', 'expired', 'expires', 'granted_at')
     list_filter = (
         _ServiceFilter,
-        'role__name',
-        ('user', admin.RelatedOnlyFieldListFilter),
+        'access__role__name',
+        ('access__user', admin.RelatedOnlyFieldListFilter),
         _ActiveListFilter,
         'revoked',
         _ExpiredListFilter
@@ -378,32 +448,32 @@ class GrantAdmin(HasMetadataModelAdmin):
     # This is expensive and unnecessary
     show_full_result_count = False
     search_fields = (
-        'role__service__name',
-        'role__name',
-        'user__username',
-        'user__email',
-        'user__last_name'
+        'access__role__service__name',
+        'access__role__name',
+        'access__user__username',
+        'access__user__email',
+        'access__user__last_name'
     )
-    actions = ('synchronise_service_access', 'send_expiry_notifications')
+    actions = ('synchronise_service_access', 'send_expiry_notifications', 'revoke_grants')
     list_select_related = (
-        'role',
-        'role__service',
-        'role__service__category',
-        'user',
+        'access__role',
+        'access__role__service',
+        'access__role__service__category',
+        'access__user',
     )
     # Allow "Save as new" for quick duplication of grants
     save_as = True
 
     change_form_template = "admin/jasmin_services/grant/change_form.html"
 
-    fields = ('role', 'user', 'granted_by',
+    fields = ('access', 'granted_by', 'previous_grant', 
               'expires', 'revoked', 'user_reason', 'internal_reason')
-    autocomplete_fields = ('role', 'user')
+    autocomplete_fields = ('access', 'previous_grant')
 
     def get_queryset(self, request):
         # Annotate with information about active status
         return super().get_queryset(request).annotate_active()
-
+    
     def synchronise_service_access(self, request, queryset):
         """
         Admin action that synchronises actual service access with the selected grants.
@@ -417,6 +487,20 @@ class GrantAdmin(HasMetadataModelAdmin):
         """
         send_expiry_notifications(queryset)
     send_expiry_notifications.short_description = 'Send expiry notifications'
+
+    def revoke_grants(self, request, queryset):
+        """
+        Admin action that revokes the selected grants.
+        """
+        selected = queryset.values_list('pk', flat=True)
+        selected_ids = '_'.join(str(pk) for pk in selected)
+
+        return redirect(reverse(
+                'admin:jasmin_services_bulk_revoke',
+                kwargs = {'ids': selected_ids},
+                current_app=self.admin_site.name)
+            )
+    revoke_grants.short_description = 'Revoke selected grants'
 
     def active(self, obj):
         """
@@ -460,7 +544,7 @@ class GrantAdmin(HasMetadataModelAdmin):
         # If there is data from a referring request to populate, do that
         referring = self.get_referring_request(request)
         if referring:
-            initial.update(role = referring.role, user = referring.user)
+            initial.update(role = referring.access.role, user = referring.access.user)
         return initial
 
     def add_view(self, request, form_url = '', extra_context = None):
@@ -479,7 +563,7 @@ class GrantAdmin(HasMetadataModelAdmin):
         if not obj:
             return None
         try:
-            return obj.role.metadata_form_class
+            return obj.access.role.metadata_form_class
         except Role.DoesNotExist:
             return None
 
@@ -507,6 +591,47 @@ class GrantAdmin(HasMetadataModelAdmin):
             return { d.key : d.value for d in metadata.all() }
         return super().get_metadata_form_initial_data(request, obj)
 
+    def get_urls(self):
+        return [
+            url(
+                r'^bulk_revoke/(?P<ids>[0-9_]+)/$',
+                self.admin_site.admin_view(self.bulk_revoke),
+                name = 'jasmin_services_bulk_revoke'
+            ),
+        ] + super().get_urls()
+
+    def bulk_revoke(self, request, ids):
+        ids = ids.split('_')
+        if request.method == 'POST':
+            form = AdminRevokeForm(data = request.POST)
+            if form.is_valid():
+                user_reason = form.cleaned_data['user_reason']
+                internal_reason = form.cleaned_data['internal_reason']
+
+                Grant.objects.filter(pk__in = ids).update(
+                    revoked = True,
+                    user_reason = user_reason,
+                    internal_reason = internal_reason,
+                )
+                return redirect(
+                    f'{self.admin_site.name}:jasmin_services_grant_changelist'
+                )
+        else:
+            form = AdminRevokeForm()
+        context = {
+            'title' : 'Bulk Revoke Grants',
+            'form': form,
+            'opts': self.model._meta,
+            'media' : self.media + form.media,
+        }
+        context.update(self.admin_site.each_context(request))
+        request.current_app = self.admin_site.name
+        return render(
+            request,
+            'admin/jasmin_services/grant/bulk_revoke.html',
+            context
+        )
+
 
 class _StateListFilter(admin.SimpleListFilter):
     title = 'State'
@@ -523,36 +648,38 @@ class _StateListFilter(admin.SimpleListFilter):
 
 @admin.register(Request)
 class RequestAdmin(HasMetadataModelAdmin):
-    list_display = ('role_link', 'user', 'active', 'state_html', 'requested_at')
+    list_display = ('role_link', 'access', 'active', 'state_html', 'next_request', 'previous_grant', 'requested_at')
     list_filter = (
         _ServiceFilter,
-        'role__name',
-        ('user', admin.RelatedOnlyFieldListFilter),
+        'access__role__name',
+        ('access__user', admin.RelatedOnlyFieldListFilter),
         _ActiveListFilter,
         _StateListFilter
     )
     # This is expensive and unnecessary
     show_full_result_count = False
     search_fields = (
-        'role__service__name',
-        'role__name',
-        'user__username',
-        'user__email',
-        'user__last_name'
+        'access__role__service__name',
+        'access__role__name',
+        'access__user__username',
+        'access__user__email',
+        'access__user__last_name'
     )
     fields = (
-        'role',
-        'user',
+        'access',
         'requested_by',
         'requested_at',
         'state',
-        'grant',
+        'resulting_grant',
+        'previous_request', 
+        'previous_grant', 
+        'incomplete',
         'user_reason',
         'internal_reason'
     )
     actions = ('remind_pending', )
-    autocomplete_fields = ('role', 'user')
-    raw_id_fields = ('grant', )
+    autocomplete_fields = ('access',)
+    raw_id_fields = ('resulting_grant', )
     readonly_fields = ('requested_at', )
 
     def get_queryset(self, request):
@@ -576,7 +703,7 @@ class RequestAdmin(HasMetadataModelAdmin):
             url = reverse('admin:jasmin_services_request_change',
                           args = (quote(obj.pk), ),
                           current_app=self.admin_site.name)
-        return mark_safe('<a href="{}">{}</a>'.format(url, obj.role))
+        return mark_safe('<a href="{}">{}</a>'.format(url, obj.access.role))
     role_link.short_description = 'Service'
 
     def state_html(self, obj):
@@ -584,6 +711,10 @@ class RequestAdmin(HasMetadataModelAdmin):
             return 'PENDING'
         elif obj.state == RequestState.APPROVED:
             return mark_safe('<span style="color: #00b300;">APPROVED</span>')
+        elif obj.incomplete:
+            return mark_safe(
+                '<span style="color: #e67a00; font-weight: bold;">INCOMPLETE</span>'
+            )
         else:
             return mark_safe(
                 '<span style="color: #e60000; font-weight: bold;">REJECTED</span>'
@@ -602,7 +733,7 @@ class RequestAdmin(HasMetadataModelAdmin):
         if not obj:
             return None
         try:
-            return obj.role.metadata_form_class
+            return obj.access.role.metadata_form_class
         except Role.DoesNotExist:
             return None
 
@@ -649,18 +780,19 @@ class RequestAdmin(HasMetadataModelAdmin):
         else:
             form = AdminDecisionForm(pending, request.user)
         # If the user requesting access has an active grant, find it
-        grant = pending.role.grants \
-            .filter(user = pending.user)  \
-            .filter_active()  \
-            .first()
-        # Find all the rejected requests for the role/user since the active grant
-        rejected = pending.role.requests.filter(
-            user = pending.user,
-            state = RequestState.REJECTED
-        )
-        if grant:
-            rejected = rejected.filter(requested_at__gt = grant.granted_at)
-        rejected = rejected.order_by('requested_at')
+        previous_grant = pending.previous_grant
+
+        grants = Grant.objects \
+            .filter(access = pending.access)  \
+            .filter_active()
+
+        # Find all the rejected requests for this request chain.
+        rejected = Request.objects.filter(
+            access = pending.access,
+            state = RequestState.REJECTED,
+            previous_grant = pending.previous_grant
+        ).order_by('requested_at')
+
         context = {
             'title': 'Decide Service Request',
             'form': form,
@@ -677,7 +809,8 @@ class RequestAdmin(HasMetadataModelAdmin):
             'show_save': True,
             'media': self.media + form.media,
             'rejected': rejected,
-            'grant': grant,
+            'previous_grant': previous_grant,
+            'grants': grants,
         }
         context.update(self.admin_site.each_context(request))
         request.current_app = self.admin_site.name
