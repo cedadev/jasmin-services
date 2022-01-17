@@ -885,15 +885,24 @@ def grant_role(request, service):
                 expires_date = form.cleaned_data['expires_custom']
             
             user = JASMINUser.objects.get(email=email)
-            role = Role.objects.get(pk=role_id)
+            role = Role.objects.get(id=role_id)
+            access, _ = Access.objects.get_or_create(user = user, role = role)
 
-            Grant.objects.create(
-                role = role,
-                user = user,
+            existing_grant = Grant.objects.filter(
+                access = access,
+            ).filter_active()
+            
+            new_grant = Grant(
+                access = access,
                 granted_by = request.user.username,
                 expires = expires_date,
             )
-            messages.success(request, '{} granted to {} {}'.format(role.name, user.first_name, user.last_name))
+            
+            if len(existing_grant) > 0:
+                new_grant.previous_grant = existing_grant[0]
+
+            new_grant.save()
+            messages.success(request, '{} granted to {}'.format(access.role.name, email))
             return redirect_to_service(service, view_name = 'service_users')
         else:
             messages.error(request, 'Error with one or more fields')

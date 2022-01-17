@@ -39,10 +39,10 @@
                 </li>
             {% endif %}
             {% if approver %}
-                <li {% if active == 'grant_role' %}class="active"{% endif %}>
-                    <a href="{% url 'jasmin_services:grant_role' category=service.category.name service=service.name %}">
-                        Grant role
-                    </a>
+                <li class="nav-item">
+                    <a class="nav-link {% if active == 'grant_role' %}active{% endif %}"
+                        href="{% url 'jasmin_services:grant_role' category=service.category.name service=service.name %}">
+                        Grant role</a>
                 </li>
             {% endif %}
         </ul>
