@@ -36,7 +36,7 @@ urlpatterns = [
     path('request/<int:pk>/decide/',
         views.request_decide,
         name = 'request_decide'),
-    url(r'^grant/(?P<pk>\d+)/review/$',
+    path('grant/<int:pk>/review/',
         views.grant_review,
         name = 'grant_review'),
 ]

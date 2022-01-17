@@ -937,8 +937,8 @@ def grant_review(request, pk):
     # The current user must have permission to grant the role
     permission = 'jasmin_services.decide_request'
     if not request.user.has_perm(permission) and \
-       not request.user.has_perm(permission, grant.role.service) and \
-       not request.user.has_perm(permission, grant.role):
+       not request.user.has_perm(permission, grant.access.role.service) and \
+       not request.user.has_perm(permission, grant.access.role):
         messages.error(request, 'Grant does not exist')
         return redirect_to_service(grant.role.service, 'service_details')
     # If the grant is expired or revoked, redirect to the list of users
@@ -946,31 +946,32 @@ def grant_review(request, pk):
         messages.info(request, 'This grant has already been rekoved or expired')
         return redirect(
             'jasmin_services:service_users',
-            category = grant.role.service.category.name,
-            service = grant.role.service.name
+            category = grant.access.role.service.category.name,
+            service = grant.access.role.service.name
         )
     if request.method == 'POST':
         form = GrantReviewForm(grant, data = request.POST)
         if form.is_valid():
             with transaction.atomic():
                 form.save()
-            return redirect_to_service(grant.role.service, 'service_users')
+            messages.success(request, '{} revoked for {}'.format(grant.access.role.name, grant.access.user.username))
+            return redirect_to_service(grant.access.role.service, 'service_users')
         else:
             messages.error(request, 'Error with one or more fields')
     else:
         form = GrantReviewForm(grant)
     templates = [
         'jasmin_services/{}/{}/grant_review.html'.format(
-            grant.role.service.category.name,
-            grant.role.service.name
+            grant.access.role.service.category.name,
+            grant.access.role.service.name
         ),
         'jasmin_services/{}/grant_review.html'.format(
-            grant.role.service.category.name
+            grant.access.role.service.category.name
         ),
         'jasmin_services/grant_review.html',
     ]
     return render(request, templates, {
-        'service' : grant.role.service,
+        'service' : grant.access.role.service,
         'grant' : grant,
         'form' : form,
     })
