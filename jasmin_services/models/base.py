@@ -314,7 +314,7 @@ class Role(models.Model):
             grants = Grant.objects \
                 .filter(
                     access__role__behaviours = behaviour,
-                    user = user,
+                    access__user = user,
                     revoked = False,
                     expires__gte = date.today()
                 ) \

@@ -191,7 +191,7 @@ def grant_revoked(sender, instance, created, **kwargs):
     """
     Notifies the user when a grant is revoked. Also ensures that access is revoked.
     """
-    if instance.active and instance.revoked and not re.match(r'train\d{3}', instance.user.username):
+    if instance.active and instance.revoked and not re.match(r'train\d{3}', instance.access.user.username):
         # Only send the notification once
         instance.access.user.notify_if_not_exists(
             'grant_revoked',
