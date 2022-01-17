@@ -2,20 +2,20 @@
 
 {% block content %}
 Hi {{ user.first_name }},
-{% if target.user.service_user %}
+{% if target.access.user.service_user %}
 The following access has been granted:
 
-    Service: {{ target.role.service }}
-    Role: {{ target.role.name }}
-    User: {{ target.user }}
+    Service: {{ target.access.role.service }}
+    Role: {{ target.access.role.name }}
+    User: {{ target.access.user }}
     Expires: {{ target.expires }}
 
 You are receiving this email as a designated responsible user for this service user.
 {% else %}
 You have been granted the following access:
 
-    Service: {{ target.role.service }}
-    Role: {{ target.role.name }}
+    Service: {{ target.access.role.service }}
+    Role: {{ target.access.role.name }}
     Expires: {{ target.expires }}
 
 It may take some time for the changes to propagate through the system, so please

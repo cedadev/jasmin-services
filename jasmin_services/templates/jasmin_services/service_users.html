@@ -118,8 +118,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% regroup grants by user as grouped_grants %}
-                    {% for user, grants in grouped_grants %}
+                    {% regroup grants by access as grouped_grants %}
+                    {% for access, grants in grouped_grants %}
                         {% for grant in grants %}
                             {% if grant.revoked %}
                                 <tr class="danger">
@@ -132,9 +132,9 @@
                             {% endif %}
                             {% if forloop.first %}
                                 {# Disable the coloring for the user info cells #}
-                                <td style="background-color: inherit !important;" rowspan="{{ grants|length }}"><code>{{ user.username }}</code></td>
-                                <td style="background-color: inherit !important;" rowspan="{{ grants|length }}">{{ user.get_full_name }}</td>
-                                <td style="background-color: inherit !important; border-right: 1px solid #ddd;" rowspan="{{ grants|length }}">{{ user.institution }}</td>
+                                <td style="background-color: inherit !important;" rowspan="{{ grants|length }}"><code>{{ access.user.username }}</code></td>
+                                <td style="background-color: inherit !important;" rowspan="{{ grants|length }}">{{ access.user.get_full_name }}</td>
+                                <td style="background-color: inherit !important; border-right: 1px solid #ddd;" rowspan="{{ grants|length }}">{{ access.user.institution }}</td>
                             {% endif %}
                             {% if grant.revoked %}
                                 <td class="text-danger"><i class="fa fa-fw fa-ban"></i></td>
@@ -145,7 +145,7 @@
                             {% else %}
                                 <td class="text-success"><i class="fa fa-fw fa-check"></i></td>
                             {% endif %}
-                            <td><code>{{ grant.role.name }}</code></td>
+                            <td><code>{{ grant.access.role.name }}</code></td>
                             {% if grant.revoked %}
                                 <td><code>REVOKED</code></td>
                             {% elif grant.expired %}

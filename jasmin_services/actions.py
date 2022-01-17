@@ -27,14 +27,14 @@ def synchronise_service_access(grant_queryset):
     for grant in grant_queryset.filter_active():
         try:
             if grant.revoked or grant.expired:
-                grant.role.disable(grant.user)
+                grant.access.role.disable(grant.access.user)
             else:
-                grant.role.enable(grant.user)
+                grant.access.role.enable(grant.access.user)
         except Exception:
             logger.exception(
                 'Error synchronising access to {} for {}'.format(
-                    grant.role,
-                    grant.user
+                    grant.access.role,
+                    grant.access.user
                 )
             )
 
@@ -45,25 +45,25 @@ def send_expiry_notifications(grant_queryset):
     in the given queryset.
     """
     for grant in grant_queryset.filter_active():
-        if not (grant.revoked or re.match(r'train\d{3}', grant.user.username)):
+        if not (grant.revoked or re.match(r'train\d{3}', grant.access.user.username)):
             if grant.expired:
-                grant.user.notify_if_not_exists(
+                grant.access.user.notify_if_not_exists(
                     'grant_expired',
                     grant,
                     reverse('jasmin_services:service_details', kwargs = {
-                        'category' : grant.role.service.category.name,
-                        'service' : grant.role.service.name,
+                        'category' : grant.access.role.service.category.name,
+                        'service' : grant.access.role.service.name,
                     })
                 )
             elif grant.expiring:
-                grant.user.notify_pending_deadline(
+                grant.access.user.notify_pending_deadline(
                     grant.expires,
                     settings.JASMIN_SERVICES['NOTIFY_EXPIRE_DELTAS'],
                     'grant_expiring',
                     grant,
                     reverse('jasmin_services:service_details', kwargs = {
-                        'category' : grant.role.service.category.name,
-                        'service' : grant.role.service.name,
+                        'category' : grant.access.role.service.category.name,
+                        'service' : grant.access.role.service.name,
                     })
                 )
 

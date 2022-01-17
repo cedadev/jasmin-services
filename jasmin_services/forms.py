@@ -22,7 +22,7 @@ from django.urls import reverse
 
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
-from .models import Grant, RequestState, LdapGroupBehaviour
+from .models import Access, Grant, RequestState, LdapGroupBehaviour
 
 
 def message_form_factory(sender, *roles):
@@ -35,9 +35,9 @@ def message_form_factory(sender, *roles):
     # grant for the USER role for the service
     queryset = get_user_model().objects.distinct() \
         .filter(
-            grant__in = Grant.objects
+            access__grant__in = Grant.objects
                 .filter(
-                    role__in = roles,
+                    access__role__in = roles,
                     expires__gte = date.today(),
                     revoked = False
                 )
@@ -67,7 +67,7 @@ def message_form_factory(sender, *roles):
             help_text = mark_safe(
                 'If this box is checked, your email address is attached to the '
                 'email sent by the portal, allowing users to reply to you.<br>'
-                '<strong>WARNING:</strong> This will reveal your email address '
+                '<strong style="color:#F39C12">WARNING:</strong> This will reveal your email address '
                 'to the selected users.'
             )
         ),
@@ -127,11 +127,11 @@ class DecisionForm(forms.Form):
     user_reason = forms.CharField(label = 'Reason for rejection (user)',
                                   required = False,
                                   widget = forms.Textarea(attrs = { 'rows' : 5 }),
-                                  help_text = markdown_allowed())
+                                  help_text = mark_safe(markdown_allowed()))
     internal_reason = forms.CharField(label = 'Reason for rejection (internal)',
                                       required = False,
                                       widget = forms.Textarea(attrs = { 'rows' : 5 }),
-                                      help_text = markdown_allowed())
+                                      help_text = mark_safe(markdown_allowed()))
 
     def __init__(self, request, approver, *args, **kwargs):
         self._request = request
@@ -188,15 +188,30 @@ class DecisionForm(forms.Form):
             else:
                 expires_date = self.cleaned_data['expires_custom']
             self._request.state = RequestState.APPROVED
-            # If the request was approved, create the grant
-            self._request.grant = Grant.objects.create(
-                role = self._request.role,
-                user = self._request.user,
-                granted_by = self._approver.username,
-                expires = expires_date
-            )
+            # If the request has a previous_grant create a new grant
+            # and link with the old grant
+            previous_grant = self._request.previous_grant
+            if previous_grant:
+                self._request.resulting_grant = Grant.objects.create(
+                    access = self._request.access,
+                    granted_by = self._approver.username,
+                    expires = expires_date,
+                    previous_grant = previous_grant
+                )
+            else:
+            # Else create the access if it does not already exist and
+            # then create the new grant
+                access = Access.objects.get_or_create(
+                    user = self._request.access.user,
+                    role = self._request.access.role
+                )[0]
+                self._request.resulting_grant = Grant.objects.create(
+                    access = access,
+                    granted_by = self._approver.username,
+                    expires = expires_date
+                )
             # Copy the metadata from the request to the grant
-            self._request.copy_metadata_to(self._request.grant)
+            self._request.copy_metadata_to(self._request.resulting_grant)
         else:
             self._request.state = RequestState.REJECTED
             self._request.incomplete =  True if self.cleaned_data['state'] == 'INCOMPLETE' else False
@@ -344,7 +359,7 @@ def admin_message_form_factory(service):
         .filter(
             grant__in = Grant.objects
                 .filter(
-                    role__service = service,
+                    access__role__service = service,
                     expires__gte = date.today(),
                     revoked = False
                 )

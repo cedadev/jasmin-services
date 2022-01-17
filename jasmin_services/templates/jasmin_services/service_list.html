@@ -3,86 +3,90 @@
 {% block page_title %}{{ current_category.long_name }}{% endblock %}
 
 {% block breadcrumbs %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">JASMIN Services</li>
-            <li class="breadcrumb-item active" aria-current="page">{{ current_category.long_name }}</li>
-        </ol>
-    </nav>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">JASMIN Services</li>
+        <li class="breadcrumb-item active" aria-current="page">{{ current_category.long_name }}</li>
+    </ol>
+</nav>
 {% endblock %}
 
 {% block content_panel %}
-    <div class="row">
-        <div class="col-md-3">
-            <nav id="categories-nav" class="navbar navbar-light bg-light" role="navigation">
-                <ul class="nav navbar-nav flex-column px-3 flex-fill">
+<div class="row">
+    <div class="col-md-3">
+        <nav id="categories-nav" class="navbar navbar-light bg-light" role="navigation">
+            <ul class="nav navbar-nav flex-column px-3 flex-fill">
+                <li class="nav-item">
+                    <a class="nav-link navbar-brand" href="{% url 'jasmin_services:my_services' %}">My Services</a>
+                </li>
+                <li class="nav-item">
                     <li class="nav-item">
-                        <a class="nav-link navbar-brand" href="{% url 'jasmin_services:my_services' %}">My Services</a>
+                        <span class="nav-link text-decoration-none"><hr></span>
                     </li>
-                    <span class="navbar-text navbar-brand">Discover Services</span>
-                    <span class="navbar-text"><hr></span>
-                    {% for name, long_name in categories %}
-                        <li class="nav-item">
-                            <a class="nav-link {% if name == current_category.name %}active{% endif %}"
-                                href="{% url 'jasmin_services:service_list' category=name %}">
-                                {{ long_name }}
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </nav>
-        </div>
-        <div class="col-md-9">
-            {% block filter_form %}
-                {% if page.paginator.num_pages > 1 or preserved_filters %}
-                    <div class="service-search well">
-                        <form method="get" action="">
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <input id="query" name="query" type="text" class="form-control"
-                                        value="{{ request.GET.query }}" placeholder="Search {{ current_category.long_name }}" />
-                                    <span class="input-group-btn">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fa fa-fw fa-search"></i> Search
-                                        </button>
-                                    </span>
-                                </div>
+                    <h4 class="nav-link text-decoration-none">Discover Services</h4>
+                </li>
+                {% for name, long_name in categories %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if name == current_category.name %}active{% endif %}"
+                            href="{% url 'jasmin_services:service_list' category=name %}">
+                            {{ long_name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </nav>
+    </div>
+    <div class="col-md-9">
+        {% block filter_form %}
+            {% if page.paginator.num_pages > 1 or preserved_filters %}
+                <div class="card my-3">
+                    <form method="get" action="">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <input id="query" name="query" type="text" class="form-control"
+                                    value="{{ request.GET.query }}" placeholder="Search {{ current_category.long_name }}" />
+                                <span class="input-group-btn">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-fw fa-search"></i> Search
+                                    </button>
+                                </span>
                             </div>
-                        </form>
-                    </div>
-                {% endif %}
-            {% endblock %}
-
-            {% block pagination_top %}
-                {% include "jasmin_services/includes/pagination_links.html" %}
-            {% endblock %}
-
-            {% block service_list %}
-                {% block service_list_top %}{% endblock %}
-                {% if services %}
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+        {% endblock %}
+    
+        {% block pagination_top %}
+            {% include "jasmin_services/includes/pagination_links.html" %}
+        {% endblock %}
+    
+        {% block service_list %}
+            {% block service_list_top %}{% endblock %}
+            {% if services %}
                     {% for service, user_roles in services %}
                         {% block service_list_item %}
                             {% include "jasmin_services/includes/service_list_item.html" %}
                         {% endblock %}
                     {% endfor %}
-                {% else %}
-                    {% block no_services %}
-                        <p class="alert alert-warning">
-                            {% if preserved_filters %}
-                                No matching services.
-                            {% else %}
-                                No services available.
-                            {% endif %}
-                        </p>
-                    {% endblock %}
-                {% endif %}
-                {% block service_list_bottom %}{% endblock %}
-            {% endblock %}
-
-            {% block pagination_bottom %}
-                {% include "jasmin_services/includes/pagination_links.html" %}
-            {% endblock %}
-        </div>
+            {% else %}
+                {% block no_services %}
+                    <p class="alert alert-warning">
+                        {% if preserved_filters %}
+                            No matching services.
+                        {% else %}
+                            No services available.
+                        {% endif %}
+                    </p>
+                {% endblock %}
+            {% endif %}
+            {% block service_list_bottom %}{% endblock %}
+        {% endblock %}
+    
+        {% block pagination_bottom %}
+            {% include "jasmin_services/includes/pagination_links.html" %}
+        {% endblock %}
     </div>
+</div>  
 
 {% endblock content_panel %}
