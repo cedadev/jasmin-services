@@ -844,7 +844,7 @@ def grant_role(request, service):
     """
     # Get the roles for which the user is allowed to decide requests
     # We allow the permission to be allocated for all services, per-service or per-role
-    permission = 'jasmin_services.decide_request'
+    permission = 'jasmin_services.grant_role'
     if request.user.has_perm(permission) or \
        request.user.has_perm(permission, service):
         user_roles = list(service.roles.all())
