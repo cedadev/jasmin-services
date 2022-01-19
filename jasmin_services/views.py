@@ -923,7 +923,7 @@ def grant_review(request, pk):
     """
     Handler for ``/grant/<pk>/review/``.
 
-    Responds to GET and POST. The user must have the ``decide_request``
+    Responds to GET and POST. The user must have the ``revoke_role``
     permission for the role that the grant is for. The grant must be active
     and not expired or revoked.
 
@@ -935,7 +935,7 @@ def grant_review(request, pk):
     except Grant.DoesNotExist:
         raise http.Http404("Request does not exist")
     # The current user must have permission to grant the role
-    permission = 'jasmin_services.decide_request'
+    permission = 'jasmin_services.revoke_role'
     if not request.user.has_perm(permission) and \
        not request.user.has_perm(permission, grant.access.role.service) and \
        not request.user.has_perm(permission, grant.access.role):
