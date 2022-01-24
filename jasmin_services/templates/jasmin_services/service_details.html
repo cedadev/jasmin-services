@@ -101,12 +101,14 @@
                                                         <i class="fa fa-fw fa-plus"></i> Apply again
                                                     </a>
                                                 </td>
-                                            {% else %}
+                                            {% elif grant.expiring or grant.expired %}
                                                 <td style="width: 1%;">
                                                     <a class="btn btn-success btn-sm btn-block {% if service.instution_countries and user_country not in service.instution_countries %} disabled {% endif %}" href="{{ apply_url }}">
                                                         <i class="fa fa-fw fa-sync-alt"></i> Apply extend
                                                     </a>
                                                 </td>
+                                            {% else %}
+                                                <td></td>
                                             {% endif %}
                                         {% else %}
                                             <td></td>
