@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-    <form method="POST" action="" class="form-horizontal">
+    <form method="POST" action="" class="form-horizontal" onsubmit="submitted.disabled = true; return true;">
         {% csrf_token %}
 
             <div class="form-group">

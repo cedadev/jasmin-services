@@ -24,7 +24,7 @@
 {% block content_panel %}
     <div class="row">
         <div class="col-md-9">
-            <form method="POST" action="" class="form-horizontal" id="decision-form">
+            <form method="POST" action="" class="form-horizontal" id="decision-form" onsubmit="submitted.disabled = true; return true;">
                 {% csrf_token %}
 
                 <div class="row mb-3">
