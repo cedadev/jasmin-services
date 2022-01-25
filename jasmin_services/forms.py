@@ -399,7 +399,15 @@ class AdminGrantForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        access, _ = Access.objects.get_or_create(role = cleaned_data['role'], user = cleaned_data['user'])
+        role = cleaned_data['role']
+        user = cleaned_data['user']
+
+        if not settings.MULTIPLE_REQUESTS_ALLOWED:
+            existing_request = Request.objects.filter(access__role = role, access__user = user).filter_active()
+            if len(existing_request) > 0 and self._active:
+                raise ValidationError(f"An active request ({existing_request[0].id}) for this user and role already exists, please decide this request before creating a grant")
+
+        access, _ = Access.objects.get_or_create(role = role, user = user)
         cleaned_data["access"] = access
 
         return cleaned_data
@@ -436,6 +444,7 @@ class AdminRequestForm(forms.ModelForm):
         if "instance" in kwargs and isinstance(kwargs["instance"], Request):
             self._id = kwargs["instance"].id
             self._active = kwargs["instance"].active
+            self._previous_grant_id = kwargs["instance"].previous_grant.id
             self.fields["user"].initial = kwargs["instance"].access.user
             self.fields["role"].initial = kwargs["instance"].access.role
 
@@ -451,6 +460,18 @@ class AdminRequestForm(forms.ModelForm):
                 raise ValidationError(f"An active request ({existing_request[0].id}) for this user and role already exists, select it here to overwrite")
 
         return previous_request
+    
+    def clean_previous_grant(self):
+        role = self.cleaned_data['role']
+        user = self.cleaned_data['user']
+        previous_grant = self.cleaned_data.get('previous_grant')
+
+        if not settings.MULTIPLE_REQUESTS_ALLOWED:
+            existing_grant = Grant.objects.filter(access__role = role, access__user = user).filter_active()
+            if len(existing_grant) > 0 and existing_grant[0] != previous_grant and self._active:
+                raise ValidationError(f"An active grant ({existing_grant[0].id}) for this user and role already exists, select it here to overwrite")
+
+        return previous_grant
 
     def clean(self):
         cleaned_data = super().clean()
