@@ -444,7 +444,6 @@ class AdminRequestForm(forms.ModelForm):
         if "instance" in kwargs and isinstance(kwargs["instance"], Request):
             self._id = kwargs["instance"].id
             self._active = kwargs["instance"].active
-            self._previous_grant_id = kwargs["instance"].previous_grant.id
             self.fields["user"].initial = kwargs["instance"].access.user
             self.fields["role"].initial = kwargs["instance"].access.role
 
