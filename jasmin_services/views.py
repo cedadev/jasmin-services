@@ -490,10 +490,10 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
         form = form_class(data = request.POST)
         if form.is_valid():
             with transaction.atomic():
-                access = Access.objects.get_or_create(
+                access, _ = Access.objects.get_or_create(
                     role = role,
                     user = request.user,
-                )[0]
+                )
                 # If the role is set to auto accept, grant before saving
                 if role.auto_accept:
                     req = Request.objects.create(

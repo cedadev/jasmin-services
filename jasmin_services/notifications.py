@@ -27,7 +27,7 @@ from jasmin_notifications.models import (
     Notification
 )
 
-from .models import Grant, Request, RequestState
+from .models import Access, Grant, Request, RequestState
 
 
 _log = logging.getLogger(__name__)
@@ -258,11 +258,15 @@ def account_reactivated(sender, instance, created, **kwargs):
                 grant.revoked = False
                 grant.save()
             else:
+                access, _ = Access.objects.get_or_create(
+                    user=instance,
+                    role=grant.access.role,
+                )
                 Grant.objects.create(
-                    access__user=instance,
-                    access__role=grant.access.role,
+                    access=access,
                     granted_by=grant.granted_by,
-                    expires=date.today() + relativedelta(months=1)
+                    expires=date.today() + relativedelta(months=1),
+                    previous_grant = grant
                 )
         for req in Request.objects.filter(access__user = instance, \
                                           state = RequestState.REJECTED, \

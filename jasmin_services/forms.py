@@ -200,10 +200,10 @@ class DecisionForm(forms.Form):
             else:
             # Else create the access if it does not already exist and
             # then create the new grant
-                access = Access.objects.get_or_create(
+                access, _ = Access.objects.get_or_create(
                     user = self._request.access.user,
                     role = self._request.access.role
-                )[0]
+                )
                 self._request.resulting_grant = Grant.objects.create(
                     access = access,
                     granted_by = self._approver.username,
