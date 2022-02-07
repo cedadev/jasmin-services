@@ -26,6 +26,8 @@ class Access(models.Model):
     """
     Represents the join model between the access(role/user pair) and grant.
     """
+    id = models.AutoField(primary_key=True)
+
     class Meta:
         ordering = (
             'role__service__category__position',
@@ -111,6 +113,8 @@ class Grant(HasMetadata):
     A grant can have arbitrary metadata associated with it. That metadata is
     defined by the service.
     """
+    id = models.AutoField(primary_key=True)
+
     class Meta:
         ordering = (
             'access__role__service__category__position',
@@ -325,6 +329,8 @@ class Request(HasMetadata):
     A request can have arbitrary metadata associated with it. That metadata is
     defined by the service.
     """
+    id = models.AutoField(primary_key=True)
+
     class Meta:
         ordering = (
             'access__role__service__category__position',
