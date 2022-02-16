@@ -1,6 +1,8 @@
 {% extends 'layout.html' %}
 {% load markdown_deux_tags country_tags %}
 
+{% block page_title %}{{ current_category.long_name }}{% endblock %}
+
 {% get_country user=request.user as user_country %}
 
 {% block breadcrumbs %}
@@ -158,7 +160,7 @@
                                                         <i class="fa fa-fw fa-info-circle"></i>
                                                     {% else %}
                                                         <i class="fa fa-fw fa-ban"></i>
-                                                    {% endif %} 
+                                                    {% endif %}
                                                 </td>
                                             {% elif req.pending %}
                                             <tr class="active">
