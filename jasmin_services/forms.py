@@ -14,7 +14,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django import forms
 from django.core.exceptions import ValidationError
-from django.contrib.admin.widgets import FilteredSelectMultiple, AdminDateWidget, AutocompleteSelect
+from django.contrib.admin.widgets import FilteredSelectMultiple, AdminDateWidget
 from django.contrib.auth import get_user_model
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
@@ -361,14 +361,12 @@ class AdminGrantForm(forms.ModelForm):
         queryset = Role.objects.all(),
         required = True,
         label = 'Role',
-        widget = AutocompleteSelect(Access._meta.get_field('role').remote_field, site),
     )
 
     user = forms.ModelChoiceField(
         queryset = get_user_model().objects.all(),
         required = True,
         label = 'User',
-        widget = AutocompleteSelect(Access._meta.get_field('user').remote_field, site),
     )
 
     def __init__(self, *args, **kwargs):
@@ -424,14 +422,12 @@ class AdminRequestForm(forms.ModelForm):
         queryset = Role.objects.all(),
         required = True,
         label = 'Role',
-        widget = AutocompleteSelect(Access._meta.get_field('role').remote_field, site),
     )
 
     user = forms.ModelChoiceField(
         queryset = get_user_model().objects.all(),
         required = True,
         label = 'User',
-        widget = AutocompleteSelect(Access._meta.get_field('user').remote_field, site),
     )
 
     def __init__(self, *args, **kwargs):
