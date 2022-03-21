@@ -37,7 +37,7 @@ from .models import (
     Access, Grant, Request, RequestState,
     Behaviour, LdapTagBehaviour, LdapGroupBehaviour, JoinJISCMailListBehaviour
 )
-from .forms import AdminDecisionForm, AdminRevokeForm, LdapGroupBehaviourAdminForm, admin_message_form_factory
+from .forms import AdminDecisionForm, AdminGrantForm, AdminRequestForm, AdminRevokeForm, LdapGroupBehaviourAdminForm, admin_message_form_factory
 from .actions import (
     synchronise_service_access, send_expiry_notifications, remind_pending
 )
@@ -383,7 +383,7 @@ class _ServiceFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(role__service__pk = self.value())
+            return queryset.filter(access__role__service__pk = self.value())
 
 
 class _ExpiredListFilter(admin.SimpleListFilter):
@@ -432,9 +432,17 @@ class RequestInline(admin.TabularInline):
 
 @admin.register(Access)
 class AccessAdmin(admin.ModelAdmin):
-    inlines = (GrantInline, RequestInline)
     list_display = ('role', 'user')
-    search_fields = ('role', 'user')
+    fields = ('role', 'user')
+    autocomplete_fields = ('role', 'user')
+    search_fields = (
+        'role__name',
+        'role__service__name',
+        'user__username',
+        'user__first_name',
+        'user__last_name',
+        'user__email',
+    )
 
 
 @admin.register(Grant)
@@ -470,9 +478,11 @@ class GrantAdmin(HasMetadataModelAdmin):
 
     change_form_template = "admin/jasmin_services/grant/change_form.html"
 
-    fields = ('access', 'granted_by', 'previous_grant', 
-              'expires', 'revoked', 'user_reason', 'internal_reason')
-    autocomplete_fields = ('access', 'previous_grant')
+    raw_id_fields = ('access','previous_grant',)
+
+    def get_form(self, request, obj=None, change=None, **kwargs):
+        kwargs['form'] = AdminGrantForm
+        return super().get_form(request, obj=obj, change=change, **kwargs)
 
     def get_queryset(self, request):
         # Annotate with information about active status
@@ -652,7 +662,15 @@ class _StateListFilter(admin.SimpleListFilter):
 
 @admin.register(Request)
 class RequestAdmin(HasMetadataModelAdmin):
-    list_display = ('role_link', 'access', 'active', 'state_html', 'next_request', 'previous_grant', 'requested_at')
+    list_display = (
+        'role_link',
+        'access',
+        'active',
+        'state_html',
+        'next_request',
+        'previous_grant',
+        'requested_at'
+    )
     list_filter = (
         _ServiceFilter,
         'access__role__name',
@@ -669,22 +687,13 @@ class RequestAdmin(HasMetadataModelAdmin):
         'access__user__email',
         'access__user__last_name'
     )
-    fields = (
-        'access',
-        'requested_by',
-        'requested_at',
-        'state',
-        'resulting_grant',
-        'previous_request', 
-        'previous_grant', 
-        'incomplete',
-        'user_reason',
-        'internal_reason'
-    )
     actions = ('remind_pending', )
-    autocomplete_fields = ('access',)
-    raw_id_fields = ('resulting_grant', )
-    readonly_fields = ('requested_at', )
+    raw_id_fields = ('previous_request', 'previous_grant',)
+    readonly_fields = ('requested_at', 'resulting_grant',)
+
+    def get_form(self, request, obj=None, change=None, **kwargs):
+        kwargs['form'] = AdminRequestForm
+        return super().get_form(request, obj=obj, change=change, **kwargs)
 
     def get_queryset(self, request):
         # Annotate with information about active status

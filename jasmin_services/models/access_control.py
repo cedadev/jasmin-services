@@ -26,6 +26,8 @@ class Access(models.Model):
     """
     Represents the join model between the access(role/user pair) and grant.
     """
+    id = models.AutoField(primary_key=True)
+
     class Meta:
         ordering = (
             'role__service__category__position',
@@ -111,6 +113,8 @@ class Grant(HasMetadata):
     A grant can have arbitrary metadata associated with it. That metadata is
     defined by the service.
     """
+    id = models.AutoField(primary_key=True)
+
     class Meta:
         ordering = (
             'access__role__service__category__position',
@@ -206,9 +210,9 @@ class Grant(HasMetadata):
             if not settings.MULTIPLE_REQUESTS_ALLOWED:
                 active_grant = Grant.objects.filter(access=self.access, next_grant__isnull = True)
                 active_request = Request.objects.filter(access=self.access, resulting_grant__isnull = True, next_request__isnull = True)
-                if active_grant and self.previous_grant != active_grant[0] and self != active_grant[0]:
+                if self.active and active_grant and self.previous_grant != active_grant[0] and self != active_grant[0]:
                     errors = 'There is already an existing active grant for this access'
-                if active_request:
+                if self.active and active_request:
                     errors = 'There is already an existing active request for this access'
 
         except ObjectDoesNotExist:
@@ -325,6 +329,8 @@ class Request(HasMetadata):
     A request can have arbitrary metadata associated with it. That metadata is
     defined by the service.
     """
+    id = models.AutoField(primary_key=True)
+
     class Meta:
         ordering = (
             'access__role__service__category__position',
@@ -443,9 +449,9 @@ class Request(HasMetadata):
             if not settings.MULTIPLE_REQUESTS_ALLOWED:
                 active_grant = Grant.objects.filter(access=self.access, next_grant__isnull = True)
                 active_request = Request.objects.filter(access=self.access, resulting_grant__isnull = True, next_request__isnull = True)
-                if active_grant and self.previous_grant != active_grant[0]:
+                if self.active and active_grant and self.previous_grant != active_grant[0]:
                     errors = 'There is already an existing active grant for this access'
-                if active_request and self != active_request[0]:
+                if self.active and active_request and self != active_request[0]:
                     errors = 'There is already an existing active request for this access'
         except ObjectDoesNotExist:
             pass

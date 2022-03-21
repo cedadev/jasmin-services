@@ -22,6 +22,8 @@ class Behaviour(PolymorphicModel):
     """
     Model defining a behaviour configuration.
     """
+    id = models.AutoField(primary_key=True)
+
     def apply(self, user):
         """
         Applies the behaviour for the given user.

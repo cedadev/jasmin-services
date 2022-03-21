@@ -22,9 +22,8 @@ from django.urls import reverse
 
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
-from .models import Access, Grant, RequestState, LdapGroupBehaviour
 from jasmin_auth.models import JASMINUser
-
+from .models import Access, Role, Grant, Request, RequestState, LdapGroupBehaviour
 
 def message_form_factory(sender, *roles):
     """
@@ -267,10 +266,10 @@ class DecisionForm(forms.Form):
             else:
             # Else create the access if it does not already exist and
             # then create the new grant
-                access = Access.objects.get_or_create(
+                access, _ = Access.objects.get_or_create(
                     user = self._request.access.user,
                     role = self._request.access.role
-                )[0]
+                )
                 self._request.resulting_grant = Grant.objects.create(
                     access = access,
                     granted_by = self._approver.username,
@@ -415,3 +414,129 @@ def admin_message_form_factory(service):
         'subject' : forms.CharField(max_length = 250, label = 'Subject'),
         'message' : forms.CharField(widget = forms.Textarea, label = 'Message'),
     })
+
+from django.contrib.admin.sites import site
+class AdminGrantForm(forms.ModelForm):
+    class Meta:
+        model = Grant
+        fields = ('access', 'user', 'role', 'granted_by', 'previous_grant',
+              'expires', 'revoked', 'user_reason', 'internal_reason')
+        widgets = {'access': forms.HiddenInput()}
+        
+    role = forms.ModelChoiceField(
+        queryset = Role.objects.all(),
+        required = True,
+        label = 'Role',
+    )
+
+    user = forms.ModelChoiceField(
+        queryset = get_user_model().objects.all(),
+        required = True,
+        label = 'User',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # an access is required but is filled by the user and role fields so required must be false
+        self.fields["access"].required = False
+
+        self._id = True
+        self._active = True
+        if "instance" in kwargs and isinstance(kwargs["instance"], Grant):
+            self._id = kwargs["instance"].id
+            self._active = kwargs["instance"].active
+            self.fields["user"].initial = kwargs["instance"].access.user
+            self.fields["role"].initial = kwargs["instance"].access.role
+
+    def clean_previous_grant(self):
+        role = self.cleaned_data['role']
+        user = self.cleaned_data['user']
+        previous_grant = self.cleaned_data.get('previous_grant')
+
+        if not settings.MULTIPLE_REQUESTS_ALLOWED:
+            existing_grant = Grant.objects.filter(access__role = role, access__user = user).filter_active()
+            if len(existing_grant) > 0 and existing_grant[0] != previous_grant and \
+              self._active and self._id and self._id != existing_grant[0].id:
+                raise ValidationError(f"An active grant ({existing_grant[0].id}) for this user and role already exists, select it here to overwrite")
+
+        return previous_grant
+
+    def clean(self):
+        cleaned_data = super().clean()
+        role = cleaned_data['role']
+        user = cleaned_data['user']
+
+        if not settings.MULTIPLE_REQUESTS_ALLOWED:
+            existing_request = Request.objects.filter(access__role = role, access__user = user).filter_active()
+            if len(existing_request) > 0 and self._active:
+                raise ValidationError(f"An active request ({existing_request[0].id}) for this user and role already exists, please decide this request before creating a grant")
+
+        access, _ = Access.objects.get_or_create(role = role, user = user)
+        cleaned_data["access"] = access
+
+        return cleaned_data
+
+
+class AdminRequestForm(forms.ModelForm):
+    class Meta:
+        model = Request
+        fields = ('user', 'role', 'access', 'requested_by', 'state', 'resulting_grant',
+                'previous_grant', 'previous_request', 'incomplete',)
+        widgets = {'access': forms.HiddenInput()}
+        
+    role = forms.ModelChoiceField(
+        queryset = Role.objects.all(),
+        required = True,
+        label = 'Role',
+    )
+
+    user = forms.ModelChoiceField(
+        queryset = get_user_model().objects.all(),
+        required = True,
+        label = 'User',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # an access is required but is filled by the user and role fields so required must be false
+        self.fields["access"].required = False
+
+        self._id = True
+        self._active = True
+        if "instance" in kwargs and isinstance(kwargs["instance"], Request):
+            self._id = kwargs["instance"].id
+            self._active = kwargs["instance"].active
+            self.fields["user"].initial = kwargs["instance"].access.user
+            self.fields["role"].initial = kwargs["instance"].access.role
+
+    def clean_previous_request(self):
+        role = self.cleaned_data['role']
+        user = self.cleaned_data['user']
+        previous_request = self.cleaned_data.get('previous_request')
+
+        if not settings.MULTIPLE_REQUESTS_ALLOWED:
+            existing_request = Request.objects.filter(access__role = role, access__user = user).filter_active()
+            if len(existing_request) > 0 and existing_request[0] != previous_request and \
+              self._active and self._id and self._id != existing_request[0].id:
+                raise ValidationError(f"An active request ({existing_request[0].id}) for this user and role already exists, select it here to overwrite")
+
+        return previous_request
+    
+    def clean_previous_grant(self):
+        role = self.cleaned_data['role']
+        user = self.cleaned_data['user']
+        previous_grant = self.cleaned_data.get('previous_grant')
+
+        if not settings.MULTIPLE_REQUESTS_ALLOWED:
+            existing_grant = Grant.objects.filter(access__role = role, access__user = user).filter_active()
+            if len(existing_grant) > 0 and existing_grant[0] != previous_grant and self._active:
+                raise ValidationError(f"An active grant ({existing_grant[0].id}) for this user and role already exists, select it here to overwrite")
+
+        return previous_grant
+
+    def clean(self):
+        cleaned_data = super().clean()
+        access, _ = Access.objects.get_or_create(role = cleaned_data['role'], user = cleaned_data['user'])
+        cleaned_data["access"] = access
+
+        return cleaned_data
