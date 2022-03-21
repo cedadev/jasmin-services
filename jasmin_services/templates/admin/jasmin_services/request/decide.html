@@ -74,6 +74,13 @@
                         <p id="id_for_user">{{ original.access.user.degree|default:"N/A" }}</p>
                     </div>
 
+                {% for datum in original.metadata.all %}
+                    <div class="form-row">
+                        <label for="id_{{ datum.key }}">{{ datum.key|pretty_name }}</label>
+                        <p id="id_{{ datum.key }}" style="white-space: pre-wrap;">{{ datum.value }}</p>
+                    </div>
+                {% endfor %}
+
             {% if rejected or previous_grant %}
                 <fieldset class="module aligned">
                     <h2>Previous access</h2>

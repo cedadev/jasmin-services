@@ -1,6 +1,8 @@
 {% extends 'layout.html' %}
 {% load markdown_deux_tags country_tags %}
 
+{% block page_title %}{{ current_category.long_name }}{% endblock %}
+
 {% get_country user=request.user as user_country %}
 
 {% block breadcrumbs %}
@@ -101,12 +103,14 @@
                                                         <i class="fa fa-fw fa-plus"></i> Apply again
                                                     </a>
                                                 </td>
-                                            {% else %}
+                                            {% elif grant.expiring or grant.expired %}
                                                 <td style="width: 1%;">
                                                     <a class="btn btn-success btn-sm btn-block {% if service.instution_countries and user_country not in service.instution_countries %} disabled {% endif %}" href="{{ apply_url }}">
                                                         <i class="fa fa-fw fa-sync-alt"></i> Apply extend
                                                     </a>
                                                 </td>
+                                            {% else %}
+                                                <td></td>
                                             {% endif %}
                                         {% else %}
                                             <td></td>
@@ -156,7 +160,7 @@
                                                         <i class="fa fa-fw fa-info-circle"></i>
                                                     {% else %}
                                                         <i class="fa fa-fw fa-ban"></i>
-                                                    {% endif %} 
+                                                    {% endif %}
                                                 </td>
                                             {% elif req.pending %}
                                             <tr class="active">

@@ -29,6 +29,8 @@ class Category(models.Model):
     """
     Model representing a category of services, i.e. a grouping of related services.
     """
+    id = models.AutoField(primary_key=True)
+
     class Meta:
         verbose_name_plural = 'Categories'
         ordering = ('position', 'long_name')
@@ -63,6 +65,8 @@ class Service(models.Model):
     """
     Model representing a service.
     """
+    id = models.AutoField(primary_key=True)
+
     class Meta:
         unique_together = ('category', 'name')
         ordering = (
@@ -173,6 +177,8 @@ class Role(models.Model):
     """
     Model representing a role for a service.
     """
+    id = models.AutoField(primary_key=True)
+
     class Meta:
         ordering = (
             'service__category__position',
@@ -329,6 +335,8 @@ class RoleObjectPermission(models.Model):
 
     These records are consumed by :class:`.backend.RolePermissionsBackend`.
     """
+    id = models.AutoField(primary_key=True)
+
     class Meta:
         unique_together = ('role', 'permission', 'content_type', 'object_pk')
 
