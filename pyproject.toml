@@ -21,7 +21,7 @@ requests = "^2.27.1"
 jasmin-ldap-django = {git = "https://github.com/cedadev/jasmin-ldap-django.git", branch = "master"}
 jasmin-metadata = {git = "https://github.com/cedadev/jasmin-metadata.git", branch = "master"}
 jasmin-notifications = {git = "https://github.com/cedadev/jasmin-notifications.git", branch = "master"}
-django-countries = "^7.3.2"
+django-countries = "^7.2.1, !=7.3.0"
 
 [tool.poetry.dev-dependencies]
 tox = "^3.24.5"
