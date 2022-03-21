@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "jasmin-services"
+version = "0.1.0"
+description = "Django application for managing services, roles and access."
+authors = ["Matt Pryor <matt.pryor@stfc.ac.uk>"]
+license = "BSD-3-Clause"
+
+[tool.poetry.dependencies]
+python = "^3.6.8"
+
+# Dependencies of dependencies. Need to specify here so poetry knows where to get them from.
+jasmin-ldap = {git = "https://github.com/cedadev/jasmin-ldap.git", branch = "master"}
+jasmin-django-utils = {git = "https://github.com/cedadev/jasmin-django-utils.git", branch = "master"}
+
+Django = "^3.2"
+django-bootstrap5 = "^21.2"
+django-markdown-deux = "^1.0.5"
+python-dateutil = "^2.8.2"
+django-polymorphic = "^3.1.0"
+requests = "^2.27.1"
+jasmin-ldap-django = {git = "https://github.com/cedadev/jasmin-ldap-django.git", branch = "master"}
+jasmin-metadata = {git = "https://github.com/cedadev/jasmin-metadata.git", branch = "master"}
+jasmin-notifications = {git = "https://github.com/cedadev/jasmin-notifications.git", branch = "master"}
+django-countries = "^7.3.2"
+
+[tool.poetry.dev-dependencies]
+tox = "^3.24.5"
+pytest = "^7.0.1"
+black = "^22.1.0"
+isort = "^5.10.1"
+
+[tool.black]
+line-length = 88
+target-version = ['py36','py38']
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+strict = false
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "setuptools>=59.6.0"]
+build-backend = "poetry.core.masonry.api"
