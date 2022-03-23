@@ -156,6 +156,10 @@ class ServiceAdmin(admin.ModelAdmin):
                 content_type = ContentType.objects.get_for_model(Request),
                 codename = 'decide_request',
             ),
+            Permission.objects.get(
+                content_type = ContentType.objects.get_for_model(Request),
+                codename = 'grant_role',
+            ),
         )
 
     def create_role_object_permissions(self, role, target_role):

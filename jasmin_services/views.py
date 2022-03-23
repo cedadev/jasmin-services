@@ -31,8 +31,8 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import login_required
 
 from .models import Access, Grant, Request, RequestState, Category, Service, Role, Group
-from .forms import DecisionForm, message_form_factory
-
+from .forms import DecisionForm, message_form_factory, grant_form_factory
+from jasmin_auth.models import JASMINUser
 
 _log = logging.getLogger(__name__)
 
@@ -826,6 +826,99 @@ def request_decide(request, pk):
         # permission for either the role or the service
         'approvers': pending.access.role.approvers.exclude(pk = request.user.pk),
         'form' : form,
+    })
+
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+@with_service
+def grant_role(request, service):
+    """
+    Handler for ``/<category>/<service>/grant/``.
+
+    Responds to GET and POST. The user must have the permission
+    ``decide_request`` for at least one role in the service.
+
+    Allows the user to create grants without a request. The roles that a user sees
+    depends on the permissions they have been granted.
+    """
+    # Get the roles for which the user is allowed to decide requests
+    # We allow the permission to be allocated for all services, per-service or per-role
+    permission = 'jasmin_services.grant_role'
+    if request.user.has_perm(permission) or \
+       request.user.has_perm(permission, service):
+        user_roles = list(service.roles.all())
+    else:
+        user_roles = [
+            role
+            for role in service.roles.all()
+            if request.user.has_perm(permission, role)
+        ]
+        # If the user has no permissions, send them back to the service details
+        # Note that we don't show this message if the user has been granted the
+        # permission for the service but there are no roles - in that case we
+        # just show nothing
+        if not user_roles:
+            messages.error(request, 'Insufficient permissions')
+            return redirect_to_service(service)
+    
+    GrantForm = grant_form_factory(user_roles)
+    if request.method == 'POST':
+        form = GrantForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            role_id = form.cleaned_data['role']
+            expires = form.cleaned_data['expires']
+            if expires == 1:
+                expires_date = date.today() + relativedelta(months = 6)
+            elif expires == 2:
+                expires_date = date.today() + relativedelta(years = 1)
+            elif expires == 3:
+                expires_date = date.today() + relativedelta(years = 2)
+            elif expires == 4:
+                expires_date = date.today() + relativedelta(years = 3)
+            elif expires == 5:
+                expires_date = date.today() + relativedelta(years = 5)
+            elif expires == 6:
+                expires_date = date.today() + relativedelta(years = 10)
+            else:
+                expires_date = form.cleaned_data['expires_custom']
+            
+            user = JASMINUser.objects.get(email=email)
+            role = Role.objects.get(id=role_id)
+            access, _ = Access.objects.get_or_create(user = user, role = role)
+
+            existing_grant = Grant.objects.filter(
+                access = access,
+            ).filter_active()
+            
+            new_grant = Grant(
+                access = access,
+                granted_by = request.user.username,
+                expires = expires_date,
+            )
+            
+            if len(existing_grant) > 0:
+                new_grant.previous_grant = existing_grant[0]
+
+            new_grant.save()
+            messages.success(request, '{} granted to {}'.format(access.role.name, email))
+            return redirect_to_service(service, view_name = 'service_users')
+        else:
+            messages.error(request, 'Error with one or more fields')
+    else:
+        form = GrantForm()
+    templates = [
+        'jasmin_services/{}/{}/service_grant.html'.format(
+            service.category.name,
+            service.name
+        ),
+        'jasmin_services/{}/service_grant.html'.format(service.category.name),
+        'jasmin_services/service_grant.html',
+    ]
+    return render(request, templates, {
+        'service': service,
+        'form': form,
     })
 
 

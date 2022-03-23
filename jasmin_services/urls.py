@@ -26,6 +26,7 @@ urlpatterns = [
         path('requests/', views.service_requests, name = 'service_requests'),
         path('users/', views.service_users, name = 'service_users'),
         path('message/', views.service_message, name = 'service_message'),
+        path('grant/', views.grant_role, name = 'grant_role'),
     ])),
     path('<slug:category>/<slug:service>/apply/<slug:role>/',
         views.role_apply,
