@@ -54,7 +54,7 @@ def migrate(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('jasmin_services', '0017_grant_role_permision'),
+        ('jasmin_services', '0018_grant_role_permision'),
     ]
 
     operations = [
