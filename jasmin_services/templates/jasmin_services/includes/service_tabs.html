@@ -3,6 +3,7 @@
 {% user_has_service_perm service request.user 'jasmin_services.view_users_role' as view_users %}
 {% user_has_service_perm service request.user 'jasmin_services.decide_request' as approver %}
 {% user_has_service_perm service request.user 'jasmin_services.send_message_role' as send_message %}
+{% user_has_service_perm service request.user 'jasmin_services.grant_role' as grant_role %}
 
 {% with active=request.resolver_match.url_name %}
     {% if view_users or approver or send_message %}
@@ -36,6 +37,13 @@
                             <span class="badge bg-danger">{{ n_pending }}</span>
                         {% endif %}
                     </a>
+                </li>
+            {% endif %}
+            {% if grant_role %}
+                <li class="nav-item">
+                    <a class="nav-link {% if active == 'grant_role' %}active{% endif %}"
+                        href="{% url 'jasmin_services:grant_role' category=service.category.name service=service.name %}">
+                        Grant role</a>
                 </li>
             {% endif %}
         </ul>

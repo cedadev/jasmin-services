@@ -264,7 +264,9 @@
     </div>
 </div>
 
-{% block footer_js %}
+{% endblock %}
+
+{% block tail_js_extra %}
 <script type="text/javascript">
     // Initially, hide any secondary rows
     // By inserting this using Javascript, we ensure the rows are visible for
@@ -304,5 +306,4 @@
         $tbody.children('tr').show();
     });
 </script>
-{% endblock footer_js %}
-{% endblock content_panel %}
+{% endblock %}
