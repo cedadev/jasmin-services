@@ -54,7 +54,7 @@ def migrate(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('jasmin_services', '0016_new_grant_clean'),
+        ('jasmin_services', '0017_auto_20220207_1359'),
     ]
 
     operations = [
