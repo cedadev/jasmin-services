@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% load staticfiles django_bootstrap5 markdown_deux_tags pretty_name artefacts %}
+{% load static django_bootstrap5 markdown_deux_tags pretty_name artefacts %}
 
 {% block page_title %}Review Grant{% endblock %}
 
@@ -84,7 +84,7 @@
                     </div>
                 </div>
                 {% endfor %}
-                    
+
                 {% block extra_context %}{% endblock %}
 
                 {% bootstrap_form form layout='horizontal' %}

@@ -93,11 +93,11 @@ def grant_form_factory(roles):
     EXPIRES_CUSTOM = 7
 
     return type(uuid.uuid4().hex, (forms.Form, ), {
-        'email' : forms.CharField(
+        'username' : forms.CharField(
             max_length = 254, 
-            label = 'Email',
-            validators = [validate_grant_email],
-            help_text = "Email address associated with user's account"
+            label = 'Username',
+            validators = [validate_grant_username],
+            help_text = "The JASMIN username of the user you wish to grant a role to."
             ),
         'role' : forms.ChoiceField(
             choices = role_choices,
@@ -131,12 +131,12 @@ def grant_form_factory(roles):
         )        
     })
 
-def validate_grant_email(value):
+def validate_grant_username(value):
     # validator to check account exists for given email.
     try:
-        JASMINUser.objects.get(email=value)
+        JASMINUser.objects.get(username=value)
     except JASMINUser.DoesNotExist:
-        raise ValidationError('user ({}) does not exist.'.format(value))
+        raise ValidationError(f'user ({value}) does not exist.')
 
 
 class DecisionForm(forms.Form):
