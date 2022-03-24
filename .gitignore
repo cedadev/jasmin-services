@@ -4,3 +4,4 @@ __pycache__
 *.pyc
 .DS_Store
 .tox
+poetry.lock
