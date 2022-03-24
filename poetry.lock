@@ -298,7 +298,7 @@ django = "*"
 [package.source]
 type = "git"
 url = "https://github.com/cedadev/jasmin-django-utils.git"
-reference = "master"
+reference = "v1.0.1"
 resolved_reference = "a971fe565dabcfac0ed9a8af426aafdba1702b7c"
 
 [[package]]
@@ -316,7 +316,7 @@ ldap3 = "*"
 [package.source]
 type = "git"
 url = "https://github.com/cedadev/jasmin-ldap.git"
-reference = "master"
+reference = "v1.0.0"
 resolved_reference = "addfe0658b1dca1c908416f07c9a03ef425d3326"
 
 [[package]]
@@ -335,7 +335,7 @@ jasmin-ldap = "*"
 [package.source]
 type = "git"
 url = "https://github.com/cedadev/jasmin-ldap-django.git"
-reference = "master"
+reference = "v1.0.1"
 resolved_reference = "8c82c67408efd0b8a7f9e5517cc132e7150d30d4"
 
 [[package]]
@@ -356,7 +356,7 @@ django-polymorphic = "*"
 [package.source]
 type = "git"
 url = "https://github.com/cedadev/jasmin-metadata.git"
-reference = "master"
+reference = "v1.0.0"
 resolved_reference = "d6c8666be451eb7be0966a5c04923830145e0408"
 
 [[package]]
@@ -377,8 +377,8 @@ jasmin-django-utils = "*"
 [package.source]
 type = "git"
 url = "https://github.com/cedadev/jasmin-notifications.git"
-reference = "*"
-resolved_reference = "*^0"
+reference = "v1.0.0"
+resolved_reference = "88f2ee6e017cff85d53aa6f46b07493d82bb2717"
 
 [[package]]
 name = "ldap3"
@@ -666,7 +666,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.8"
-content-hash = "b79324434b67dbfeb493c4821798c3de90fd7d7c07a8d1fce939eb8fd7afc82c"
+content-hash = "95ca388905bae35a410d27e0d7cd8f41f868283706c7bd2671137540bee418bd"
 
 [metadata.files]
 asgiref = [
