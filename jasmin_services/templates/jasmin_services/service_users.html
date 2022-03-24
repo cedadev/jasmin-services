@@ -159,8 +159,10 @@
                             {% endif %}
                             <td style="white-space: nowrap;">{{ grant.expires }}</td>
                             <td><code>{{ grant.granted_by }}</code></td>
-                            {% if revoke_role %}
-                            <td><a class="btn btn-primary" href="{% url 'jasmin_services:grant_review' pk=grant.id %}">Review</a></td>
+                            {% if revoke_role and not grant.revoked and not grant.expired %}
+                            <td><a class="btn btn-danger" href="{% url 'jasmin_services:grant_review' pk=grant.id %}">Revoke</a></td>
+                            {% else %}
+                            <td></td>
                             {% endif %}
                             </tr>
                         {% endfor %}

@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 {% load static django_bootstrap5 markdown_deux_tags pretty_name artefacts %}
 
-{% block page_title %}Review Grant{% endblock %}
+{% block page_title %}Revoke Grant{% endblock %}
 
 {% block breadcrumbs %}
     <nav aria-label="breadcrumb">
@@ -22,6 +22,11 @@
 {% endblock %}
 
 {% block content_panel %}
+    <div class="row">
+        <div class="alert alert-danger">
+            <p>Submitting this form will remove <strong>{{ grant.access.user.get_full_name}}'s</strong> {{ grant.access.role}} role.</p>
+        </div>
+    </div>
     <div class="row">
         <div class="col-md-9">
             <form method="POST" action="" class="form-horizontal" id="review-form">
@@ -59,22 +64,6 @@
                         </p>
                     </div>
                 </div>
-                <div class="row mb-3">
-                    <label class="col-sm-2 col-form-label" for="id_for_discipline">Discipline</label>
-                    <div class="col-sm-10">
-                        <p class="form-control-plaintext" id="id_for_discipline">
-                            {{ grant.access.user.discipline }}
-                        </p>
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label class="col-sm-2 col-form-label" for="id_for_degree">Degree</label>
-                    <div class="col-sm-10">
-                        <p class="form-control-plaintext" id="id_for_degree">
-                            {{ grant.access.user.degree|default:"N/A" }}
-                        </p>
-                    </div>
-                </div>
 
                 {% for datum in grant.metadata.all %}
                 <div class="row mb-3">
@@ -91,7 +80,7 @@
 
                 <div class="row justify-content-end">
                     <div class="col-sm-10">
-                        <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Revoke</button>
+                        <button name="submitted" type="submit" class="btn btn-danger" autocomplete="off">Revoke</button>
                     </div>
                 </div>
             </form>

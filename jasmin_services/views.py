@@ -842,8 +842,7 @@ def request_decide(request, pk):
 @login_required
 @with_service
 def grant_role(request, service):
-    """
-    Handler for ``/<category>/<service>/grant/``.
+    """Handle ``/<category>/<service>/grant/``.
 
     Responds to GET and POST. The user must have the permission
     ``decide_request`` for at least one role in the service.
@@ -873,7 +872,11 @@ def grant_role(request, service):
     GrantForm = grant_form_factory(user_roles)
     if request.method == "POST":
         form = GrantForm(request.POST)
-        if form.is_valid():
+        if not form.is_valid():
+            messages.error(request, "Error with one or more fields")
+        elif form.cleaned_data["username"] == request.user.username:
+            messages.error(request, "You cannot grant a role to yourself.")
+        else:
             username = form.cleaned_data["username"]
             role_id = form.cleaned_data["role"]
             expires = form.cleaned_data["expires"]
@@ -910,19 +913,13 @@ def grant_role(request, service):
                 new_grant.previous_grant = existing_grant[0]
 
             new_grant.save()
-            messages.success(
-                request, "{} granted to {}".format(access.role.name, username)
-            )
+            messages.success(request, f"{access.role.name} granted to {username}")
             return redirect_to_service(service, view_name="service_users")
-        else:
-            messages.error(request, "Error with one or more fields")
     else:
         form = GrantForm()
     templates = [
-        "jasmin_services/{}/{}/service_grant.html".format(
-            service.category.name, service.name
-        ),
-        "jasmin_services/{}/service_grant.html".format(service.category.name),
+        f"jasmin_services/{service.category.name}/{service.name}/service_grant.html",
+        f"jasmin_services/{service.category.name}/service_grant.html",
         "jasmin_services/service_grant.html",
     ]
     return render(
