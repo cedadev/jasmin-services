@@ -13,7 +13,7 @@ from ...models import Grant
 
 
 class Command(BaseCommand):
-    help = 'Sends notifications for expiring or expired grants'
+    help = "Sends notifications for expiring or expired grants"
 
     def handle(self, *args, **kwargs):
         send_expiry_notifications(Grant.objects.all())

@@ -6,18 +6,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('jasmin_services', '0010_auto_20190916_1328'),
+        ("jasmin_services", "0010_auto_20190916_1328"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='service',
-            name='ceda_managed',
-            field=models.BooleanField(default=False, help_text='Whether the service is managed by CEDA.'),
+            model_name="service",
+            name="ceda_managed",
+            field=models.BooleanField(
+                default=False, help_text="Whether the service is managed by CEDA."
+            ),
         ),
         migrations.AddField(
-            model_name='request',
-            name='incomplete',
+            model_name="request",
+            name="incomplete",
             field=models.BooleanField(default=False),
         ),
     ]

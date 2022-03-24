@@ -8,8 +8,8 @@ __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 
 import logging
 import re
-from dateutil.relativedelta import relativedelta
 
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
@@ -32,9 +32,8 @@ def synchronise_service_access(grant_queryset):
                 grant.access.role.enable(grant.access.user)
         except Exception:
             logger.exception(
-                'Error synchronising access to {} for {}'.format(
-                    grant.access.role,
-                    grant.access.user
+                "Error synchronising access to {} for {}".format(
+                    grant.access.role, grant.access.user
                 )
             )
 
@@ -45,26 +44,32 @@ def send_expiry_notifications(grant_queryset):
     in the given queryset.
     """
     for grant in grant_queryset.filter_active():
-        if not (grant.revoked or re.match(r'train\d{3}', grant.access.user.username)):
+        if not (grant.revoked or re.match(r"train\d{3}", grant.access.user.username)):
             if grant.expired:
                 grant.access.user.notify_if_not_exists(
-                    'grant_expired',
+                    "grant_expired",
                     grant,
-                    reverse('jasmin_services:service_details', kwargs = {
-                        'category' : grant.access.role.service.category.name,
-                        'service' : grant.access.role.service.name,
-                    })
+                    reverse(
+                        "jasmin_services:service_details",
+                        kwargs={
+                            "category": grant.access.role.service.category.name,
+                            "service": grant.access.role.service.name,
+                        },
+                    ),
                 )
             elif grant.expiring:
                 grant.access.user.notify_pending_deadline(
                     grant.expires,
-                    settings.JASMIN_SERVICES['NOTIFY_EXPIRE_DELTAS'],
-                    'grant_expiring',
+                    settings.JASMIN_SERVICES["NOTIFY_EXPIRE_DELTAS"],
+                    "grant_expiring",
                     grant,
-                    reverse('jasmin_services:service_details', kwargs = {
-                        'category' : grant.access.role.service.category.name,
-                        'service' : grant.access.role.service.name,
-                    })
+                    reverse(
+                        "jasmin_services:service_details",
+                        kwargs={
+                            "category": grant.access.role.service.category.name,
+                            "service": grant.access.role.service.name,
+                        },
+                    ),
                 )
 
 
@@ -72,15 +77,11 @@ def remind_pending(request_queryset):
     """
     Sends notifications to approvers for requests that have been pending for too long.
     """
-    remind_delta = getattr(settings, 'JASMIN_SERVICES', {}).get(
-        'REMIND_DELTA',
-        relativedelta(weeks = 1)
+    remind_delta = getattr(settings, "JASMIN_SERVICES", {}).get(
+        "REMIND_DELTA", relativedelta(weeks=1)
     )
-    request_queryset = request_queryset \
-        .filter(
-            state = RequestState.PENDING,
-            requested_at__lt = timezone.now() - remind_delta
-        ) \
-        .filter_active()
+    request_queryset = request_queryset.filter(
+        state=RequestState.PENDING, requested_at__lt=timezone.now() - remind_delta
+    ).filter_active()
     for req in request_queryset:
         notify_approvers(req)

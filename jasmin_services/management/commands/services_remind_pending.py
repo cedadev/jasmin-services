@@ -13,8 +13,7 @@ from ...models import Request
 
 
 class Command(BaseCommand):
-    help = 'Sends reminders to approvers for all requests that have been pending '
-           'for too long'
+    help = "Sends reminders to approvers for all requests that have been pending for too long"
 
     def handle(self, *args, **kwargs):
         remind_pending(Request.objects.all())

@@ -3,19 +3,19 @@
 from __future__ import unicode_literals
 
 import django.core.validators
-from django.db import migrations
 import jasmin_ldap_django.models
+from django.db import migrations
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('jasmin_services', '0004_migrate_ldap_group_data'),
+        ("jasmin_services", "0004_migrate_ldap_group_data"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='ldapgroupbehaviour',
-            name='group_dn',
+            model_name="ldapgroupbehaviour",
+            name="group_dn",
         ),
     ]

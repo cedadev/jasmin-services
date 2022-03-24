@@ -4,27 +4,21 @@ from django.db import migrations
 
 
 def migrate_service(RoleContentType, permission, service):
-    user_role = service.roles.get(name = 'USER')
-    deputy_role = service.roles.get(name = 'DEPUTY')
-    manager_role = service.roles.get(name = 'MANAGER')
+    user_role = service.roles.get(name="USER")
+    deputy_role = service.roles.get(name="DEPUTY")
+    manager_role = service.roles.get(name="MANAGER")
 
     # Add "grant role" permission for the USER role to DEPUTY
     deputy_role.object_permissions.get_or_create(
-            permission =  permission,
-            content_type = RoleContentType,
-            object_pk = user_role.pk
-        )
+        permission=permission, content_type=RoleContentType, object_pk=user_role.pk
+    )
 
     # Add "grant role" permission for the USER and DEPUTY role to MANAGER
     manager_role.object_permissions.get_or_create(
-        permission =  permission,
-        content_type = RoleContentType,
-        object_pk = user_role.pk
+        permission=permission, content_type=RoleContentType, object_pk=user_role.pk
     )
     manager_role.object_permissions.get_or_create(
-        permission =  permission,
-        content_type = RoleContentType,
-        object_pk = deputy_role.pk
+        permission=permission, content_type=RoleContentType, object_pk=deputy_role.pk
     )
 
 
@@ -42,9 +36,9 @@ def migrate(apps, schema_editor):
     RoleContentType = ContentType.objects.get_for_model(Role)
 
     permission, _ = Permission.objects.get_or_create(
-        content_type = RoleContentType,
-        codename = 'revoke_role',
-        defaults = dict(name = 'Can create revoke a grant for this role')
+        content_type=RoleContentType,
+        codename="revoke_role",
+        defaults=dict(name="Can create revoke a grant for this role"),
     )
     # Process each service in turn
     for service in Service.objects.all():
@@ -54,7 +48,7 @@ def migrate(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('jasmin_services', '0018_grant_role_permision'),
+        ("jasmin_services", "0018_grant_role_permision"),
     ]
 
     operations = [

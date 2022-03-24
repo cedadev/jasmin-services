@@ -9,4 +9,4 @@ __author__ = "Matt Pryor"
 __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 
 
-default_app_config = '{}.apps.AppConfig'.format(__name__)
+default_app_config = "{}.apps.AppConfig".format(__name__)

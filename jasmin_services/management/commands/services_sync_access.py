@@ -15,10 +15,10 @@ from ...models import Grant
 
 
 class Command(BaseCommand):
-    help = 'Ensures that any access that should be disabled is definitely disabled'
+    help = "Ensures that any access that should be disabled is definitely disabled"
 
     def handle(self, *args, **kwargs):
-        # For the cron, we only consider grants where access should be disabled
+        # For the cron, we only consider grants where access should be disabled
         synchronise_service_access(
-            Grant.objects.exclude(revoked = False, expires__gte = date.today())
+            Grant.objects.exclude(revoked=False, expires__gte=date.today())
         )
