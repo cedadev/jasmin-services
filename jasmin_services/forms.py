@@ -93,11 +93,11 @@ def grant_form_factory(roles):
     EXPIRES_CUSTOM = 7
 
     return type(uuid.uuid4().hex, (forms.Form, ), {
-        'email' : forms.CharField(
+        'username' : forms.CharField(
             max_length = 254, 
-            label = 'Email',
-            validators = [validate_grant_email],
-            help_text = "Email address associated with user's account"
+            label = 'Username',
+            validators = [validate_grant_username],
+            help_text = "The JASMIN username of the user you wish to grant a role to."
             ),
         'role' : forms.ChoiceField(
             choices = role_choices,
@@ -131,12 +131,12 @@ def grant_form_factory(roles):
         )        
     })
 
-def validate_grant_email(value):
+def validate_grant_username(value):
     # validator to check account exists for given email.
     try:
-        JASMINUser.objects.get(email=value)
+        JASMINUser.objects.get(username=value)
     except JASMINUser.DoesNotExist:
-        raise ValidationError('user ({}) does not exist.'.format(value))
+        raise ValidationError(f'user ({value}) does not exist.')
 
 
 class DecisionForm(forms.Form):
@@ -284,6 +284,32 @@ class DecisionForm(forms.Form):
             self._request.internal_reason = self.cleaned_data['internal_reason']
         self._request.save()
         return self._request
+
+
+class GrantReviewForm(forms.Form):
+    """
+    Form for revoking a grant.
+    """
+    user_reason = forms.CharField(label = 'Reason for revocation (user)',
+                                  required = True,
+                                  widget = forms.Textarea(attrs = { 'rows' : 5 }),
+                                  help_text = markdown_allowed())
+    internal_reason = forms.CharField(label = 'Reason for revocation (internal)',
+                                      required = False,
+                                      widget = forms.Textarea(attrs = { 'rows' : 5 }),
+                                      help_text = markdown_allowed())
+
+    def __init__(self, grant, *args, **kwargs):
+        self._grant = grant
+        super().__init__(*args, **kwargs)
+
+    def save(self):
+        # Update the grant from the form
+        self._grant.revoked =  True
+        self._grant.user_reason = self.cleaned_data['user_reason']
+        self._grant.internal_reason = self.cleaned_data['internal_reason']
+        self._grant.save()
+        return self._grant
 
 
 ######

@@ -22,7 +22,9 @@
     </div>
 {% endblock %}
 
+
 {% block content_panel %}
+    {% user_has_service_perm service request.user 'jasmin_services.revoke_role' as revoke_role %}
     <div class="row">
         {# Only show the filters if there are enough grants #}
         {% if grants.paginator.num_pages > 1 or preserved_filters %}
@@ -114,6 +116,7 @@
                         <th>Status</th>
                         <th>Expires</th>
                         <th style="white-space: nowrap;">Granted By</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -138,9 +141,9 @@
                             {% if grant.revoked %}
                                 <td class="text-danger"><i class="fa fa-fw fa-ban"></i></td>
                             {% elif grant.expired %}
-                                <td class="text-danger"><i class="fa fa-fw fa-clock-o"></i></td>
+                                <td class="text-danger"><i class="far fa-fw fa-clock"></i></td>
                             {% elif grant.expiring %}
-                                <td class="text-warning"><i class="fa fa-fw fa-clock-o"></i></td>
+                                <td class="text-warning"><i class="far fa-fw fa-clock"></i></td>
                             {% else %}
                                 <td class="text-success"><i class="fa fa-fw fa-check"></i></td>
                             {% endif %}
@@ -156,6 +159,9 @@
                             {% endif %}
                             <td style="white-space: nowrap;">{{ grant.expires }}</td>
                             <td><code>{{ grant.granted_by }}</code></td>
+                            {% if revoke_role %}
+                            <td><a class="btn btn-primary" href="{% url 'jasmin_services:grant_review' pk=grant.id %}">Review</a></td>
+                            {% endif %}
                             </tr>
                         {% endfor %}
                     {% endfor %}

@@ -15,7 +15,7 @@
             </li>
             {% if view_users %}
                 <li class="nav-item">
-                    <a class= "nav-link {% if active == 'service_users' %}active{% endif %}"
+                    <a class= "nav-link {% if active == 'service_users' or active == 'grant_review' %}active{% endif %}"
                         href="{% url 'jasmin_services:service_users' category=service.category.name service=service.name %}">
                         Users</a>
                 </li>
