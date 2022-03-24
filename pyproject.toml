@@ -9,8 +9,8 @@ license = "BSD-3-Clause"
 python = "^3.6.8"
 
 # Dependencies of dependencies. Need to specify here so poetry knows where to get them from.
-jasmin-ldap = {git = "https://github.com/cedadev/jasmin-ldap.git"}
-jasmin-django-utils = {git = "https://github.com/cedadev/jasmin-django-utils.git"}
+jasmin-ldap = {git = "https://github.com/cedadev/jasmin-ldap.git", branch="*"}
+jasmin-django-utils = {git = "https://github.com/cedadev/jasmin-django-utils.git", branch="*"}
 
 Django = "^3.2"
 django-bootstrap5 = "^21.2"
@@ -18,9 +18,9 @@ django-markdown-deux = "^1.0.5"
 python-dateutil = "^2.8.2"
 django-polymorphic = "^3.1.0"
 requests = "^2.27.1"
-jasmin-ldap-django = {git = "https://github.com/cedadev/jasmin-ldap-django.git"}
-jasmin-metadata = {git = "https://github.com/cedadev/jasmin-metadata.git"}
-jasmin-notifications = {git = "https://github.com/cedadev/jasmin-notifications.git"}
+jasmin-ldap-django = {git = "https://github.com/cedadev/jasmin-ldap-django.git", branch="*"}
+jasmin-metadata = {git = "https://github.com/cedadev/jasmin-metadata.git", branch="*"}
+jasmin-notifications = {git = "https://github.com/cedadev/jasmin-notifications.git", branch="*"}
 django-countries = "^7.2.1, !=7.3.0"
 
 [tool.poetry.dev-dependencies]
