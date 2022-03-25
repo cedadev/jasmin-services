@@ -187,8 +187,12 @@ class ServiceAdmin(admin.ModelAdmin):
                 codename="decide_request",
             ),
             Permission.objects.get(
-                content_type=ContentType.objects.get_for_model(Request),
+                content_type=ContentType.objects.get_for_model(Role),
                 codename="grant_role",
+            ),
+            Permission.objects.get(
+                content_type=ContentType.objects.get_for_model(Role),
+                codename="revoke_role",
             ),
         )
 
