@@ -6,6 +6,6 @@ from . import views as apiviews
 app_name = "jasmin_services_api"
 urlpatterns = [
     # fmt: off
-    path("roles/<str:category>/<str:service>/", apiviews.ServiceRolesView.as_view()),
+    path("service-roles/<str:category>/<str:service>/", apiviews.ServiceRolesView.as_view()),
     # fmt: on
 ]
