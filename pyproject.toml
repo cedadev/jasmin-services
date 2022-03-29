@@ -22,6 +22,10 @@ jasmin-ldap-django = {git = "https://github.com/cedadev/jasmin-ldap-django.git",
 jasmin-metadata = {git = "https://github.com/cedadev/jasmin-metadata.git", tag = "v1.0.0"}
 jasmin-notifications = {git = "https://github.com/cedadev/jasmin-notifications.git", tag = "v1.0.0"}
 django-countries = "^7.2.1, !=7.3.0"
+djangorestframework = {version = "^3.13.1", optional = true}
+
+[tool.poetry.extras]
+api = ["djangorestframework"]
 
 [tool.poetry.dev-dependencies]
 tox = "^3.24.5"
