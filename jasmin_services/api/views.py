@@ -1,6 +1,8 @@
+"""APIViews for the jasmin_services API."""
 import datetime as dt
 
 import django.db.models as djmodels
+import django.shortcuts as djshortcuts
 import rest_framework as rf
 import rest_framework.generics as rf_generics
 import rest_framework.views as rf_views
@@ -15,15 +17,17 @@ class ServiceRolesView(rf_generics.ListAPIView):
     serializer_class = serializers.ServiceRolesSerializer
 
     def get_queryset(self):
+        """Return valid users and roles for a given service."""
+        # Service and service category are part of the URL.
         category = self.request.parser_context["kwargs"].get("category")
         service = self.request.parser_context["kwargs"].get("service")
-        try:
-            service = models.Service.objects.get(category__name=category, name=service)
-        except models.Service.DoesNotExist:
-            return rf.response.Response(
-                {"error": "JS_UNKNOWN_SERVICE"}, rf.status.HTTP_404_NOT_FOUND
-            )
 
+        # If the service does not exist, return an error.
+        service = djshortcuts.get_object_or_404(
+            models.Service, category__name=category, name=service
+        )
+
+        # Return a queryset containg only valid grants.
         return (
             models.Grant.objects.filter_active()
             .filter(
