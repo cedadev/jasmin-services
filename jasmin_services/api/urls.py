@@ -1,5 +1,5 @@
 """URLs for the jasmin_services api."""
-from django.urls import include, path, re_path
+from django.urls import include, path
 
 from . import views as apiviews
 

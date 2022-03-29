@@ -1,7 +1,6 @@
 """Serializers for the jasmin_services api."""
 import collections
 
-import django.contrib.auth
 import rest_framework.serializers as rf_serial
 
 from .. import models

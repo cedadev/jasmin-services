@@ -1,11 +1,8 @@
 """APIViews for the jasmin_services API."""
 import datetime as dt
 
-import django.db.models as djmodels
 import django.shortcuts as djshortcuts
-import rest_framework as rf
 import rest_framework.generics as rf_generics
-import rest_framework.views as rf_views
 
 from .. import models
 from . import serializers
@@ -15,6 +12,7 @@ class ServiceRolesView(rf_generics.ListAPIView):
     """List the roles users hold for a given service."""
 
     serializer_class = serializers.ServiceRolesSerializer
+    required_scopes = ["jasmin.services.serviceroles.all"]
 
     def get_queryset(self):
         """Return valid users and roles for a given service."""
