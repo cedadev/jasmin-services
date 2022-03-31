@@ -1,12 +1,18 @@
 """URLs for the jasmin_services api."""
-from django.urls import include, path
+import rest_framework.routers as rf_routers
 
 from . import views as apiviews
 
+BASE = __package__.rsplit(".", 1)[0]
+VERSION = "1"
+
+PREFIX = f"{BASE}/v{VERSION}"
+
 app_name = "jasmin_services_api"
-urlpatterns = [
-    # fmt: off
-    path("service-roles/<str:category>/<str:service>", apiviews.ServiceRolesView.as_view()),
-    path("service-role-users/<str:category>/<str:service>/<str:role>", apiviews.ServiceRoleUsersView.as_view()),
-    # fmt: on
-]
+
+router = rf_routers.DefaultRouter()
+router.register(
+    f"{PREFIX}/services",
+    apiviews.ServicesViewSet,
+    basename="services",
+)

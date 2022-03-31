@@ -6,6 +6,34 @@ import rest_framework.serializers as rf_serial
 from .. import models
 
 
+class ServiceRoleSerializer(rf_serial.ModelSerializer):
+    """Serializer for roles in a service."""
+
+    class Meta:
+        model = models.Role
+        fields = ["id", "name"]
+
+
+class ServiceListSerializer(rf_serial.ModelSerializer):
+    """Serializer for simple details about a service."""
+
+    category = rf_serial.SlugRelatedField(slug_field="name", read_only=True)
+
+    class Meta:
+        model = models.Service
+        fields = ["id", "category", "name", "summary"]
+
+
+class ServiceSerializer(ServiceListSerializer):
+    """Serializer for full details of a service."""
+
+    roles = ServiceRoleSerializer(many=True)
+
+    class Meta:
+        model = models.Service
+        fields = "__all__"
+
+
 class ServiceRolesListSerializer(rf_serial.ListSerializer):
     """
     Serialize role output into dict of lists of user roles.
@@ -61,32 +89,5 @@ class ServiceRolesSerializer(rf_serial.ModelSerializer):
                     "professor": ["USER", "MANAGER"],
                     "leela": ["USER"],
                 },
-            }
-        }
-
-
-class ServiceRoleUsersSerializer(rf_serial.ModelSerializer):
-    """Serialize a list of users holding a role in a service."""
-
-    username = rf_serial.CharField(source="access.user.username")
-
-    class Meta:
-        model = models.Grant
-        fields = ["username"]
-        list_serializer_class = rf_serial.ListSerializer
-
-    def to_representation(self, instance):
-        """Convert [{"username": "fry"}] to ["fry"]."""
-        instance = super().to_representation(instance)
-        return instance["username"]
-
-    @classmethod
-    def get_schema_components(cls, _path, _method):
-        """Return schema components."""
-        return {
-            "ServiceRoleUsers": {
-                "type": "array",
-                "items": "string",
-                "example": ["fry", "professor", "leela"],
             }
         }
