@@ -12,7 +12,12 @@ app_name = "jasmin_services_api"
 
 router = rf_routers.DefaultRouter()
 router.register(
-    f"{PREFIX}/services",
+    "users",
+    apiviews.UsersViewSet,
+    basename="user",
+)
+router.register(
+    "services",
     apiviews.ServicesViewSet,
-    basename="services",
+    basename="service",
 )

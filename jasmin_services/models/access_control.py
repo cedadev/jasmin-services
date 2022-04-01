@@ -43,7 +43,12 @@ class Access(models.Model):
         Role, models.CASCADE, related_name="accesses", related_query_name="access"
     )
     #: The user for whom the role is granted
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        models.CASCADE,
+        related_name="accesses",
+        related_query_name="access",
+    )
 
     def __str__(self):
         return "{} : {}".format(self.role, self.user)

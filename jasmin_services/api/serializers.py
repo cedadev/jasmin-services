@@ -1,6 +1,7 @@
 """Serializers for the jasmin_services api."""
 import collections
 
+import django.contrib.auth
 import rest_framework.serializers as rf_serial
 
 from .. import models
@@ -20,14 +21,14 @@ class ServiceRoleSerializer(rf_serial.ModelSerializer):
         fields = ["id", "name"]
 
 
-class ServiceListSerializer(rf_serial.ModelSerializer):
+class ServiceListSerializer(rf_serial.HyperlinkedModelSerializer):
     """Serializer for simple details about a service."""
 
     category = CategoryListSerializer()
 
     class Meta:
         model = models.Service
-        fields = ["id", "category", "name", "summary", "hidden"]
+        fields = ["id", "url", "category", "name", "summary", "hidden"]
 
 
 class ServiceSerializer(ServiceListSerializer):
