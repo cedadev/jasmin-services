@@ -6,6 +6,12 @@ import rest_framework.serializers as rf_serial
 from .. import models
 
 
+class CategoryListSerializer(rf_serial.ModelSerializer):
+    class Meta:
+        model = models.Category
+        fields = ["id", "name"]
+
+
 class ServiceRoleSerializer(rf_serial.ModelSerializer):
     """Serializer for roles in a service."""
 
@@ -17,11 +23,11 @@ class ServiceRoleSerializer(rf_serial.ModelSerializer):
 class ServiceListSerializer(rf_serial.ModelSerializer):
     """Serializer for simple details about a service."""
 
-    category = rf_serial.SlugRelatedField(slug_field="name", read_only=True)
+    category = CategoryListSerializer()
 
     class Meta:
         model = models.Service
-        fields = ["id", "category", "name", "summary"]
+        fields = ["id", "category", "name", "summary", "hidden"]
 
 
 class ServiceSerializer(ServiceListSerializer):

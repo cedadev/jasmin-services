@@ -6,20 +6,23 @@ import rest_framework.response as rf_response
 import rest_framework.viewsets as rf_viewsets
 
 from .. import models
-from . import serializers, viewsets
+from . import serializers
 
 
-class ServicesViewSet(viewsets.ActionSerializerMixin, rf_viewsets.ReadOnlyModelViewSet):
+class ServicesViewSet(
+    jasmin_account_api.viewsets.ActionSerializerMixin, rf_viewsets.ReadOnlyModelViewSet
+):
     """View and get details of a service."""
-
-    action_serializers = {"list": serializers.ServiceListSerializer}
 
     queryset = models.Service.objects.all().prefetch_related("category")
     serializer_class = serializers.ServiceSerializer
+    action_serializers = {"list": serializers.ServiceListSerializer}
     required_scopes = ["jasmin.services.services.all"]
+    filterset_fields = ["category", "hidden", "ceda_managed"]
+    search_fields = ["name"]
 
     @rf_decorators.action(detail=True)
-    def roleholders(self, _request, _pk=None):
+    def roleholders(self, request, pk=None):
         """List users who hold roles in a service."""
         service = self.get_object()
         queryset = (
