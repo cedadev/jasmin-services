@@ -83,3 +83,26 @@ class ServiceRolesSerializer(rf_serial.ModelSerializer):
         model = models.Grant
         fields = ["username", "role"]
         list_serializer_class = ServiceRolesListSerializer
+
+
+class UserSerializer(rf_serial.HyperlinkedModelSerializer):
+    class Meta:
+        model = django.contrib.auth.get_user_model()
+        fields = ["id", "url", "username"]
+        extra_kwargs = {"url": {"view_name": "user-detail", "lookup_field": "username"}}
+
+
+class AccessSerializer(rf_serial.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = models.Access
+        fields = ["id", "user"]
+
+
+class RoleListSerializer(rf_serial.ModelSerializer):
+    accesses = AccessSerializer(many=True)
+
+    class Meta:
+        model = models.Role
+        fields = ["id", "name", "accesses"]

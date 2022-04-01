@@ -44,6 +44,23 @@ class ServicesViewSet(
         serializer = serializers.ServiceRolesSerializer(queryset, many=True)
         return rf_response.Response(serializer.data)
 
+    @rf_decorators.action(detail=True)
+    def roles(self, request, pk=None):
+        """List roles in a services and their holders."""
+        service = self.get_object()
+        queryset = models.Role.objects.filter(service=service).prefetch_related(
+            dj_models.Prefetch(
+                "accesses",
+                queryset=models.Access.objects.filter(
+                    grant__revoked=False, grant__expires__gte=dt.datetime.now()
+                ),
+            )
+        )
+        serializer = serializers.RoleListSerializer(
+            queryset, many=True, context={"request": request}
+        )
+        return rf_response.Response(serializer.data)
+
 
 class UsersViewSet(
     jasmin_account_api.viewsets.ActionSerializerMixin,
