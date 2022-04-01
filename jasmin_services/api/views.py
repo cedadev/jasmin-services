@@ -10,7 +10,7 @@ import rest_framework.response as rf_response
 import rest_framework.viewsets as rf_viewsets
 
 from .. import models
-from . import schemas, serializers
+from . import serializers
 
 
 class ServicesViewSet(
@@ -22,27 +22,11 @@ class ServicesViewSet(
     serializer_class = serializers.ServiceSerializer
     action_serializers = {
         "list": serializers.ServiceListSerializer,
-        "roleholders": serializers.ServiceRolesSerializer,
+        "roles": serializers.RoleSerializer,
     }
     required_scopes = ["jasmin.services.services.all"]
     filterset_fields = ["category", "hidden", "ceda_managed"]
     search_fields = ["name"]
-
-    @rf_decorators.action(detail=True, schema=schemas.ServiceRolesListSchema())
-    def roleholders(self, request, pk=None):
-        """List users who hold roles in a service."""
-        service = self.get_object()
-        queryset = (
-            models.Grant.objects.filter_active()
-            .filter(
-                access__role__service=service,
-                revoked=False,
-                expires__gte=dt.datetime.now(),
-            )
-            .select_related("access__role", "access__user")
-        )
-        serializer = serializers.ServiceRolesSerializer(queryset, many=True)
-        return rf_response.Response(serializer.data)
 
     @rf_decorators.action(detail=True)
     def roles(self, request, pk=None):
@@ -56,7 +40,7 @@ class ServicesViewSet(
                 ),
             )
         )
-        serializer = serializers.RoleListSerializer(
+        serializer = serializers.RoleSerializer(
             queryset, many=True, context={"request": request}
         )
         return rf_response.Response(serializer.data)
