@@ -82,18 +82,3 @@ class ServiceRolesSerializer(rf_serial.ModelSerializer):
         model = models.Grant
         fields = ["username", "role"]
         list_serializer_class = ServiceRolesListSerializer
-
-    @classmethod
-    def get_schema_components(cls, _path, _method):
-        """Return schema components."""
-        return {
-            "ServiceRoles": {
-                "type": "object",
-                "additionalProperties": {"type": "array", "items": {"type": "string"}},
-                "example": {
-                    "fry": ["USER"],
-                    "professor": ["USER", "MANAGER"],
-                    "leela": ["USER"],
-                },
-            }
-        }

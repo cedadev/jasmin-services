@@ -1,12 +1,13 @@
 """APIViews for the jasmin_services API."""
 import datetime as dt
 
+import jasmin_account_api.viewsets
 import rest_framework.decorators as rf_decorators
 import rest_framework.response as rf_response
 import rest_framework.viewsets as rf_viewsets
 
 from .. import models
-from . import serializers
+from . import schemas, serializers
 
 
 class ServicesViewSet(
@@ -21,7 +22,7 @@ class ServicesViewSet(
     filterset_fields = ["category", "hidden", "ceda_managed"]
     search_fields = ["name"]
 
-    @rf_decorators.action(detail=True)
+    @rf_decorators.action(detail=True, schema=schemas.ServiceRolesListSchema())
     def roleholders(self, request, pk=None):
         """List users who hold roles in a service."""
         service = self.get_object()
