@@ -3,7 +3,7 @@ import datetime as dt
 
 import django.contrib.auth
 import django.db.models as dj_models
-import jasmin_account_api.viewsets
+import jasmin_django_utils.api.viewsets
 import rest_framework.decorators as rf_decorators
 import rest_framework.mixins as rf_mixins
 import rest_framework.response as rf_response
@@ -14,7 +14,8 @@ from . import serializers
 
 
 class ServicesViewSet(
-    jasmin_account_api.viewsets.ActionSerializerMixin, rf_viewsets.ReadOnlyModelViewSet
+    jasmin_django_utils.api.viewsets.ActionSerializerMixin,
+    rf_viewsets.ReadOnlyModelViewSet,
 ):
     """View and get details of a service."""
 
@@ -28,7 +29,9 @@ class ServicesViewSet(
     filterset_fields = ["category", "hidden", "ceda_managed"]
     search_fields = ["name"]
 
-    @rf_decorators.action(detail=True)
+    @rf_decorators.action(
+        detail=True, required_scopes=["jasmin.services.serviceroles.all"]
+    )
     def roles(self, request, pk=None):
         """List roles in a services and their holders."""
         service = self.get_object()
@@ -47,12 +50,13 @@ class ServicesViewSet(
 
 
 class UsersViewSet(
-    jasmin_account_api.viewsets.ActionSerializerMixin,
+    jasmin_django_utils.api.viewsets.ActionSerializerMixin,
     rf_viewsets.GenericViewSet,
 ):
     queryset = django.contrib.auth.get_user_model().objects
     lookup_field = "username"
     action_serializers = {"services": serializers.ServiceListSerializer}
+    required_scopes = ["jasmin.services.userservices.all"]
 
     @rf_decorators.action(detail=True)
     def services(self, request, username=None):
