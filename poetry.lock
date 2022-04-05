@@ -695,7 +695,7 @@ api = ["djangorestframework", "django-filter", "jasmin-django-utils"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.8"
-content-hash = "bb510e6a50c12001a83d7fce78e13eb8b2f61883bfa987213afeeaa4c6b5f36a"
+content-hash = "f0e41c4f9fb7b31560167be5f5ca6dd726bb20ede78869f16e66494ed4cee5ad"
 
 [metadata.files]
 asgiref = [
