@@ -7,7 +7,7 @@ import rest_framework.serializers as rf_serial
 from .. import models
 
 
-class UserSerializer(rf_serial.HyperlinkedModelSerializer):
+class ServiceUserSerializer(rf_serial.HyperlinkedModelSerializer):
     """Basic UserSerializer to provide a link to the full one."""
 
     class Meta:
@@ -19,7 +19,7 @@ class UserSerializer(rf_serial.HyperlinkedModelSerializer):
 class AccessSerializer(rf_serial.ModelSerializer):
     """Serializer for list of Accesses."""
 
-    user = UserSerializer()
+    user = ServiceUserSerializer()
 
     class Meta:
         model = models.Access
