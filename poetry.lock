@@ -308,7 +308,7 @@ plugins = ["setuptools"]
 
 [[package]]
 name = "jasmin-django-utils"
-version = "1.0.3"
+version = "1.0.4"
 description = "Django utilities used by JASMIN apps."
 category = "main"
 optional = false
@@ -324,8 +324,8 @@ api = ["djangorestframework", "django-oauth-toolkit"]
 [package.source]
 type = "git"
 url = "https://github.com/cedadev/jasmin-django-utils.git"
-reference = "v1.0.3"
-resolved_reference = "8cc1eda49a88553c3f9efffea2b111bf4f5bcce9"
+reference = "v1.0.4"
+resolved_reference = "ee5839623178f922effcd261f655c5d7f42ccef1"
 
 [[package]]
 name = "jasmin-ldap"
@@ -695,7 +695,7 @@ api = ["djangorestframework", "django-filter", "jasmin-django-utils"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.8"
-content-hash = "ede137c0bb7314f878e63183442e5e71c3ae73969e733508424526ca1caaf090"
+content-hash = "78deeb8b709790a646d63024ec5ba9381ab33a96f462bcab445a04202a50618f"
 
 [metadata.files]
 asgiref = [
