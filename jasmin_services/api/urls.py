@@ -21,3 +21,8 @@ router.register(
     apiviews.ServicesViewSet,
     basename="service",
 )
+router.register(
+    "categories",
+    apiviews.CategoriesViewSet,
+    basename="category",
+)

@@ -17,7 +17,7 @@ class ServiceUserSerializer(rf_serial.HyperlinkedModelSerializer):
 
 
 class AccessSerializer(rf_serial.ModelSerializer):
-    """Serializer for list of Accesses."""
+    """List of service accesses."""
 
     user = ServiceUserSerializer()
 
@@ -27,7 +27,7 @@ class AccessSerializer(rf_serial.ModelSerializer):
 
 
 class RoleListSerializer(rf_serial.ModelSerializer):
-    """Serializer basic list of roles."""
+    """Basic list of roles."""
 
     class Meta:
         model = models.Role
@@ -35,7 +35,7 @@ class RoleListSerializer(rf_serial.ModelSerializer):
 
 
 class RoleSerializer(rf_serial.ModelSerializer):
-    """Serializer for roles with holders."""
+    """Detail of role with holders."""
 
     accesses = AccessSerializer(many=True)
 
@@ -44,14 +44,17 @@ class RoleSerializer(rf_serial.ModelSerializer):
         fields = ["id", "name", "accesses"]
 
 
-class CategoryListSerializer(rf_serial.ModelSerializer):
+class CategoryListSerializer(rf_serial.HyperlinkedModelSerializer):
+    """Basic information about a service category."""
+
     class Meta:
         model = models.Category
-        fields = ["id", "name"]
+        fields = ["id", "url", "name"]
+        extra_kwargs = {"url": {"view_name": "category-detail", "lookup_field": "name"}}
 
 
 class ServiceListSerializer(rf_serial.HyperlinkedModelSerializer):
-    """Serializer for simple details about a service."""
+    """Simple details about a service."""
 
     category = CategoryListSerializer()
 
@@ -60,11 +63,43 @@ class ServiceListSerializer(rf_serial.HyperlinkedModelSerializer):
         fields = ["id", "url", "category", "name", "summary", "hidden"]
 
 
+class CategoryServiceSerializer(ServiceListSerializer):
+    """Simple details about a service, excluding it's category."""
+
+    class Meta:
+        model = models.Service
+        fields = ["id", "url", "name", "summary", "hidden"]
+
+
+class CategorySerializer(CategoryListSerializer):
+    """Details of a service category."""
+
+    services = CategoryServiceSerializer(many=True)
+
+    class Meta:
+        model = models.Category
+        extra_kwargs = {"url": {"view_name": "category-detail", "lookup_field": "name"}}
+        fields = ["id", "url", "name", "long_name", "position", "services"]
+
+
 class ServiceSerializer(ServiceListSerializer):
-    """Serializer for full details of a service."""
+    """Full details of a service."""
 
     roles = RoleListSerializer(many=True)
 
     class Meta:
         model = models.Service
-        fields = "__all__"
+        fields = [
+            "id",
+            "url",
+            "name",
+            "category",
+            "roles",
+            "summary",
+            "description",
+            "approver_message",
+            "instution_countries",
+            "hidden",
+            "position",
+            "ceda_managed",
+        ]

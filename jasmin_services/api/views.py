@@ -72,3 +72,21 @@ class UsersViewSet(
             queryset, many=True, context={"request": request}
         )
         return rf_response.Response(serializer.data)
+
+
+class CategoriesViewSet(
+    jasmin_django_utils.api.viewsets.ActionSerializerMixin,
+    rf_viewsets.ReadOnlyModelViewSet,
+):
+    """Details of services categories."""
+
+    queryset = models.Category.objects.prefetch_related("services")
+    lookup_field = "name"
+    serializer_class = serializers.CategoryListSerializer
+    required_scopes = ["jasmin.services.categories.all"]
+    action_serializers = {
+        "list": serializers.CategoryListSerializer,
+        "retrieve": serializers.CategorySerializer,
+    }
+    filterset_fields = ["name"]
+    search_fields = ["name", "summary"]
