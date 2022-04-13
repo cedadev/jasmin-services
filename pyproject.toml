@@ -26,7 +26,7 @@ djangorestframework = {version = "^3.13.1", optional = true}
 django-filter = {version = "^21.1", optional = true}
 
 [tool.poetry.extras]
-api = ["djangorestframework", "django-filter", "jasmin-django-utils"]
+api = ["djangorestframework", "django-filter"]
 
 [tool.poetry.dev-dependencies]
 tox = "^3.24.5"
