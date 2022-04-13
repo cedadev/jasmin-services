@@ -9,6 +9,7 @@ import json
 import uuid
 from datetime import date
 
+import django.contrib.auth
 from dateutil.relativedelta import relativedelta
 from django import forms
 from django.conf import settings
@@ -18,7 +19,6 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
-from jasmin_auth.models import JASMINUser
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
 from .models import Access, Grant, LdapGroupBehaviour, Request, RequestState, Role
@@ -140,9 +140,10 @@ def grant_form_factory(roles):
 
 def validate_grant_username(value):
     # validator to check account exists for given email.
+    user_model = django.contrib.auth.get_user_model()
     try:
-        JASMINUser.objects.get(username=value)
-    except JASMINUser.DoesNotExist:
+        user_model.objects.get(username=value)
+    except user_model.DoesNotExist:
         raise ValidationError(f"user ({value}) does not exist.")
 
 
