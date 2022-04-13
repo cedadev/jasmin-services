@@ -10,6 +10,7 @@ import logging
 import socket
 from datetime import date
 
+import django.contrib.auth
 import requests as reqs
 from dateutil.relativedelta import relativedelta
 from django import http
@@ -26,7 +27,6 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.utils.http import urlquote
 from django.views.decorators.http import require_http_methods, require_safe
-from jasmin_auth.models import JASMINUser
 
 from .forms import (
     DecisionForm,
@@ -895,7 +895,7 @@ def grant_role(request, service):
             else:
                 expires_date = form.cleaned_data["expires_custom"]
 
-            user = JASMINUser.objects.get(username=username)
+            user = django.contrib.auth.get_user_model().objects.get(username=username)
             role = Role.objects.get(id=role_id)
             access, _ = Access.objects.get_or_create(user=user, role=role)
 

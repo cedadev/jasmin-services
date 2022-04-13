@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_URL = "http://testserver"
 
 SECRET_KEY = "thissecretkeyisonlyfortests"
 
@@ -22,6 +23,11 @@ INSTALLED_APPS = [
     "jasmin_services",
     "jasmin_metadata",
     "jasmin_notifications",
+    "rest_framework",
+    "django_filters",
+    "drf_spectacular",
+    "drf_spectacular_sidecar",
+    "oauth2_provider",
 ]
 
 MIDDLEWARE = [
@@ -99,4 +105,39 @@ JASMIN_SERVICES = {
     "JISCMAIL_TO_ADDRS": ["alexander.manning@stfc.ac.uk"],
     "DEFAULT_METADATA_FORM": 1,
     "LDAP_GROUPS": [],
+}
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "jasmin_django_utils.api.permissions.IsAdminUserOrTokenHasResourceScope"
+    ],
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.OrderingFilter",
+        "rest_framework.filters.SearchFilter",
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "JASMIN Account API",
+    "DESCRIPTION": "Account and service data for the jasmin-account portal.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_DIST": "SIDECAR",
+    "REDOC_DIST": False,
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
+    "OAUTH2_FLOWS": ["clientCredentials"],
+    "OAUTH2_AUTHORIZATION_URL": BASE_URL + "/oauth/authorize/",
+    "OAUTH2_TOKEN_URL": BASE_URL + "/oauth/token/",
+    "AUTHENTICATION_WHITELIST": [
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+    ],
+    "PREPROCESSING_HOOKS": [
+        "jasmin_django_utils.api.hooks.spectacular_hide_admin_auth"
+    ],
 }
