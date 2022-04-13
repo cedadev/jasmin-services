@@ -40,7 +40,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "jasmin_services.urls"
+ROOT_URLCONF = "tests.urls"
 
 TEMPLATES = [
     {
