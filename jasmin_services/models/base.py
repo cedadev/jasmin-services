@@ -131,6 +131,12 @@ class Service(models.Model):
         default=False, help_text="Whether the service is managed by CEDA."
     )
 
+    # Indicates the service is no longer used.
+    disabled = models.BooleanField(
+        default=False,
+        help_text="Whether this service is disabled. Disabled services are hidden, and impossible to apply for.",
+    )
+
     def __str__(self):
         return f"{self.category} : {self.name}"
 

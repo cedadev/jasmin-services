@@ -17,7 +17,7 @@ from django import http
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import EmailMessage
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
@@ -28,13 +28,10 @@ from django.template.loader import render_to_string
 from django.utils.http import urlquote
 from django.views.decorators.http import require_http_methods, require_safe
 
-from .forms import (
-    DecisionForm,
-    GrantReviewForm,
-    grant_form_factory,
-    message_form_factory,
-)
-from .models import Access, Category, Grant, Group, Request, RequestState, Role, Service
+from .forms import (DecisionForm, GrantReviewForm, grant_form_factory,
+                    message_form_factory)
+from .models import (Access, Category, Grant, Group, Request, RequestState,
+                     Role, Service)
 
 _log = logging.getLogger(__name__)
 
@@ -96,14 +93,14 @@ def service_list(request, category):
                 access__role__service=OuterRef("pk"), access__user=request.user
             )
         ),
-    ).filter(Q(hidden=False) | Q(has_request=True))
+    ).filter(disabled=False).filter(Q(hidden=False) | Q(has_request=True))
     grant_services = category.services.annotate(
         has_grant=Exists(
             Grant.objects.filter(
                 access__role__service=OuterRef("pk"), access__user=request.user
             )
         ),
-    ).filter(Q(hidden=False) | Q(has_grant=True))
+    ).filter(disabled=False).filter(Q(hidden=False) | Q(has_grant=True))
 
     # If there is a search term, factor that in
     query = request.GET.get("query", "")
@@ -273,7 +270,7 @@ def my_services(request):
     # Since the count for this takes as long as the query, force it to
     # a list now
     services = list(
-        Service.objects.filter(
+        Service.objects.filter(disabled=False).filter(
             Q(role__access__grant__in=grants) | Q(role__access__request__in=requests)
         )
         .distinct()
@@ -345,8 +342,10 @@ def with_service(view):
             kwargs["service"] = Service.objects.get(
                 category__name=kwargs.pop("category"), name=kwargs.pop("service")
             )
-        except ObjectDoesNotExist:
-            raise http.Http404("Service does not exist")
+        except ObjectDoesNotExist as err:
+            raise http.Http404("Service does not exist.") from err
+        if kwargs['service'].disabled:
+            raise http.Http404("Service has been retired.")
         return view(*args, **kwargs)
 
     return wrapper

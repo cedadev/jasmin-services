@@ -40,8 +40,6 @@ black = "^22.1.0"
 isort = "^5.10.1"
 mypy = "^0.942"
 django-stubs = ">=1.9.0"
-pylint = "^2.13.7"
-pylint-django = "^2.5.3"
 
 [tool.black]
 line-length = 88
@@ -53,7 +51,6 @@ profile = "black"
 [tool.mypy]
 ignore_missing_imports = true
 strict = false
-plugins = ['mypy_django_plugin.main']
 
 [tool.django-stubs]
 django_settings_module = "tests.settings"
@@ -61,12 +58,8 @@ django_settings_module = "tests.settings"
 [tool.pydocstyle]
 ignore = ['D106']
 
-[tool.pylint.MASTER']
-load-plugins = ['pylint_django']
-
 [tool.pylint.'MESSAGES CONTROL']
 disable = ['too-few-public-methods', 'missing-class-docstring']
-
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools>=59.6.0"]
