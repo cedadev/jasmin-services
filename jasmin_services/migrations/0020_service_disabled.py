@@ -6,13 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('jasmin_services', '0019_revoke_permision'),
+        ("jasmin_services", "0019_revoke_permision"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='service',
-            name='disabled',
-            field=models.BooleanField(default=False, help_text='Whether this service is disabled. Disabled services are hidden, and impossible to apply for.'),
+            model_name="service",
+            name="disabled",
+            field=models.BooleanField(
+                default=False,
+                help_text="Whether this service is disabled. Disabled services are hidden, and impossible to apply for.",
+            ),
         ),
     ]
