@@ -8,6 +8,7 @@ __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 from datetime import date
 from urllib.parse import urlparse
 
+import django.shortcuts
 from django import http
 from django.contrib import admin, messages
 from django.contrib.admin.options import IS_POPUP_VAR
@@ -64,17 +65,13 @@ class GroupAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             None,
-            {
-                "fields": ("name", "description", "member_uids"),
-            },
+            {"fields": ("name", "description", "member_uids")},
         ),
     )
     superuser_fieldsets = (
         (
             None,
-            {
-                "fields": ("name", "description", "member_uids"),
-            },
+            {"fields": ("name", "description", "member_uids")},
         ),
         (
             "Derived / Calculated Fields",
@@ -160,11 +157,19 @@ class RoleInline(admin.TabularInline):
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     inlines = (RoleInline,)
-    list_display = ("full_name", "summary", "hidden", "position", "details_link")
+    list_display = (
+        "full_name",
+        "summary",
+        "hidden",
+        "disabled",
+        "position",
+        "details_link",
+    )
     list_editable = ("position",)
-    list_filter = ("category", "hidden")
+    list_filter = ("category", "hidden", "disabled")
     search_fields = ("category__long_name", "category__name", "name", "summary")
     list_select_related = ("category",)
+    ordering = ("disabled", "category__position", "-id")
 
     def full_name(self, obj):
         return str(obj)
@@ -314,7 +319,25 @@ class ServiceAdmin(admin.ModelAdmin):
             and request.user.is_superuser
             and int(request.POST["service_id"]) == service.id
         ):
-            #Login to disable service and remove it's grants.
+            # Disable the service.
+            service.disabled = True
+            service.save()
+
+            # Find a list of current grants for the service.
+            current_grants = Grant.objects.filter_active().filter(
+                access__role__service=service,
+                revoked=False,
+            )
+            # And revoke them en-masse.
+            current_grants.update(
+                revoked=True,
+                user_reason="This service has been retired.",
+                internal_reason=f"Service was retired by {request.user.username}.",
+            )
+            return django.shortcuts.redirect(
+                f"/admin/jasmin_services/service/{service.id}/change"
+            )
+
         context = {
             "title": f"{service.name}: Retire",
             "opts": self.model._meta,
