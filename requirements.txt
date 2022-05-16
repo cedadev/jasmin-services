@@ -1,0 +1,29 @@
+asgiref==3.4.1; python_version >= "3.6"
+beautifulsoup4==4.11.1; python_full_version >= "3.6.0" and python_version >= "3.6"
+certifi==2021.10.8; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0"
+charset-normalizer==2.0.12; python_full_version >= "3.6.0" and python_version >= "3"
+django-bootstrap5==21.2; python_version >= "3.6"
+django-countries==7.3.2
+django-markdown-deux==1.0.5
+django-picklefield==3.0.1; python_version >= "3"
+django-polymorphic==3.1.0
+django==3.2.13; python_version >= "3.6"
+idna==3.3; python_version >= "3.5" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.5"
+importlib-metadata==2.1.3; python_version >= "3.6" and python_full_version < "3.0.0" and python_version < "3.8" or python_version < "3.8" and python_version >= "3.6" and python_full_version >= "3.5.0"
+jasmin-django-utils @ git+https://github.com/cedadev/jasmin-django-utils.git@v1.0.5
+jasmin-ldap @ git+https://github.com/cedadev/jasmin-ldap.git@v1.0.0
+jasmin-ldap-django @ git+https://github.com/cedadev/jasmin-ldap-django.git@v1.0.1
+jasmin-metadata @ git+https://github.com/cedadev/jasmin-metadata.git@v1.0.0
+jasmin-notifications @ git+https://github.com/cedadev/jasmin-notifications.git@v1.0.0
+ldap3==2.9.1
+markdown2==2.4.3; python_version >= "3.5" and python_version < "4"
+pyasn1==0.4.8
+python-dateutil==2.8.2; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.3.0")
+pytz==2022.1; python_version >= "3.6"
+requests==2.27.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
+six==1.16.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.3.0"
+soupsieve==2.3.2.post1; python_full_version >= "3.6.0" and python_version >= "3.6"
+sqlparse==0.4.2; python_version >= "3.6"
+typing-extensions==4.1.1; python_version < "3.8" and python_version >= "3.6"
+urllib3==1.26.9; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version < "4"
+zipp==3.6.0; python_version >= "3.6" and python_full_version < "3.0.0" and python_version < "3.8" or python_version < "3.8" and python_version >= "3.6" and python_full_version >= "3.5.0"
