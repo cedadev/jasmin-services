@@ -890,7 +890,7 @@ tests = ["django-oauth-toolkit", "backports.zoneinfo"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.8"
-content-hash = "6d67dbee619cf8cea7971fda7e907387aa3f2f1aac9911938f7424db5cd208e6"
+content-hash = "324e528770c8a3922b08b8d6f30120f7998da358002d871a6dd5f3e84785bb33"
 
 [metadata.files]
 asgiref = [
