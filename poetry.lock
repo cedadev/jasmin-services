@@ -217,6 +217,29 @@ Django = ">=2.2"
 importlib-metadata = {version = "<3", markers = "python_version < \"3.8\""}
 
 [[package]]
+name = "django-classy-tags"
+version = "2.0.0"
+description = "Class based template tags for Django"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+django = ">=2.2"
+
+[[package]]
+name = "django-cookie-law"
+version = "2.2.0"
+description = "Helps your Django project comply with EU cookie law regulations"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+Django = ">=1.8"
+django-classy-tags = ">=0.3.0"
+
+[[package]]
 name = "django-countries"
 version = "7.3.2"
 description = "Provides a country field for Django models."
@@ -890,7 +913,7 @@ tests = ["django-oauth-toolkit", "backports.zoneinfo"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.8"
-content-hash = "324e528770c8a3922b08b8d6f30120f7998da358002d871a6dd5f3e84785bb33"
+content-hash = "f3d97662c56840742211ac2a61b899379fe747ed35ec5ae8a5df06ed2d0d7bed"
 
 [metadata.files]
 asgiref = [
@@ -1061,6 +1084,14 @@ django = [
 django-bootstrap5 = [
     {file = "django-bootstrap5-21.2.tar.gz", hash = "sha256:a354789370593dbf3f7cb74c442f2bab231c2327bdf4349475eecebd79bc1025"},
     {file = "django_bootstrap5-21.2-py3-none-any.whl", hash = "sha256:6cd338ac1efb50b451072ab3b25e29e5a5c8366ae734d8b9537015f7972194a9"},
+]
+django-classy-tags = [
+    {file = "django-classy-tags-2.0.0.tar.gz", hash = "sha256:d59d98bdf96a764dcf7a2929a86439d023b283a9152492811c7e44fc47555bc9"},
+    {file = "django_classy_tags-2.0.0-py3-none-any.whl", hash = "sha256:25eb4f95afee396148683bfb4811b83b3f5729218d73ad0a3399271a6f9fcc49"},
+]
+django-cookie-law = [
+    {file = "django-cookie-law-2.2.0.tar.gz", hash = "sha256:c3c6c10a01b257886077dd170ead11a49448b5bdfd06e81acc5c7c4e2292d4c8"},
+    {file = "django_cookie_law-2.2.0-py3-none-any.whl", hash = "sha256:121b503e8134287b6cb71bb0b617840e0cb350174d8f2947be2f5af0e7c8cf56"},
 ]
 django-countries = [
     {file = "django-countries-7.3.2.tar.gz", hash = "sha256:0df6d34193667c2343da8935cbfb8a2bd4fb0c97baf01ac10db4628ba1557a82"},
