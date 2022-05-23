@@ -268,6 +268,17 @@ python-versions = ">=3.6"
 Django = ">=2.2"
 
 [[package]]
+name = "django-health-check"
+version = "3.16.5"
+description = "Run checks on services like databases, queue servers, celery processes, etc."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+django = ">=2.2"
+
+[[package]]
 name = "django-markdown-deux"
 version = "1.0.5"
 description = "a Django app that provides template tags for using Markdown (using the python-markdown2 processor)"
@@ -913,7 +924,7 @@ tests = ["django-oauth-toolkit", "backports.zoneinfo"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.8"
-content-hash = "f3d97662c56840742211ac2a61b899379fe747ed35ec5ae8a5df06ed2d0d7bed"
+content-hash = "185be1f85d40a4803b0af965d765e0349df7d1dedebe52007279a15bc16a10df"
 
 [metadata.files]
 asgiref = [
@@ -1100,6 +1111,10 @@ django-countries = [
 django-filter = [
     {file = "django-filter-21.1.tar.gz", hash = "sha256:632a251fa8f1aadb4b8cceff932bb52fe2f826dd7dfe7f3eac40e5c463d6836e"},
     {file = "django_filter-21.1-py3-none-any.whl", hash = "sha256:f4a6737a30104c98d2e2a5fb93043f36dd7978e0c7ddc92f5998e85433ea5063"},
+]
+django-health-check = [
+    {file = "django-health-check-3.16.5.tar.gz", hash = "sha256:1edfd49293ccebbce29f9da609c407f307aee240ab799ab4201031341ae78c0f"},
+    {file = "django_health_check-3.16.5-py2.py3-none-any.whl", hash = "sha256:8d66781a0ea82b1a8b44878187b38a27370e94f18287312e39be0593e72d8983"},
 ]
 django-markdown-deux = [
     {file = "django-markdown-deux-1.0.5.zip", hash = "sha256:5b4a3cd9454af5b4cec0e19151b41d98d09400ddae0688afb81dbf62a4edafff"},
