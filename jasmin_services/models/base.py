@@ -1,6 +1,4 @@
-"""
-Service-related Django models for the JASMIN services app.
-"""
+"""Service-related Django models for the JASMIN services app."""
 
 __author__ = "Matt Pryor"
 __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
@@ -16,7 +14,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.urls import reverse_lazy
-from django.utils.html import mark_safe
+from django.utils.safestring import mark_safe
 from django_countries.fields import CountryField
 from jasmin_metadata.models import Form
 
@@ -24,9 +22,7 @@ from .behaviours import Behaviour
 
 
 class Category(models.Model):
-    """
-    Model representing a category of services, i.e. a grouping of related services.
-    """
+    """Model representing a category of services, a grouping of related services."""
 
     id = models.AutoField(primary_key=True)
 
@@ -58,9 +54,7 @@ class Category(models.Model):
 
 
 class Service(models.Model):
-    """
-    Model representing a service.
-    """
+    """Model representing a service."""
 
     id = models.AutoField(primary_key=True)
 
@@ -71,7 +65,7 @@ class Service(models.Model):
 
     @property
     def details_link(self):
-
+        """Html anchor tag linking to the service details page."""
         details_url = reverse_lazy(
             "jasmin_services:service_details",
             kwargs={"category": self.category.name, "service": self.name},
@@ -137,15 +131,18 @@ class Service(models.Model):
         default=False, help_text="Whether the service is managed by CEDA."
     )
 
+    # Indicates the service is no longer used.
+    disabled = models.BooleanField(
+        default=False,
+        help_text="Whether this service is disabled. Disabled services are hidden, and impossible to apply for.",
+    )
+
     def __str__(self):
-        return "{} : {}".format(self.category, self.name)
+        return f"{self.category} : {self.name}"
 
 
 class RoleQuerySet(models.QuerySet):
-    """
-    Custom queryset that allows filtering of the roles by the permissions they
-    grant.
-    """
+    """Custom queryset that allows filtering of the roles by the permissions granted."""
 
     def filter_permission(self, permission_name, *objs):
         """
@@ -172,9 +169,7 @@ class RoleQuerySet(models.QuerySet):
 
 
 class Role(models.Model):
-    """
-    Model representing a role for a service.
-    """
+    """Model representing a role for a service."""
 
     id = models.AutoField(primary_key=True)
 
@@ -229,16 +224,14 @@ class Role(models.Model):
     )
 
     def __str__(self):
-        return "{} : {} : {}".format(
-            self.service.category.long_name, self.service.name, self.name
-        )
+        return f"{self.service.category.long_name} : {self.service.name} : {self.name}"
 
     @property
     def metadata_form_class(self):
         """
-        The form class used for collecting metadata for use when approving
-        access. The returned form class should extend
-        ``jasmin_metadata.forms.MetadataForm``.
+        Form class used for collecting metadata for use when approving access.
+
+        The returned form class should extend ``jasmin_metadata.forms.MetadataForm``.
 
         By default, the form for each role is completely user configurable.
         However, if a service type requires particular information for approval,
@@ -248,9 +241,7 @@ class Role(models.Model):
 
     @property
     def approvers(self):
-        """
-        Returns a query for the users who can approve requests for this role.
-        """
+        """Return a query for the users who can approve requests for this role."""
         # The approvers for a role are all the users who have the decide_request
         # permission for the role
         # It isn't practical to loop through all users and run user.has_perm
@@ -278,9 +269,7 @@ class Role(models.Model):
         )
 
     def enable(self, user):
-        """
-        Enables this role for the given user.
-        """
+        """Enable this role for the given user."""
         # During an import, disable all behaviours
         if getattr(settings, "IS_CEDA_IMPORT", False):
             return
@@ -293,9 +282,7 @@ class Role(models.Model):
             behaviour.apply(user)
 
     def disable(self, user):
-        """
-        Disables this role for the given user.
-        """
+        """Disable this role for the given user."""
         # During an import, disable all behaviours
         if getattr(settings, "IS_CEDA_IMPORT", False):
             return
