@@ -3,6 +3,7 @@ import datetime as dt
 
 import django.contrib.auth
 import django.db.models as dj_models
+import django.utils.timezone
 import jasmin_django_utils.api.viewsets
 import rest_framework.decorators as rf_decorators
 import rest_framework.mixins as rf_mixins
@@ -34,12 +35,31 @@ class ServicesViewSet(
     )
     def roles(self, request, pk=None):
         """List roles in a services and their holders."""
+        self.filterset_fields = []
+        self.search_fields = []
+
+        date_string = self.request.query_params.get("on_date", False)
+        if date_string:
+            on_date = dt.date.fromisoformat(date_string)
+        else:
+            on_date = dt.date.today()
+        on_date_end = dt.datetime.combine(
+            on_date,
+            dt.time(hour=23, minute=59, second=59),
+            tzinfo=django.utils.timezone.get_current_timezone(),
+        )
+
         service = self.get_object()
         queryset = models.Role.objects.filter(service=service).prefetch_related(
             dj_models.Prefetch(
                 "accesses",
                 queryset=models.Access.objects.filter(
-                    grant__revoked=False, grant__expires__gte=dt.datetime.now()
+                    # There is no "revoked_at" field, so we must exclude all revoked accesses.
+                    grant__revoked=False,
+                    # The given grant must have been granted before the end of the day we are interested in.
+                    grant__granted_at__lt=on_date_end,
+                    # And expire after the end of the date we are interested in.
+                    grant__expires__gte=on_date_end,
                 ),
             )
         )
