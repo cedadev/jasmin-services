@@ -57,9 +57,9 @@ class ServicesViewSet(
                     # There is no "revoked_at" field, so we must exclude all revoked accesses.
                     grant__revoked=False,
                     # The given grant must have been granted before the end of the day we are interested in.
-                    grant__granted_at__lt=on_date_end,
+                    grant__granted_at__lte=on_date_end,
                     # And expire after the end of the date we are interested in.
-                    grant__expires__gte=on_date_end,
+                    grant__expires__gt=on_date_end,
                 ),
             )
         )
