@@ -8,8 +8,8 @@ __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 from datetime import date
 from urllib.parse import urlparse
 
+import django.shortcuts
 from django import http
-from django.conf.urls import url
 from django.contrib import admin, messages
 from django.contrib.admin.options import IS_POPUP_VAR
 from django.contrib.admin.utils import quote
@@ -19,7 +19,7 @@ from django.core.mail import EmailMessage
 from django.db import models
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
-from django.urls import Resolver404, resolve, reverse
+from django.urls import Resolver404, path, re_path, resolve, reverse
 from django.utils.safestring import mark_safe
 from jasmin_metadata.admin import HasMetadataModelAdmin
 from jasmin_metadata.models import Form, Metadatum
@@ -65,17 +65,13 @@ class GroupAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             None,
-            {
-                "fields": ("name", "description", "member_uids"),
-            },
+            {"fields": ("name", "description", "member_uids")},
         ),
     )
     superuser_fieldsets = (
         (
             None,
-            {
-                "fields": ("name", "description", "member_uids"),
-            },
+            {"fields": ("name", "description", "member_uids")},
         ),
         (
             "Derived / Calculated Fields",
@@ -161,11 +157,19 @@ class RoleInline(admin.TabularInline):
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     inlines = (RoleInline,)
-    list_display = ("full_name", "summary", "hidden", "position", "details_link")
+    list_display = (
+        "full_name",
+        "summary",
+        "hidden",
+        "disabled",
+        "position",
+        "details_link",
+    )
     list_editable = ("position",)
-    list_filter = ("category", "hidden")
+    list_filter = ("category", "hidden", "disabled")
     search_fields = ("category__long_name", "category__name", "name", "summary")
     list_select_related = ("category",)
+    ordering = ("disabled", "category__position", "-id")
 
     def full_name(self, obj):
         return str(obj)
@@ -254,10 +258,15 @@ class ServiceAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         return [
-            url(
+            re_path(
                 r"^(?P<service>[\w-]+)/message/$",
                 self.admin_site.admin_view(self.support_message),
                 name="jasmin_services_support_message",
+            ),
+            path(
+                "<service>/retire",
+                self.admin_site.admin_view(self.retire),
+                name="jasmin_services_retire",
             ),
         ] + super().get_urls()
 
@@ -297,6 +306,44 @@ class ServiceAdmin(admin.ModelAdmin):
         context.update(self.admin_site.each_context(request))
         request.current_app = self.admin_site.name
         return render(request, "admin/jasmin_services/service/message.html", context)
+
+    def retire(self, request, service):
+        """
+        Admin action to retire a service.
+
+        Retireing a service hides is from all user accessible interfaces, and
+        """
+        service = Service.objects.get(pk=service)
+        if (
+            request.method == "POST"
+            and request.user.is_superuser
+            and int(request.POST["service_id"]) == service.id
+        ):
+            # Disable the service.
+            service.disabled = True
+            service.save()
+
+            # Find a list of current grants for the service.
+            current_grants = Grant.objects.filter_active().filter(
+                access__role__service=service,
+                revoked=False,
+            )
+            # And revoke them en-masse.
+            current_grants.update(
+                revoked=True,
+                user_reason="This service has been retired.",
+                internal_reason=f"Service was retired by {request.user.username}.",
+            )
+            return django.shortcuts.redirect(
+                f"/admin/jasmin_services/service/{service.id}/change"
+            )
+
+        context = {
+            "title": f"{service.name}: Retire",
+            "opts": self.model._meta,
+            "service": service,
+        }
+        return render(request, "admin/jasmin_services/service/retire.html", context)
 
 
 class BehaviourInline(admin.StackedInline):
@@ -669,7 +716,7 @@ class GrantAdmin(HasMetadataModelAdmin):
 
     def get_urls(self):
         return [
-            url(
+            re_path(
                 r"^bulk_revoke/(?P<ids>[0-9_]+)/$",
                 self.admin_site.admin_view(self.bulk_revoke),
                 name="jasmin_services_bulk_revoke",
@@ -829,7 +876,7 @@ class RequestAdmin(HasMetadataModelAdmin):
 
     def get_urls(self):
         return [
-            url(
+            re_path(
                 r"^(.+)/decide/$",
                 self.admin_site.admin_view(self.decide_request),
                 name="jasmin_services_request_decide",

@@ -8,7 +8,7 @@ The following access has expired:
     Service: {{ target.access.role.service }}
     Role: {{ target.access.role.name }}
     User: {{ target.access.user }}
-    Expired: {{ target.access.expires }}
+    Expired: {{ target.expires }}
 
 You are receiving this email as a designated responsible user for this service user.
 
@@ -16,7 +16,7 @@ Please contact the system administrator to renew this access.
 {% else %}
     Service: {{ target.access.role.service }}
     Role: {{ target.access.role.name }}
-    Expired: {{ target.access.expires }}
+    Expired: {{ target.expires }}
 
 Please visit {{ follow_link }} to apply for an extension.
 {% endif %}
