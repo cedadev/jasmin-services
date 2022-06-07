@@ -9,7 +9,6 @@ import sys
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.mail import send_mail
 from django.core.validators import RegexValidator
 from django.db import models
 from jasmin_ldap_django import models as ldap
@@ -34,54 +33,6 @@ class Behaviour(PolymorphicModel):
         Un-applies the behaviour for the given user.
         """
         raise NotImplementedError
-
-
-class JoinJISCMailListBehaviour(Behaviour):
-    """
-    Behaviour for joining a JISCMail list the first time a behaviour is applied for
-    a user.
-    """
-
-    class Meta:
-        verbose_name = "Join JISCMail List Behaviour"
-
-    list_name = models.CharField(
-        max_length=100,
-        help_text="The name of the JISCMail mailing list to join",
-        unique=True,
-    )
-    # This is the users who have joined already
-    joined_users = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, symmetrical=False, blank=True
-    )
-
-    def apply(self, user):
-        # Don't join service users up to the mailing list
-        if user.service_user:
-            return
-        # If the user is already in joined_users, there is nothing to do
-        if self.joined_users.filter(pk=user.pk).exists():
-            return
-        send_mail(
-            "Adding {} ({}) to {} mailing list".format(
-                user.email, user.get_full_name(), self.list_name.lower()
-            ),
-            "add {} {} {}".format(
-                self.list_name.lower(), user.email, user.get_full_name()
-            ),
-            settings.SUPPORT_EMAIL,
-            settings.JASMIN_SERVICES["JISCMAIL_TO_ADDRS"],
-            fail_silently=True,
-        )
-        self.joined_users.add(user)
-        self.save()
-
-    def unapply(self, user):
-        # users must now unsubscribe themselves
-        pass
-
-    def __str__(self):
-        return "Join JISCMail List <{}>".format(self.list_name)
 
 
 class LdapTagBehaviour(Behaviour):
