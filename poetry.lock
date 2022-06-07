@@ -392,7 +392,7 @@ sidecar = ["drf-spectacular-sidecar"]
 
 [[package]]
 name = "drf-spectacular-sidecar"
-version = "2022.5.1"
+version = "2022.6.1"
 description = "Serve self-contained distribution builds of Swagger UI and Redoc with Django"
 category = "main"
 optional = true
@@ -939,7 +939,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-pyyaml"
-version = "6.0.7"
+version = "6.0.8"
 description = "Typing stubs for PyYAML"
 category = "dev"
 optional = false
@@ -1022,7 +1022,7 @@ tests = ["django-oauth-toolkit", "backports.zoneinfo"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.8"
-content-hash = "ad51ec9a765721eb87f66e0047c3e53de7e40e19171a041990e6126f3da1bd4c"
+content-hash = "2c0f31034b3540101fd57c71e088866e5db4354aa495b7a5ad9ff3d5a1fdff58"
 
 [metadata.files]
 asgiref = [
@@ -1248,8 +1248,8 @@ drf-spectacular = [
     {file = "drf_spectacular-0.22.1-py3-none-any.whl", hash = "sha256:17ac5e31e5d6150dd5fa10843b429202f4f38069202acc44394cc5a771de63d9"},
 ]
 drf-spectacular-sidecar = [
-    {file = "drf-spectacular-sidecar-2022.5.1.tar.gz", hash = "sha256:bf642ae7ed283b8227de645f179d6dd647260a04c3ea7a48c170ac41a17ca4cc"},
-    {file = "drf_spectacular_sidecar-2022.5.1-py3-none-any.whl", hash = "sha256:3cbba8fceaac52b0538c30702f453e630971679d9bf249b28bb2b9a7488b815d"},
+    {file = "drf-spectacular-sidecar-2022.6.1.tar.gz", hash = "sha256:917ba08197573c37b7ee23726cffaf5e12f4fe6d9771cd428a4263042c2bee47"},
+    {file = "drf_spectacular_sidecar-2022.6.1-py3-none-any.whl", hash = "sha256:91bf519651c45ca3df606bc2e073681b8a786f4a3b1abec9abb6d097dfa08e7f"},
 ]
 filelock = [
     {file = "filelock-3.4.1-py3-none-any.whl", hash = "sha256:a4bc51381e01502a30e9f06dd4fa19a1712eab852b6fb0f84fd7cce0793d8ca3"},
@@ -1509,8 +1509,8 @@ types-pytz = [
     {file = "types_pytz-2021.3.8-py3-none-any.whl", hash = "sha256:aef4a917ab28c585d3f474bfce4f4b44b91e95d9d47d4de29dd845e0db8e3910"},
 ]
 types-pyyaml = [
-    {file = "types-PyYAML-6.0.7.tar.gz", hash = "sha256:59480cf44595d836aaae050f35e3c39f197f3a833679ef3978d97aa9f2fb7def"},
-    {file = "types_PyYAML-6.0.7-py3-none-any.whl", hash = "sha256:7b273a34f32af9910cf9405728c9d2ad3afc4be63e4048091a1a73d76681fe67"},
+    {file = "types-PyYAML-6.0.8.tar.gz", hash = "sha256:d9495d377bb4f9c5387ac278776403eb3b4bb376851025d913eea4c22b4c6438"},
+    {file = "types_PyYAML-6.0.8-py3-none-any.whl", hash = "sha256:56a7b0e8109602785f942a11ebfbd16e97d5d0e79f5fbb077ec4e6a0004837ff"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.1.1-py3-none-any.whl", hash = "sha256:21c85e0fe4b9a155d0799430b0ad741cdce7e359660ccbd8b530613e8df88ce2"},
