@@ -35,6 +35,14 @@ tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)"
 tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "cloudpickle"]
 
 [[package]]
+name = "backports-datetime-fromisoformat"
+version = "1.0.0"
+description = "Backport of Python 3.7's datetime.fromisoformat"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "backports.zoneinfo"
 version = "0.2.1"
 description = "Backport of the standard library zoneinfo module"
@@ -954,7 +962,7 @@ tests = ["django-oauth-toolkit", "backports.zoneinfo"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.8"
-content-hash = "283f02e127841dd59dc9338898d8f0e5f207ba2020d0085e9b9306f729e1feab"
+content-hash = "254fe28f0e9cfda7d053cbdb997da67f2cb078b7cf46a5a8169711ca90b7944a"
 
 [metadata.files]
 asgiref = [
@@ -968,6 +976,9 @@ atomicwrites = [
 attrs = [
     {file = "attrs-21.4.0-py2.py3-none-any.whl", hash = "sha256:2d27e3784d7a565d36ab851fe94887c5eccd6a463168875832a1be79c82828b4"},
     {file = "attrs-21.4.0.tar.gz", hash = "sha256:626ba8234211db98e869df76230a137c4c40a12d72445c45d5f5b716f076e2fd"},
+]
+backports-datetime-fromisoformat = [
+    {file = "backports-datetime-fromisoformat-1.0.0.tar.gz", hash = "sha256:9577a2a9486cd7383a5f58b23bb8e81cf0821dbbc0eb7c87d3fa198c1df40f5c"},
 ]
 "backports.zoneinfo" = [
     {file = "backports.zoneinfo-0.2.1-cp36-cp36m-macosx_10_14_x86_64.whl", hash = "sha256:da6013fd84a690242c310d77ddb8441a559e9cb3d3d59ebac9aca1a57b2e18bc"},
