@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "jasmin-services"
-version = "0.1.0"
+version = "1.1.6"
 description = "Django application for managing services, roles and access."
 authors = ["Matt Pryor <matt.pryor@stfc.ac.uk>"]
 license = "BSD-3-Clause"
@@ -10,7 +10,7 @@ python = "^3.6.8"
 
 # Dependencies of dependencies. Need to specify here so poetry knows where to get them from.
 jasmin-ldap = {git = "https://github.com/cedadev/jasmin-ldap.git", tag = "v1.0.0"}
-jasmin-django-utils = {git = "https://github.com/cedadev/jasmin-django-utils.git", tag = "v1.0.5" }# Also required for API.
+jasmin-django-utils = {git = "https://github.com/cedadev/jasmin-django-utils.git", tag = "v1.0.6" }# Also required for API.
 
 Django = "^3.2"
 django-bootstrap5 = "^21.2"
