@@ -4,9 +4,9 @@ import datetime as dt
 import django.contrib.auth
 import django.db.models as dj_models
 import django.utils.timezone
+import drf_spectacular.utils
 import jasmin_django_utils.api.viewsets
 import rest_framework.decorators as rf_decorators
-import rest_framework.mixins as rf_mixins
 import rest_framework.response as rf_response
 import rest_framework.viewsets as rf_viewsets
 
@@ -39,6 +39,16 @@ class ServicesViewSet(
     filterset_fields = ["category", "hidden", "ceda_managed"]
     search_fields = ["name"]
 
+    @drf_spectacular.utils.extend_schema(
+        parameters=[
+            drf_spectacular.utils.OpenApiParameter(
+                name="on_date",
+                required=False,
+                type=dt.date,
+                description="ISO Date on which you would like to know the active roles for a service.",
+            )
+        ]
+    )
     @rf_decorators.action(
         detail=True, required_scopes=["jasmin.services.serviceroles.all"]
     )
