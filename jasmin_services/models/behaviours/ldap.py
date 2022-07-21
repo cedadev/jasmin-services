@@ -53,7 +53,7 @@ class Group(jasmin_ldap_django.models.LDAPModel):
     search_classes = ["posixGroup"]
 
     # User visible fields
-    name = jasmin_ldap_django.models.ldap.CharField(
+    name = jasmin_ldap_django.models.CharField(
         db_column="cn",
         primary_key=True,
         max_length=50,
@@ -114,31 +114,6 @@ class Group(jasmin_ldap_django.models.LDAPModel):
         return super().save(*args, **kwargs)
 
 
-# Concrete models for the LDAP groups as defined in settings
-this_module = sys.modules[__name__]
-for grp in django.conf.settings.JASMIN_SERVICES["LDAP_GROUPS"]:
-    setattr(
-        this_module,
-        grp["MODEL_NAME"],
-        type(
-            grp["MODEL_NAME"],
-            (Group,),
-            {
-                "__module__": __name__,
-                "Meta": type(
-                    "Meta",
-                    (Group.Meta,),
-                    {
-                        "verbose_name": grp["VERBOSE_NAME"],
-                        "verbose_name_plural": grp.get("VERBOSE_NAME_PLURAL"),
-                    },
-                ),
-                "base_dn": grp["BASE_DN"],
-                "gid_number_min": grp["GID_NUMBER_MIN"],
-                "gid_number_max": grp["GID_NUMBER_MAX"],
-            },
-        ),
-    )
 
 
 class LdapGroupBehaviour(Behaviour):
