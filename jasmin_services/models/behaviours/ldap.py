@@ -1,102 +1,26 @@
-"""
-Module defining specific category implementations.
-"""
-
-__author__ = "Matt Pryor"
-__copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
-
+"""Behavious to apply changes to LDAP."""
 import sys
 
-from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.mail import send_mail
-from django.core.validators import RegexValidator
-from django.db import models
-from jasmin_ldap_django import models as ldap
-from polymorphic.models import PolymorphicModel
+import django.conf
+import django.core.exceptions
+import django.core.validators
+import django.db.models
+import jasmin_ldap_django.models
 
-
-class Behaviour(PolymorphicModel):
-    """
-    Model defining a behaviour configuration.
-    """
-
-    id = models.AutoField(primary_key=True)
-
-    def apply(self, user):
-        """
-        Applies the behaviour for the given user.
-        """
-        raise NotImplementedError
-
-    def unapply(self, user):
-        """
-        Un-applies the behaviour for the given user.
-        """
-        raise NotImplementedError
-
-
-class JoinJISCMailListBehaviour(Behaviour):
-    """
-    Behaviour for joining a JISCMail list the first time a behaviour is applied for
-    a user.
-    """
-
-    class Meta:
-        verbose_name = "Join JISCMail List Behaviour"
-
-    list_name = models.CharField(
-        max_length=100,
-        help_text="The name of the JISCMail mailing list to join",
-        unique=True,
-    )
-    # This is the users who have joined already
-    joined_users = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, symmetrical=False, blank=True
-    )
-
-    def apply(self, user):
-        # Don't join service users up to the mailing list
-        if user.service_user:
-            return
-        # If the user is already in joined_users, there is nothing to do
-        if self.joined_users.filter(pk=user.pk).exists():
-            return
-        send_mail(
-            "Adding {} ({}) to {} mailing list".format(
-                user.email, user.get_full_name(), self.list_name.lower()
-            ),
-            "add {} {} {}".format(
-                self.list_name.lower(), user.email, user.get_full_name()
-            ),
-            settings.SUPPORT_EMAIL,
-            settings.JASMIN_SERVICES["JISCMAIL_TO_ADDRS"],
-            fail_silently=True,
-        )
-        self.joined_users.add(user)
-        self.save()
-
-    def unapply(self, user):
-        # users must now unsubscribe themselves
-        pass
-
-    def __str__(self):
-        return "Join JISCMail List <{}>".format(self.list_name)
+from .base import Behaviour
 
 
 class LdapTagBehaviour(Behaviour):
-    """
-    Behaviour for applying an LDAP tag to a user's account.
-    """
+    """Behaviour for applying an LDAP tag to a user's account."""
 
     class Meta:
         verbose_name = "LDAP Tag Behaviour"
 
-    tag = models.CharField(
+    tag = django.db.models.CharField(
         unique=True,
         max_length=100,
         verbose_name="LDAP Tag",
-        validators=[RegexValidator(regex="^[a-zA-Z0-9_:-]+$")],
+        validators=[django.core.validators.RegexValidator(regex="^[a-zA-Z0-9_:-]+$")],
     )
 
     def apply(self, user):
@@ -112,20 +36,16 @@ class LdapTagBehaviour(Behaviour):
             account.save()
 
     def __str__(self):
-        return "LDAP Tag <{}>".format(self.tag)
+        return f"LDAP Tag <{self.tag}>"
 
 
-class Group(ldap.LDAPModel):
-    """
-    Abstract base class for a posixGroup in LDAP.
-    """
+class Group(jasmin_ldap_django.models.LDAPModel):
+    """Abstract base class for a posixGroup in LDAP."""
 
     class GidAllocationFailed(RuntimeError):
-        """
-        Raised when a gid allocation fails.
-        """
+        """Raised when a gid allocation fails."""
 
-    class Meta(ldap.LDAPModel.Meta):
+    class Meta(jasmin_ldap_django.models.LDAPModel.Meta):
         abstract = True
         ordering = ["name"]
 
@@ -133,20 +53,20 @@ class Group(ldap.LDAPModel):
     search_classes = ["posixGroup"]
 
     # User visible fields
-    name = ldap.CharField(
+    name = jasmin_ldap_django.models.ldap.CharField(
         db_column="cn",
         primary_key=True,
         max_length=50,
         validators=[
-            RegexValidator(
+            django.core.validators.RegexValidator(
                 regex="^[a-zA-Z]",
                 message="Name must start with a letter.",
             ),
-            RegexValidator(
+            django.core.validators.RegexValidator(
                 regex="[a-zA-Z0-9]$",
                 message="Name must end with a letter or number.",
             ),
-            RegexValidator(
+            django.core.validators.RegexValidator(
                 regex="^[a-zA-Z0-9_-]+$",
                 message="Name must contain letters, numbers, _ and -.",
             ),
@@ -156,15 +76,17 @@ class Group(ldap.LDAPModel):
             "max_length": "Name must have at most %(limit_value)d characters.",
         },
     )
-    description = ldap.TextField(db_column="description", blank=True)
-    member_uids = ldap.ListField(db_column="memberUid", blank=True)
+    description = jasmin_ldap_django.models.TextField(
+        db_column="description", blank=True
+    )
+    member_uids = jasmin_ldap_django.models.ListField(db_column="memberUid", blank=True)
 
     # blank = True is set here for the field validation, but a blank gidNumber is
     # not allowed by the save method
-    gidNumber = ldap.PositiveIntegerField(unique=True, blank=True)
+    gidNumber = jasmin_ldap_django.models.PositiveIntegerField(unique=True, blank=True)
 
     def __str__(self):
-        return "cn={},{}".format(self.name, self.base_dn)
+        return f"cn={self.name},{self.base_dn}"
 
     def save(self, *args, **kwargs):
         # If there is no gidNumber, try to allocate one
@@ -173,7 +95,7 @@ class Group(ldap.LDAPModel):
             max_gid = (
                 self.__class__.objects.filter(gidNumber__isnull=False)
                 .filter(gidNumber__lt=self.gid_number_max)
-                .aggregate(max_gid=models.Max("gidNumber"))
+                .aggregate(max_gid=django.db.models.Max("gidNumber"))
                 .get("max_gid")
             )
             if max_gid is not None:
@@ -194,7 +116,7 @@ class Group(ldap.LDAPModel):
 
 # Concrete models for the LDAP groups as defined in settings
 this_module = sys.modules[__name__]
-for grp in settings.JASMIN_SERVICES["LDAP_GROUPS"]:
+for grp in django.conf.settings.JASMIN_SERVICES["LDAP_GROUPS"]:
     setattr(
         this_module,
         grp["MODEL_NAME"],
@@ -220,19 +142,17 @@ for grp in settings.JASMIN_SERVICES["LDAP_GROUPS"]:
 
 
 class LdapGroupBehaviour(Behaviour):
-    """
-    Behaviour for adding a user to an LDAP group.
-    """
+    """Behaviour for adding a user to an LDAP group."""
 
     class Meta:
         verbose_name = "LDAP Group Behaviour"
 
-    ldap_model = models.CharField(
+    ldap_model = django.db.models.CharField(
         max_length=100,
         verbose_name="LDAP model",
         help_text="The LDAP group model to use.",
     )
-    group_name = models.CharField(
+    group_name = django.db.models.CharField(
         max_length=100,
         verbose_name="LDAP group name",
         help_text="The name of the LDAP group to use.",
@@ -244,13 +164,15 @@ class LdapGroupBehaviour(Behaviour):
             try:
                 _ = self.get_group_model()
             except AttributeError:
-                raise ValidationError({"ldap_model": "Not a valid LDAP model."})
+                raise django.core.exceptions.ValidationError(
+                    {"ldap_model": "Not a valid LDAP model."}
+                )
         # Group name must be a valid group for the selected model
         if self.ldap_model and self.group_name:
             try:
                 _ = self.get_ldap_group()
-            except ObjectDoesNotExist:
-                raise ValidationError(
+            except django.core.exceptions.ObjectDoesNotExist:
+                raise django.core.exceptions.ValidationError(
                     {"group_name": "Not a valid group name for selected LDAP model."}
                 )
             # ldap_model and group_name are unique-together, but with a case-insensitive name
@@ -260,7 +182,7 @@ class LdapGroupBehaviour(Behaviour):
             if self.pk:
                 q = q.exclude(pk=self.pk)
             if q.exists():
-                raise ValidationError(
+                raise django.core.exceptions.ValidationError(
                     "LDAP Group Behaviour already exists with this LDAP model and LDAP group name."
                 )
 
@@ -287,4 +209,4 @@ class LdapGroupBehaviour(Behaviour):
             base_dn = self.get_group_model().base_dn
         except AttributeError:
             base_dn = self.ldap_model
-        return "LDAP Group <cn={},{}>".format(self.group_name, base_dn)
+        return f"LDAP Group <cn={self.group_name},{base_dn}>"
