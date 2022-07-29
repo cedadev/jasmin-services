@@ -24,8 +24,6 @@ class JoinJISCMailListBehaviour(Behaviour):
     )
 
     def apply(self, user, _service):
-        print(_service)
-        raise ValueError
         # Don't join service users up to the mailing list
         if user.service_user:
             return
