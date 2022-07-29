@@ -12,10 +12,10 @@ class Behaviour(PolymorphicModel):
 
     id = django.db.models.AutoField(primary_key=True)
 
-    def apply(self, user):
+    def apply(self, user, service):
         """Apply the behaviour for the given user."""
         raise NotImplementedError
 
-    def unapply(self, user):
+    def unapply(self, user, service):
         """Un-apply the behaviour for the given user."""
         raise NotImplementedError

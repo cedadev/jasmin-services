@@ -23,7 +23,9 @@ class JoinJISCMailListBehaviour(Behaviour):
         django.conf.settings.AUTH_USER_MODEL, symmetrical=False, blank=True
     )
 
-    def apply(self, user):
+    def apply(self, user, _service):
+        print(_service)
+        raise ValueError
         # Don't join service users up to the mailing list
         if user.service_user:
             return
@@ -40,7 +42,7 @@ class JoinJISCMailListBehaviour(Behaviour):
         self.joined_users.add(user)
         self.save()
 
-    def unapply(self, user):
+    def unapply(self, user, _service):
         # users must now unsubscribe themselves
         pass
 
