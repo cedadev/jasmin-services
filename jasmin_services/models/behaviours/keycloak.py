@@ -12,15 +12,15 @@ class KeycloakAttributeBehaviour(Behaviour):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        settings = django.conf.settings["JASMIN_SERVICES"]["KEYCLOAK"]
+        settings = django.conf.settings.JASMIN_SERVICES["KEYCLOAK"]
 
         self.keycloak = keycloak.KeycloakAdmin(
-            server_url=settings.get("server_url"),
-            realm_name=settings.get("realm_name"),
-            username=settings.get("username"),
-            password=settings.get("password"),
-            user_realm_name=settings.get("user_realm_name", settings.get("realm_name")),
-            verify=settings.get("verify", True),
+            server_url=settings.get("SERVER_URL"),
+            realm_name=settings.get("REALM_NAME"),
+            username=settings.get("USERNAME"),
+            password=settings.get("PASSWORD"),
+            user_realm_name=settings.get("USER_REALM_NAME", settings.get("REALM_NAME")),
+            verify=settings.get("VERIFY", True),
         )
 
     def apply(self, user, service):
