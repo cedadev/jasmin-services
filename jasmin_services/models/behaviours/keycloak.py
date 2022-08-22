@@ -25,12 +25,12 @@ class KeycloakAttributeBehaviour(Behaviour):
 
     def apply(self, user, service):
         """Add the user to the specified keycloak groups."""
-        kc_group = self.keycloak.get_group("test")
+        kc_group = self.keycloak.get_group(service.name)
         kc_user_id = self.keycloak.get_user_id(user.username)
         self.keycloak.group_user_add(kc_user_id, kc_group.get("id"))
 
     def unapply(self, user, service):
         """Remove the user from the specified keycloak groups."""
-        kc_group = self.keycloak.get_group("test")
+        kc_group = self.keycloak.get_group(service.name)
         kc_user_id = self.keycloak.get_user_id(user.username)
         self.keycloak.group_user_remove(kc_user_id, kc_group.get("id"))
