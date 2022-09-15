@@ -23,13 +23,13 @@ class LdapTagBehaviour(Behaviour):
         validators=[django.core.validators.RegexValidator(regex="^[a-zA-Z0-9_:-]+$")],
     )
 
-    def apply(self, user, _service):
+    def apply(self, user, _role):
         account = user.account
         if self.tag not in account.tags:
             account.tags.append(self.tag)
             account.save()
 
-    def unapply(self, user, _service):
+    def unapply(self, user, _role):
         account = user.account
         if self.tag in account.tags:
             account.tags = [t for t in account.tags if t != self.tag]
@@ -165,13 +165,13 @@ class LdapGroupBehaviour(Behaviour):
     def get_ldap_group(self):
         return self.get_group_model().objects.get(name=self.group_name)
 
-    def apply(self, user, _service):
+    def apply(self, user, _role):
         group = self.get_ldap_group()
         if user.username not in group.member_uids:
             group.member_uids.append(user.username)
             group.save()
 
-    def unapply(self, user, _service):
+    def unapply(self, user, _role):
         group = self.get_ldap_group()
         if user.username in group.member_uids:
             group.member_uids = [m for m in group.member_uids if m != user.username]
