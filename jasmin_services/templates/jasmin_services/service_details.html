@@ -39,11 +39,13 @@
                 {% endif %}
                 {% if grants %}
                     <ul class="list-group">
+                    <li class="list-group-item"><b>{{"Managers"}}</b></li>    
                     {% for manager in managers %}
-                        <li class="list-group-item"> {{"Manager:"}} {{ manager.first_name }} {{ manager.last_name }}</li>
+                        <li class="list-group-item"> {{ manager.first_name }} {{ manager.last_name }}</li>
                     {% endfor %}
-                    {%for deputy in deputies %}
-                        <li class="list-group-item"> {{"Deputy:"}} {{ deputy.first_name }} {{deputy.last_name}}</li>
+                    <li class="list-group-item"><b>{{"Deputies"}}</b></li>
+                    {% for deputy in deputies %}
+                        <li class="list-group-item"> {{ deputy.first_name }} {{deputy.last_name}}</li>
                     {% endfor %}
                     </ul>
                 {% endif %}
