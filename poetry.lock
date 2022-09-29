@@ -567,8 +567,8 @@ jasmin-django-utils = "*"
 [package.source]
 type = "git"
 url = "https://github.com/cedadev/jasmin-notifications.git"
-reference = "v1.0.0"
-resolved_reference = "88f2ee6e017cff85d53aa6f46b07493d82bb2717"
+reference = "v1.1.0"
+resolved_reference = "06e99970af8054d1b2f7cc802a9f8acebbb51865"
 
 [[package]]
 name = "jsonschema"
@@ -1052,7 +1052,7 @@ tests = ["django-oauth-toolkit", "backports.zoneinfo"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.8"
-content-hash = "03aa450796a57d48fd9ca2542a918126740df45450c61986acf67355bedeb778"
+content-hash = "9e0dff3a0dd2a2fa38d8dd549416d50d584ccfb6151d534db73e2b0b068e2b67"
 
 [metadata.files]
 asgiref = [
