@@ -279,7 +279,7 @@ class Role(models.Model):
             return
         # Apply the behaviours
         for behaviour in self.behaviours.all():
-            behaviour.apply(user)
+            behaviour.apply(user, self)
 
     def disable(self, user):
         """Disable this role for the given user."""
@@ -307,7 +307,7 @@ class Role(models.Model):
                 expires__gte=date.today(),
             ).filter_active()
             if not grants.exists():
-                behaviour.unapply(user)
+                behaviour.unapply(user, self)
 
 
 class RoleObjectPermission(models.Model):

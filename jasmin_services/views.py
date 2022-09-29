@@ -506,8 +506,9 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
     # ONLY FOR CEDA SERVICES: Get licence url
     licence_url = None
     if settings.LICENCE_REQUIRED:
-        group = next(b for b in role.behaviours if isinstance(b, Group))
-        if group:
+        groups = [b for b in role.behaviours.all() if isinstance(b, Group)]
+        if groups:
+            group = groups[0]
             response = reqs.get(
                 settings.licence_url,
                 params={"group": group.name},
