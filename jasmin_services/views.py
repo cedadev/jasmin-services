@@ -394,9 +394,18 @@ def service_details(request, service):
             expires__gt=date.today(),
         )
         .filter_active()
-        .filter(Q(access__role__name="MANAGER") | Q(access__role__name="DEPUTY"))
+        .filter(access__role__name="MANAGER")
     )
     managers = [x.access.user for x in managers]
+    deputies = (
+        Grant.objects.filter(
+            access__role__service=service,
+            expires__gt=date.today(),
+        )
+        .filter_active()
+        .filter(access__role__name="DEPUTY")
+    )
+    deputies = [x.access.user for x in deputies]
 
     # Get the active grants and requests for the service as a whole
     all_grants = Grant.objects.filter(
@@ -467,6 +476,7 @@ def service_details(request, service):
             "grants": grants,
             "roles": roles,
             "managers": managers,
+            "deputies": deputies,
         },
     )
 
