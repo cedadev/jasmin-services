@@ -40,7 +40,7 @@
                 {% if grants %}
                     <ul class="list-group">
                     {% for manager in managers %}
-                        <li class="list-group-item">{{ manager.first_name }} {{ manager.last_name }}</li>
+                        <li class="list-group-item"> {{"Manager Name:"}} {{ manager.first_name }} {{ manager.last_name }}</li>
                     {% endfor %}
                     </ul>
                 {% endif %}
