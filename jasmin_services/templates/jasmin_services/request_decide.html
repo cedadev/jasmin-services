@@ -44,10 +44,18 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label class="col-sm-2 col-form-label" for="id_for_full_name">Full name</label>
+                    <label class="col-sm-2 col-form-label" for="id_for_full_name">Full Name</label>
                     <div class="col-sm-10">
                         <p class="form-control-plaintext" id="id_for_full_name">
                             {{ pending.access.user.get_full_name }}
+                        </p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for=""id_for_email">Email Address</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-plaintext" id="id_for_email">
+                            {{ pending.access.user.email }}
                         </p>
                     </div>
                 </div>
