@@ -43,7 +43,7 @@
             {% if not requests and not grants and roles|length == 1 %}
                 <div class="well text-center">
                     <a class="btn btn-success btn-lg {% if service.instution_countries and user_country not in service.instution_countries %} disabled {% endif %}"
-                    href="{% url 'jasmin_services:role_apply' category=roles.0.service.category.name service=roles.0.service.name role=roles.0.name %}">
+                        href="{% url 'jasmin_services:role_apply' category=roles.0.service.category.name service=roles.0.service.name role=roles.0.name %}">
                         <i class="fa fa-fw fa-plus"></i> Apply for access
                     </a>
                 </div>
@@ -115,19 +115,19 @@
                                         {% else %}
                                             <td></td>
                                         {% endif %}
+                                    </tr>
+                                    {% if role_grants|length > 1 %}
+                                        <tr>
+                                            <th class="text-muted" colspan="2">Supporting info:</th>
+                                            <td colspan="3"><blockquote class="active">{{ meta_data|markdown }}</blockquote></td>
                                         </tr>
-                                        {% if role_grants|length > 1 %}
-                                            <tr>
-                                                <th class="text-muted" colspan="2">Supporting info:</th>
-                                                <td colspan="3"><blockquote class="active">{{ meta_data|markdown }}</blockquote></td>
-                                            </tr>
-                                        {% endif %}
-                                        {% if grant.revoked %}
-                                            <tr>
-                                                <th class="text-muted" colspan="2">Reason:</th>
-                                                <td colspan="3"><blockquote class="danger">{{ grant.user_reason|markdown }}</blockquote></td>
-                                            </tr>
-                                        {% endif %}
+                                    {% endif %}
+                                    {% if grant.revoked %}
+                                        <tr>
+                                            <th class="text-muted" colspan="2">Reason:</th>
+                                            <td colspan="3"><blockquote class="danger">{{ grant.user_reason|markdown }}</blockquote></td>
+                                        </tr>
+                                    {% endif %}
                                     </tbody>
                                 {% endfor %}
                             {% endfor %}
@@ -162,31 +162,31 @@
                                                         <i class="fa fa-fw fa-ban"></i>
                                                     {% endif %}
                                                 </td>
-                                            {% elif req.pending %}
+                                        {% elif req.pending %}
                                             <tr class="active">
                                                 <td class="text-muted" style="width: 1%;"><i class="fa fa-fw fa-hourglass-half"></i></td>
                                         {% else %}
                                             <tr class="success">
                                                 <td class="text-success" style="width: 1%;"><i class="fa fa-fw fa-check"></i></td>
                                         {% endif %}
-                                            <td><code>{{ req.access.role.name }}</code></td>
-                                            <td><code>
-                                                {% if req.approved %}
-                                                    APPROVED
-                                                {% elif req.rejected %}
-                                                    {% if req.incomplete %}
-                                                        INCOMPLETE
-                                                    {% else %}
-                                                        REJECTED
-                                                    {% endif %}
+                                        <td><code>{{ req.access.role.name }}</code></td>
+                                        <td><code>
+                                            {% if req.approved %}
+                                                APPROVED
+                                            {% elif req.rejected %}
+                                                {% if req.incomplete %}
+                                                    INCOMPLETE
                                                 {% else %}
-                                                    PENDING
+                                                    REJECTED
                                                 {% endif %}
-                                            </code></td>
-                                            <td>{{ req.requested_at.date }}</td>
-                                            {% if req.rejected %}
-                                                <td style="width: 1%;">
-                                                    <div style="display: table-cell; padding: 0.5rem;">
+                                            {% else %}
+                                                PENDING
+                                            {% endif %}
+                                        </code></td>
+                                        <td>{{ req.requested_at.date }}</td>
+                                        {% if req.rejected %}
+                                            <td style="width: 1%;">
+                                                <div style="display: table-cell; padding: 0.5rem;">
                                                     <button type="button"
                                                         class="btn btn-danger btn-sm"
                                                         data-bs-toggle="popover"
@@ -204,25 +204,25 @@
                                                             <i class="fas fa-fw fa-sync"></i> Apply again
                                                         {% endif %}
                                                     </a></div>
-                                                </td>
-                                            {% else %}
-                                                <td></td>
-                                            {% endif %}
+                                            </td>
+                                        {% else %}
+                                            <td></td>
+                                        {% endif %}
+                                    </tr>
+                                    {% if role_requests|length > 1 %}
+                                        <tr>
+                                            <th class="text-muted" colspan="2">Supporting info:</th>
+                                            <td colspan="3"><blockquote class="active">{{ meta_data|markdown }}</blockquote></td>
                                         </tr>
-                                        {% if role_requests|length > 1 %}
-                                            <tr>
-                                                <th class="text-muted" colspan="2">Supporting info:</th>
-                                                <td colspan="3"><blockquote class="active">{{ meta_data|markdown }}</blockquote></td>
-                                            </tr>
-                                        {% endif %}
-                                        {% if req.rejected %}
-                                            <tr class="reason">
-                                                <th colspan="2" class="text-muted">Reason:</th>
-                                                <td colspan="3">
-                                                    <blockquote class="danger">{{ req.user_reason|markdown }}</blockquote>
-                                                </td>
-                                            </tr>
-                                        {% endif %}
+                                    {% endif %}
+                                    {% if req.rejected %}
+                                        <tr class="reason">
+                                            <th colspan="2" class="text-muted">Reason:</th>
+                                            <td colspan="3">
+                                                <blockquote class="danger">{{ req.user_reason|markdown }}</blockquote>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
                                     </tbody>
                                 {% endfor %}
                             {% endfor %}
@@ -249,16 +249,16 @@
                                         <td></td>
                                         <td style="width: 1%;">
                                             <a class="btn btn-success btn-sm btn-block"
-                                            href="{% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name %}">
+                                                href="{% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name %}">
                                                 <i class="fa fa-fw fa-plus"></i> Apply
                                             </a>
                                         </td>
                                     </tr>
-                                  </tbody>
+                                </tbody>
                             {% endfor %}
                         </table>
                     </div>
-                    
+
                 {% endif %}
                 {% if grants %}
                     <div class="card">
@@ -278,19 +278,19 @@
                                 {% for manager in managers%}
                                     <tr class="active">
                                         <td class="text-muted" style="width: 1%;"><i></i></td>
-                                    <td><code>MANAGER</code></td>
-                                    <td>{{manager.first_name}} {{manager.last_name}}</td>
-                                    <td></td>
+                                        <td><code>MANAGER</code></td>
+                                        <td>{{manager.first_name}} {{manager.last_name}}</td>
+                                        <td></td>
                                     </tr>
                                 {% endfor %}
                                 {% for deputy in deputies%}
                                     <tr class="active">
                                         <td class="text-muted" style="width: 1%;"><i></i></td>
-                                    <td><code>DEPUTY</code></td>
-                                    <td>{{deputy.first_name}} {{deputy.last_name}}</td>
-                                    <td></td>
+                                        <td><code>DEPUTY</code></td>
+                                        <td>{{deputy.first_name}} {{deputy.last_name}}</td>
+                                        <td></td>
                                     </tr>
-                                
+
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -299,48 +299,48 @@
             {% endif %}
         </div>
     </div>
-</div>
+    </div>
 
 {% endblock %}
 
 {% block tail_js_extra %}
-<script type="text/javascript">
-    // Initially, hide any secondary rows
-    // By inserting this using Javascript, we ensure the rows are visible for
-    // people without Javascript
-    var reasons = document.getElementsByClassName('reason');
-    for(var i = 0; i < reasons.length; i++){
-        console.log(reasons[i])
-        reasons[i].style.display = "none";
-    }
-</script>
-
-<script type="text/javascript">
-    var $multiple = $('.access-table > tbody > tr:nth-child(2)').parent();
-    $multiple.first().children('tr').show();
-    var $controlRows = $multiple.children('tr:first-child');
-    $controlRows.css('cursor', 'pointer');
-    $controlRows.tooltip({
-        'placement' : 'auto left',
-        'title' : 'Click for reason',
-        'trigger' : 'manual',
-        'container' : 'body'
-    })
-    $controlRows.hover(
-        function() {
-            var $row = $(this);
-            if( $row.siblings(':nth-child(2)').is(':visible') ) return;
-            $row.tooltip('show');
-        },
-        function() {
-            $(this).tooltip('hide');
+    <script type="text/javascript">
+        // Initially, hide any secondary rows
+        // By inserting this using Javascript, we ensure the rows are visible for
+        // people without Javascript
+        var reasons = document.getElementsByClassName('reason');
+        for(var i = 0; i < reasons.length; i++){
+            console.log(reasons[i])
+            reasons[i].style.display = "none";
         }
-    );
-    $controlRows.click(function() {
-        $controlRows.tooltip('hide');
-        var $tbody = $(this).parent();
-        $multiple.not($tbody).children('tr:not(:first-child)').hide();
-        $tbody.children('tr').show();
-    });
-</script>
+    </script>
+
+    <script type="text/javascript">
+        var $multiple = $('.access-table > tbody > tr:nth-child(2)').parent();
+        $multiple.first().children('tr').show();
+        var $controlRows = $multiple.children('tr:first-child');
+        $controlRows.css('cursor', 'pointer');
+        $controlRows.tooltip({
+            'placement' : 'auto left',
+            'title' : 'Click for reason',
+            'trigger' : 'manual',
+            'container' : 'body'
+        })
+        $controlRows.hover(
+            function() {
+                var $row = $(this);
+                if( $row.siblings(':nth-child(2)').is(':visible') ) return;
+                $row.tooltip('show');
+            },
+            function() {
+                $(this).tooltip('hide');
+            }
+        );
+        $controlRows.click(function() {
+            $controlRows.tooltip('hide');
+            var $tbody = $(this).parent();
+            $multiple.not($tbody).children('tr:not(:first-child)').hide();
+            $tbody.children('tr').show();
+        });
+    </script>
 {% endblock %}
