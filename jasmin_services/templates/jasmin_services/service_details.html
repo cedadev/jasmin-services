@@ -265,7 +265,7 @@
                         <div class="card-header">
                             <h3 class="card-title">Managers & Deputies</h3>
                         </div>
-                        <table class="table table-hover access-table">
+                        <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th></th>
@@ -274,26 +274,25 @@
                                     <th></th>
                                 </tr>
                             </thead>
-                            {% for manager in managers%}
-                                <tbody>
+                            <tbody>
+                                {% for manager in managers%}
                                     <tr class="active">
                                         <td class="text-muted" style="width: 1%;"><i></i></td>
-                                    <td><code>{{"MANAGER"}}</code></td>
+                                    <td><code>MANAGER</code></td>
                                     <td>{{manager.first_name}} {{manager.last_name}}</td>
                                     <td></td>
                                     </tr>
-                                </tbody>
-                            {% endfor %}
-                            {% for deputy in deputies%}
-                                <tbody>
+                                {% endfor %}
+                                {% for deputy in deputies%}
                                     <tr class="active">
                                         <td class="text-muted" style="width: 1%;"><i></i></td>
-                                    <td><code>{{"DEPUTY"}}</code></td>
+                                    <td><code>DEPUTY</code></td>
                                     <td>{{deputy.first_name}} {{deputy.last_name}}</td>
                                     <td></td>
                                     </tr>
-                                </tbody>
-                            {% endfor %}
+                                
+                                {% endfor %}
+                            </tbody>
                         </table>
                     </div>
                 {% endif %}
