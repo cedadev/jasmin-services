@@ -1,8 +1,13 @@
+from datetime import date
+
+from dateutil.relativedelta import relativedelta
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from jasmin_metadata.models import HasMetadata
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
-from .access import Access
+import jasmin_services.models
 
 
 class GrantQuerySet(models.QuerySet):
@@ -88,7 +93,7 @@ class Grant(HasMetadata):
 
     #: The role/user combination that the grant is for
     access = models.ForeignKey(
-        Access, models.CASCADE, related_name="grants", related_query_name="grant"
+        "Access", models.CASCADE, related_name="grants", related_query_name="grant"
     )
     #: Username of the user who granted the role
     granted_by = models.CharField(max_length=200)
@@ -117,6 +122,10 @@ class Grant(HasMetadata):
     previous_grant = models.OneToOneField(
         "self", models.SET_NULL, null=True, blank=True, related_name="next_grant"
     )
+
+    @property
+    def user(self):
+        return self.access.user
 
     def __str__(self):
         if hasattr(self, "next_grant"):
@@ -168,7 +177,7 @@ class Grant(HasMetadata):
                 active_grant = Grant.objects.filter(
                     access=self.access, next_grant__isnull=True
                 )
-                active_request = Request.objects.filter(
+                active_request = jasmin_services.models.Request.objects.filter(
                     access=self.access,
                     resulting_grant__isnull=True,
                     next_request__isnull=True,

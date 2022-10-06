@@ -1,10 +1,11 @@
 import inspect
 
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from jasmin_metadata.models import HasMetadata
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
-from .access import Access
 from .grant import Grant
 
 
@@ -131,7 +132,7 @@ class Request(HasMetadata):
 
     #: The role/user combination that the request is for
     access = models.ForeignKey(
-        Access, models.CASCADE, related_name="requests", related_query_name="request"
+        "Access", models.CASCADE, related_name="requests", related_query_name="request"
     )
     #: Username of the user who requested the role
     requested_by = models.CharField(max_length=200)

@@ -1,5 +1,7 @@
 import functools
+from datetime import date
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -9,6 +11,7 @@ from django.db import models
 from jasmin_metadata.models import Form
 
 from .behaviours import Behaviour
+from .grant import Grant
 from .service import Service
 
 
@@ -123,7 +126,6 @@ class Role(models.Model):
         # through the regular Django system without them being considered as
         # approvers, and so they do not receive notifications or show up in the
         # user interface
-        from .access_control import Grant
 
         return (
             get_user_model()
@@ -169,7 +171,6 @@ class Role(models.Model):
             #   * Related to this behaviour via the role
             #   * For the same user
             #   * Active and not revoked or expired
-            from .access_control import Grant
 
             grants = Grant.objects.filter(
                 access__role__behaviours=behaviour,

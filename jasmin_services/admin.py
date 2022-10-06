@@ -840,7 +840,7 @@ class RequestAdmin(HasMetadataModelAdmin):
         if obj.state == RequestState.PENDING:
             return "PENDING"
         elif obj.state == RequestState.APPROVED:
-            return mark_safe('<span style="color: #00b300;">APPROVED</span>')
+            return '<span style="color: #00b300;">APPROVED</span>'
         elif obj.incomplete:
             return mark_safe(
                 '<span style="color: #e67a00; font-weight: bold;">INCOMPLETE</span>'

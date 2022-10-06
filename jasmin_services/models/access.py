@@ -1,8 +1,6 @@
 from django.conf import settings
 from django.db import models
 
-from .role import Role
-
 
 class Access(models.Model):
     """
@@ -25,7 +23,7 @@ class Access(models.Model):
 
     #: The role that the grant is for
     role = models.ForeignKey(
-        Role, models.CASCADE, related_name="accesses", related_query_name="access"
+        "Role", models.CASCADE, related_name="accesses", related_query_name="access"
     )
     #: The user for whom the role is granted
     user = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE)
