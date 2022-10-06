@@ -4,7 +4,7 @@ import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
 
-import jasmin_services.models.access_control
+import jasmin_services.models
 
 
 class Migration(migrations.Migration):
