@@ -31,4 +31,4 @@ class Access(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE)
 
     def __str__(self):
-        return "{} : {}".format(self.role, self.user)
+        return f"{self.role} : {self.user}"
