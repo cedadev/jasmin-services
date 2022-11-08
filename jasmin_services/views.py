@@ -385,6 +385,28 @@ def service_details(request, service):
 
     Displays details for a service, including details of current access and requests.
     """
+
+    # Get all the current managers and deputies of a services so that
+    # we can display this information to users of the service.
+    managers = (
+        Grant.objects.filter(
+            access__role__service=service,
+            expires__gt=date.today(),
+        )
+        .filter_active()
+        .filter(access__role__name="MANAGER")
+    )
+    managers = [x.access.user for x in managers]
+    deputies = (
+        Grant.objects.filter(
+            access__role__service=service,
+            expires__gt=date.today(),
+        )
+        .filter_active()
+        .filter(access__role__name="DEPUTY")
+    )
+    deputies = [x.access.user for x in deputies]
+
     # Get the active grants and requests for the service as a whole
     all_grants = Grant.objects.filter(
         access__role__service=service, access__user=request.user
@@ -392,6 +414,7 @@ def service_details(request, service):
     all_requests = Request.objects.filter(
         access__role__service=service, access__user=request.user
     ).filter_active()
+
     # roles is a list of the roles of the service that have an active grant
     # or request or aren't hidden
     roles = []
@@ -452,6 +475,8 @@ def service_details(request, service):
             "requests": requests,
             "grants": grants,
             "roles": roles,
+            "managers": managers,
+            "deputies": deputies,
         },
     )
 
