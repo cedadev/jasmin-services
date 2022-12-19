@@ -14,9 +14,7 @@ logger = logging.getLogger(__name__)
 try:
     from .keycloak import KeycloakAttributeBehaviour
 except ImportError:
-    logger.warning(
-        "Keycloak Behaviour is not enabled. Install optional dependencies to activate."
-    )
+    logger.warning("Keycloak Behaviour is not enabled. Install optional dependencies to activate.")
 else:
     __all__ += ["KeycloakAttributeBehaviour"]
 

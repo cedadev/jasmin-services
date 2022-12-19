@@ -10,8 +10,7 @@ def migrate_ldap_group_data_forward(apps, schema_editor):
     # We need to split group_dn into ldap_model and group_name
     # First, lets create a mapping from base_dn to ldap model
     base_dn_map = {
-        g["BASE_DN"].lower(): g["MODEL_NAME"]
-        for g in settings.JASMIN_SERVICES["LDAP_GROUPS"]
+        g["BASE_DN"].lower(): g["MODEL_NAME"] for g in settings.JASMIN_SERVICES["LDAP_GROUPS"]
     }
     Behaviour = apps.get_model("jasmin_services", "LdapGroupBehaviour")
     for behaviour in Behaviour.objects.all():
@@ -23,9 +22,7 @@ def migrate_ldap_group_data_forward(apps, schema_editor):
 
 def migrate_ldap_group_data_reverse(apps, schema_editor):
     # Migrate from ldap_model and group_name to group_dn
-    base_dn_map = {
-        g["MODEL_NAME"]: g["BASE_DN"] for g in settings.JASMIN_SERVICES["LDAP_GROUPS"]
-    }
+    base_dn_map = {g["MODEL_NAME"]: g["BASE_DN"] for g in settings.JASMIN_SERVICES["LDAP_GROUPS"]}
     Behaviour = apps.get_model("jasmin_services", "LdapGroupBehaviour")
     for behaviour in Behaviour.objects.all():
         behaviour.group_dn = "cn={},{}".format(
@@ -41,7 +38,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(
-            migrate_ldap_group_data_forward, migrate_ldap_group_data_reverse
-        ),
+        migrations.RunPython(migrate_ldap_group_data_forward, migrate_ldap_group_data_reverse),
     ]

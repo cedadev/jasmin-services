@@ -45,8 +45,8 @@ mypy = "^0.942"
 django-stubs = ">=1.9.0"
 
 [tool.black]
-line-length = 88
-target-version = ['py36','py38']
+line-length = 100
+target-version = ['py39', 'py310', 'py311']
 
 [tool.isort]
 profile = "black"

@@ -80,11 +80,7 @@ class GroupAdmin(admin.ModelAdmin):
     )
 
     def get_queryset(self, request):
-        return (
-            super()
-            .get_queryset(request)
-            .annotate(num_members=models.Count("member_uids"))
-        )
+        return super().get_queryset(request).annotate(num_members=models.Count("member_uids"))
 
     def get_fieldsets(self, request, obj=None):
         if request.user.is_superuser:
@@ -219,9 +215,7 @@ class ServiceAdmin(admin.ModelAdmin):
         # If creating the service, create the default roles
         from django.conf import settings
 
-        default_form = Form.objects.get(
-            pk=settings.JASMIN_SERVICES["DEFAULT_METADATA_FORM"]
-        )
+        default_form = Form.objects.get(pk=settings.JASMIN_SERVICES["DEFAULT_METADATA_FORM"])
         if not change:
             service = form.instance
             # Create the three default roles
@@ -334,9 +328,7 @@ class ServiceAdmin(admin.ModelAdmin):
                 user_reason="This service has been retired.",
                 internal_reason=f"Service was retired by {request.user.username}.",
             )
-            return django.shortcuts.redirect(
-                f"/admin/jasmin_services/service/{service.id}/change"
-            )
+            return django.shortcuts.redirect(f"/admin/jasmin_services/service/{service.id}/change")
 
         context = {
             "title": f"{service.name}: Retire",
@@ -708,9 +700,7 @@ class GrantAdmin(HasMetadataModelAdmin):
             referring = self.get_referring_request(request)
         if referring:
             ctype = ContentType.objects.get_for_model(referring)
-            metadata = Metadatum.objects.filter(
-                content_type=ctype, object_id=referring.pk
-            )
+            metadata = Metadatum.objects.filter(content_type=ctype, object_id=referring.pk)
             return {d.key: d.value for d in metadata.all()}
         return super().get_metadata_form_initial_data(request, obj)
 
@@ -736,9 +726,7 @@ class GrantAdmin(HasMetadataModelAdmin):
                     user_reason=user_reason,
                     internal_reason=internal_reason,
                 )
-                return redirect(
-                    f"{self.admin_site.name}:jasmin_services_grant_changelist"
-                )
+                return redirect(f"{self.admin_site.name}:jasmin_services_grant_changelist")
         else:
             form = AdminRevokeForm()
         context = {
@@ -842,13 +830,9 @@ class RequestAdmin(HasMetadataModelAdmin):
         elif obj.state == RequestState.APPROVED:
             return '<span style="color: #00b300;">APPROVED</span>'
         elif obj.incomplete:
-            return mark_safe(
-                '<span style="color: #e67a00; font-weight: bold;">INCOMPLETE</span>'
-            )
+            return mark_safe('<span style="color: #e67a00; font-weight: bold;">INCOMPLETE</span>')
         else:
-            return mark_safe(
-                '<span style="color: #e60000; font-weight: bold;">REJECTED</span>'
-            )
+            return mark_safe('<span style="color: #e60000; font-weight: bold;">REJECTED</span>')
 
     state_html.short_description = "State"
 
@@ -888,11 +872,7 @@ class RequestAdmin(HasMetadataModelAdmin):
             raise PermissionDenied
         # Try to find the specified request amongst the pending, active requests
         try:
-            pending = (
-                Request.objects.filter(state=RequestState.PENDING)
-                .filter_active()
-                .get(pk=pk)
-            )
+            pending = Request.objects.filter(state=RequestState.PENDING).filter_active().get(pk=pk)
         except Request.DoesNotExist:
             raise http.Http404(f"Request with primary key {pk} does not exist")
         # Process the form if this is a POST request, otherwise just set it up

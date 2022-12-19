@@ -45,21 +45,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "description",
-                    jasmin_ldap_django.models.TextField(
-                        blank=True, db_column="description"
-                    ),
+                    jasmin_ldap_django.models.TextField(blank=True, db_column="description"),
                 ),
                 (
                     "member_uids",
-                    jasmin_ldap_django.models.ListField(
-                        blank=True, db_column="memberUid"
-                    ),
+                    jasmin_ldap_django.models.ListField(blank=True, db_column="memberUid"),
                 ),
                 (
                     "gidNumber",
-                    jasmin_ldap_django.models.PositiveIntegerField(
-                        blank=True, unique=True
-                    ),
+                    jasmin_ldap_django.models.PositiveIntegerField(blank=True, unique=True),
                 ),
             ],
             options={
@@ -102,21 +96,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "description",
-                    jasmin_ldap_django.models.TextField(
-                        blank=True, db_column="description"
-                    ),
+                    jasmin_ldap_django.models.TextField(blank=True, db_column="description"),
                 ),
                 (
                     "member_uids",
-                    jasmin_ldap_django.models.ListField(
-                        blank=True, db_column="memberUid"
-                    ),
+                    jasmin_ldap_django.models.ListField(blank=True, db_column="memberUid"),
                 ),
                 (
                     "gidNumber",
-                    jasmin_ldap_django.models.PositiveIntegerField(
-                        blank=True, unique=True
-                    ),
+                    jasmin_ldap_django.models.PositiveIntegerField(blank=True, unique=True),
                 ),
             ],
             options={

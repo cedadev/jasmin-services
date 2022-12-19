@@ -53,8 +53,7 @@ class Service(models.Model):
         blank=True,
         null=True,
         default="",
-        help_text="Service specific instructions to be added to the external "
-        "approver message.",
+        help_text="Service specific instructions to be added to the external " "approver message.",
     )
     #: Countries a users institution must be from to gain access
     instution_countries = CountryField(

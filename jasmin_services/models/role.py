@@ -93,9 +93,7 @@ class Role(models.Model):
     #: The form to use for collecting metadata for requests for the role.
     metadata_form = models.ForeignKey(Form, models.CASCADE, related_name="+")
     #: The behaviours associated with the user.
-    behaviours = models.ManyToManyField(
-        Behaviour, related_name="roles", related_query_name="role"
-    )
+    behaviours = models.ManyToManyField(Behaviour, related_name="roles", related_query_name="role")
 
     def __str__(self):
         return f"{self.service.category.long_name} : {self.service.name} : {self.name}"
@@ -234,6 +232,4 @@ class RoleObjectPermission(models.Model):
             try:
                 _ = self.content_type.get_object_for_this_type(pk=self.object_pk)
             except ObjectDoesNotExist:
-                raise ValidationError(
-                    {"object_pk": "Invalid primary key for content type."}
-                )
+                raise ValidationError({"object_pk": "Invalid primary key for content type."})

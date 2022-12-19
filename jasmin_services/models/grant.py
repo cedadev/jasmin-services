@@ -174,9 +174,7 @@ class Grant(HasMetadata):
             if not user.is_active:
                 errors["user"] = "User is suspended"
             if not settings.MULTIPLE_REQUESTS_ALLOWED:
-                active_grant = Grant.objects.filter(
-                    access=self.access, next_grant__isnull=True
-                )
+                active_grant = Grant.objects.filter(access=self.access, next_grant__isnull=True)
                 active_request = jasmin_services.models.Request.objects.filter(
                     access=self.access,
                     resulting_grant__isnull=True,
@@ -190,9 +188,7 @@ class Grant(HasMetadata):
                 ):
                     errors = "There is already an existing active grant for this access"
                 if self.active and active_request:
-                    errors = (
-                        "There is already an existing active request for this access"
-                    )
+                    errors = "There is already an existing active request for this access"
 
         except ObjectDoesNotExist:
             pass

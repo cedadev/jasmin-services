@@ -230,11 +230,7 @@ class DecisionForm(forms.Form):
         state = self.cleaned_data.get("state")
         expires = self.cleaned_data.get("expires")
         expires_custom = self.cleaned_data.get("expires_custom")
-        if (
-            state == "APPROVED"
-            and expires == self.EXPIRES_CUSTOM
-            and not expires_custom
-        ):
+        if state == "APPROVED" and expires == self.EXPIRES_CUSTOM and not expires_custom:
             raise ValidationError("Please give an expiry date for access")
         if expires_custom and expires_custom < date.today():
             raise ValidationError("Expiry date must be in the future")
@@ -292,9 +288,7 @@ class DecisionForm(forms.Form):
             self._request.copy_metadata_to(self._request.resulting_grant)
         else:
             self._request.state = RequestState.REJECTED
-            self._request.incomplete = (
-                True if self.cleaned_data["state"] == "INCOMPLETE" else False
-            )
+            self._request.incomplete = True if self.cleaned_data["state"] == "INCOMPLETE" else False
             self._request.user_reason = self.cleaned_data["user_reason"]
             self._request.internal_reason = self.cleaned_data["internal_reason"]
         self._request.save()
@@ -384,19 +378,15 @@ class AdminSwitchableLookupWidget(forms.TextInput):
         attrs["style"] = "width: 20em !important;"
         # Translate the model_map into an href_map
         href_map = {
-            k: reverse(
-                "admin:{}_{}_changelist".format(m._meta.app_label, m._meta.model_name)
-            )
+            k: reverse("admin:{}_{}_changelist".format(m._meta.app_label, m._meta.model_name))
             for k, m in self.model_map.items()
         }
         lookup_link_id = "lookup_id_{}".format(name)
         # Start with the text input
         output = super().render(name, value, attrs)
         # Append the lookup link
-        output += (
-            '<a href="#" class="related-lookup" id="{}" title="Lookup"></a>'.format(
-                lookup_link_id
-            )
+        output += '<a href="#" class="related-lookup" id="{}" title="Lookup"></a>'.format(
+            lookup_link_id
         )
         # Append the Javascript to do the switching
         output += """<script type="text/javascript">
@@ -635,11 +625,7 @@ class AdminRequestForm(forms.ModelForm):
             existing_grant = Grant.objects.filter(
                 access__role=role, access__user=user
             ).filter_active()
-            if (
-                len(existing_grant) > 0
-                and existing_grant[0] != previous_grant
-                and self._active
-            ):
+            if len(existing_grant) > 0 and existing_grant[0] != previous_grant and self._active:
                 raise ValidationError(
                     f"An active grant ({existing_grant[0].id}) for this user and role already exists, select it here to overwrite"
                 )

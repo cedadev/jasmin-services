@@ -137,7 +137,5 @@ SPECTACULAR_SETTINGS = {
     "AUTHENTICATION_WHITELIST": [
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
     ],
-    "PREPROCESSING_HOOKS": [
-        "jasmin_django_utils.api.hooks.spectacular_hide_admin_auth"
-    ],
+    "PREPROCESSING_HOOKS": ["jasmin_django_utils.api.hooks.spectacular_hide_admin_auth"],
 }

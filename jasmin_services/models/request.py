@@ -168,9 +168,7 @@ class Request(HasMetadata):
     )
 
     def __str__(self):
-        return "{} : {}".format(
-            self.access, "INCOMPETE" if self.incomplete else self.state
-        )
+        return "{} : {}".format(self.access, "INCOMPETE" if self.incomplete else self.state)
 
     @property
     def active(self):
@@ -232,24 +230,16 @@ class Request(HasMetadata):
                 errors["user"] = "User is suspended"
             #
             if not settings.MULTIPLE_REQUESTS_ALLOWED:
-                active_grant = Grant.objects.filter(
-                    access=self.access, next_grant__isnull=True
-                )
+                active_grant = Grant.objects.filter(access=self.access, next_grant__isnull=True)
                 active_request = Request.objects.filter(
                     access=self.access,
                     resulting_grant__isnull=True,
                     next_request__isnull=True,
                 )
-                if (
-                    self.active
-                    and active_grant
-                    and self.previous_grant != active_grant[0]
-                ):
+                if self.active and active_grant and self.previous_grant != active_grant[0]:
                     errors = "There is already an existing active grant for this access"
                 if self.active and active_request and self != active_request[0]:
-                    errors = (
-                        "There is already an existing active request for this access"
-                    )
+                    errors = "There is already an existing active request for this access"
         except ObjectDoesNotExist:
             pass
         # Check that the grant is for the same service/role/user combination

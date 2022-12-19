@@ -79,10 +79,7 @@ def service_list(request, category):
             ),
         )
         .filter(
-            Q(pk=category.pk)
-            | Q(service__hidden=False)
-            | Q(has_grant=True)
-            | Q(has_request=True)
+            Q(pk=category.pk) | Q(service__hidden=False) | Q(has_grant=True) | Q(has_request=True)
         )
         .distinct()
         .values_list("name", "long_name")
@@ -117,14 +114,10 @@ def service_list(request, category):
     query = request.GET.get("query", "")
     if query:
         request_services = request_services.filter(
-            Q(name__icontains=query)
-            | Q(summary__icontains=query)
-            | Q(description__icontains=query)
+            Q(name__icontains=query) | Q(summary__icontains=query) | Q(description__icontains=query)
         )
         grant_services = grant_services.filter(
-            Q(name__icontains=query)
-            | Q(summary__icontains=query)
-            | Q(description__icontains=query)
+            Q(name__icontains=query) | Q(summary__icontains=query) | Q(description__icontains=query)
         )
 
     # Force execution of the services query now.
@@ -147,14 +140,10 @@ def service_list(request, category):
     # Get the active grants and requests for the user, as these define the visible
     # services and categories, along with the hidden flag on the service itself
     all_grants = (
-        Grant.objects.filter(access__user=request.user)
-        .filter_active()
-        .select_related("access")
+        Grant.objects.filter(access__user=request.user).filter_active().select_related("access")
     )
     all_requests = (
-        Request.objects.filter(access__user=request.user)
-        .filter_active()
-        .select_related("access")
+        Request.objects.filter(access__user=request.user).filter_active().select_related("access")
     )
     return render(
         request,
@@ -229,14 +218,10 @@ def my_services(request):
     # as these define the visible services and categories, along with the hidden
     # flag on the service itself
     all_grants = (
-        Grant.objects.filter(access__user=request.user)
-        .filter_active()
-        .select_related("access")
+        Grant.objects.filter(access__user=request.user).filter_active().select_related("access")
     )
     all_requests = (
-        Request.objects.filter(access__user=request.user)
-        .filter_active()
-        .select_related("access")
+        Request.objects.filter(access__user=request.user).filter_active().select_related("access")
     )
     # Apply filters, making sure to maintain a reference to the full lists of
     # grants and requests
@@ -282,9 +267,7 @@ def my_services(request):
     # a list now
     services = list(
         Service.objects.filter(disabled=False)
-        .filter(
-            Q(role__access__grant__in=grants) | Q(role__access__request__in=requests)
-        )
+        .filter(Q(role__access__grant__in=grants) | Q(role__access__request__in=requests))
         .distinct()
         .prefetch_related("roles")
         .select_related("category")
@@ -454,16 +437,12 @@ def service_details(request, service):
             requests.append((role, role_requests))
         if not role.hidden or role_requests or role_grants:
             # if multiple requests aren't allowed only add to "aply list" if there isn't an existing request or grant
-            if not settings.MULTIPLE_REQUESTS_ALLOWED and (
-                role_requests or role_grants
-            ):
+            if not settings.MULTIPLE_REQUESTS_ALLOWED and (role_requests or role_grants):
                 continue
             roles.append(role)
 
     templates = [
-        "jasmin_services/{}/{}/service_details.html".format(
-            service.category.name, service.name
-        ),
+        "jasmin_services/{}/{}/service_details.html".format(service.category.name, service.name),
         "jasmin_services/{}/service_details.html".format(service.category.name),
         "jasmin_services/service_details.html",
     ]
@@ -504,9 +483,7 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
     if bool_grant == 1:
         previous_grant = Grant.objects.get(pk=previous)
         previous_request = (
-            Request.objects.filter_active()
-            .filter(previous_grant=previous_grant)
-            .first()
+            Request.objects.filter_active().filter(previous_grant=previous_grant).first()
         )
     # bool_grant = 0 if the new request is being made from a previous request
     elif bool_grant == 0:
@@ -523,9 +500,7 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
 
     # If the user has an active request for this chain it must be rejected
     if previous_request and previous_request.state != RequestState.REJECTED:
-        messages.info(
-            request, "You have already have an active request for the specified grant"
-        )
+        messages.info(request, "You have already have an active request for the specified grant")
         return redirect_to_service(service)
 
     # ONLY FOR CEDA SERVICES: Get licence url
@@ -577,9 +552,7 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
                     form.save(req)
                     req.copy_metadata_to(req.resulting_grant)
                 else:
-                    req = Request.objects.create(
-                        access=access, requested_by=request.user.username
-                    )
+                    req = Request.objects.create(access=access, requested_by=request.user.username)
 
                     if previous_request:
                         previous_request.next_request = req
@@ -605,9 +578,7 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
         "jasmin_services/{}/{}/{}/role_apply.html".format(
             service.category.name, service.name, role.name
         ),
-        "jasmin_services/{}/{}/role_apply.html".format(
-            service.category.name, service.name
-        ),
+        "jasmin_services/{}/{}/role_apply.html".format(service.category.name, service.name),
         "jasmin_services/{}/role_apply.html".format(service.category.name),
         "jasmin_services/role_apply.html",
     ]
@@ -645,9 +616,7 @@ def service_users(request, service):
         user_roles = list(service.roles.all())
     else:
         user_roles = [
-            role
-            for role in service.roles.all()
-            if request.user.has_perm(permission, role)
+            role for role in service.roles.all() if request.user.has_perm(permission, role)
         ]
         # If the user has no permissions, send them back to the service details
         # Note that we don't show this message if the user has been granted the
@@ -666,9 +635,7 @@ def service_users(request, service):
         # Then filter by those roles
         grants = grants.filter(access__role__in=selected_roles)
         # Then get the statuses to display from the GET filters
-        selected_statuses = set(
-            status for status in all_statuses if status in request.GET
-        )
+        selected_statuses = set(status for status in all_statuses if status in request.GET)
         # Apply any filters to the grants and requests
         if "active" not in selected_statuses:
             # Make sure we don't include expiring grants in active
@@ -708,9 +675,7 @@ def service_users(request, service):
     else:
         preserved_filters = set()
     templates = [
-        "jasmin_services/{}/{}/service_users.html".format(
-            service.category.name, service.name
-        ),
+        "jasmin_services/{}/{}/service_users.html".format(service.category.name, service.name),
         "jasmin_services/{}/service_users.html".format(service.category.name),
         "jasmin_services/service_users.html",
     ]
@@ -719,12 +684,8 @@ def service_users(request, service):
         templates,
         {
             "service": service,
-            "statuses": tuple(
-                dict(name=s, checked=s in selected_statuses) for s in all_statuses
-            ),
-            "roles": tuple(
-                dict(name=r.name, checked=r in selected_roles) for r in user_roles
-            ),
+            "statuses": tuple(dict(name=s, checked=s in selected_statuses) for s in all_statuses),
+            "roles": tuple(dict(name=r.name, checked=r in selected_roles) for r in user_roles),
             "grants": page,
             "n_users": grants.values("access__user").distinct().count(),
             "preserved_filters": "&".join("{}=1".format(f) for f in preserved_filters),
@@ -752,9 +713,7 @@ def service_requests(request, service):
         user_roles = list(service.roles.all())
     else:
         user_roles = [
-            role
-            for role in service.roles.all()
-            if request.user.has_perm(permission, role)
+            role for role in service.roles.all() if request.user.has_perm(permission, role)
         ]
         # If the user has no permissions, send them back to the service details
         # Note that we don't show this message if the user has been granted the
@@ -764,9 +723,7 @@ def service_requests(request, service):
             messages.error(request, "Insufficient permissions")
             return redirect_to_service(service)
     templates = [
-        "jasmin_services/{}/{}/service_requests.html".format(
-            service.category.name, service.name
-        ),
+        "jasmin_services/{}/{}/service_requests.html".format(service.category.name, service.name),
         "jasmin_services/{}/service_requests.html".format(service.category.name),
         "jasmin_services/service_requests.html",
     ]
@@ -854,9 +811,7 @@ def request_decide(request, pk):
         "jasmin_services/{}/{}/request_decide.html".format(
             pending.access.role.service.category.name, pending.access.role.service.name
         ),
-        "jasmin_services/{}/request_decide.html".format(
-            pending.access.role.service.category.name
-        ),
+        "jasmin_services/{}/request_decide.html".format(pending.access.role.service.category.name),
         "jasmin_services/request_decide.html",
     ]
     return render(
@@ -894,9 +849,7 @@ def grant_role(request, service):
         user_roles = list(service.roles.all())
     else:
         user_roles = [
-            role
-            for role in service.roles.all()
-            if request.user.has_perm(permission, role)
+            role for role in service.roles.all() if request.user.has_perm(permission, role)
         ]
         # If the user has no permissions, send them back to the service details
         # Note that we don't show this message if the user has been granted the
@@ -989,9 +942,7 @@ def service_message(request, service):
         user_roles = list(service.roles.all())
     else:
         user_roles = [
-            role
-            for role in service.roles.all()
-            if request.user.has_perm(permission, role)
+            role for role in service.roles.all() if request.user.has_perm(permission, role)
         ]
         # If the user has no permissions, send them back to the service details
         # Note that we don't show this message if the user has been granted the
@@ -1025,9 +976,7 @@ def service_message(request, service):
     else:
         form = MessageForm()
     templates = [
-        "jasmin_services/{}/{}/service_message.html".format(
-            service.category.name, service.name
-        ),
+        "jasmin_services/{}/{}/service_message.html".format(service.category.name, service.name),
         "jasmin_services/{}/service_message.html".format(service.category.name),
         "jasmin_services/service_message.html",
     ]
@@ -1104,9 +1053,7 @@ def grant_review(request, pk):
                 form.save()
             messages.success(
                 request,
-                "{} revoked for {}".format(
-                    grant.access.role.name, grant.access.user.username
-                ),
+                "{} revoked for {}".format(grant.access.role.name, grant.access.user.username),
             )
             return redirect_to_service(grant.access.role.service, "service_users")
         else:
@@ -1117,9 +1064,7 @@ def grant_review(request, pk):
         "jasmin_services/{}/{}/grant_review.html".format(
             grant.access.role.service.category.name, grant.access.role.service.name
         ),
-        "jasmin_services/{}/grant_review.html".format(
-            grant.access.role.service.category.name
-        ),
+        "jasmin_services/{}/grant_review.html".format(grant.access.role.service.category.name),
         "jasmin_services/grant_review.html",
     ]
     return render(

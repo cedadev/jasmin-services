@@ -17,12 +17,12 @@ from ...models import Request, RequestState
 
 
 class Command(BaseCommand):
-    help = "Ensures that users confirm their email address periodically, or their account is suspended"
+    help = (
+        "Ensures that users confirm their email address periodically, or their account is suspended"
+    )
 
     def handle(self, *args, **kwargs):
-        pending_requests = Request.objects.filter(
-            state=RequestState.PENDING
-        ).filter_active()
+        pending_requests = Request.objects.filter(state=RequestState.PENDING).filter_active()
         applications = Application.objects.filter(decision__isnull=True)
         manager_requests = {}
         user_requests = {"length": 0}

@@ -19,6 +19,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # For the cron, we only consider grants where access should be disabled
-        synchronise_service_access(
-            Grant.objects.exclude(revoked=False, expires__gte=date.today())
-        )
+        synchronise_service_access(Grant.objects.exclude(revoked=False, expires__gte=date.today()))

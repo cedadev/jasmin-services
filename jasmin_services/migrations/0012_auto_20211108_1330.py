@@ -47,8 +47,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="service",
-            index=models.Index(
-                fields=["position", "name"], name="jasmin_serv_positio_95ece6_idx"
-            ),
+            index=models.Index(fields=["position", "name"], name="jasmin_serv_positio_95ece6_idx"),
         ),
     ]

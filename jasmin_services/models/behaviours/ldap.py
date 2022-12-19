@@ -76,9 +76,7 @@ class Group(jasmin_ldap_django.models.LDAPModel):
             "max_length": "Name must have at most %(limit_value)d characters.",
         },
     )
-    description = jasmin_ldap_django.models.TextField(
-        db_column="description", blank=True
-    )
+    description = jasmin_ldap_django.models.TextField(db_column="description", blank=True)
     member_uids = jasmin_ldap_django.models.ListField(db_column="memberUid", blank=True)
 
     # blank = True is set here for the field validation, but a blank gidNumber is

@@ -49,9 +49,7 @@ class ServicesViewSet(
             )
         ]
     )
-    @rf_decorators.action(
-        detail=True, required_scopes=["jasmin.services.serviceroles.all"]
-    )
+    @rf_decorators.action(detail=True, required_scopes=["jasmin.services.serviceroles.all"])
     def roles(self, request, pk=None):
         """List roles in a services and their holders."""
         self.filterset_fields = []
@@ -82,9 +80,7 @@ class ServicesViewSet(
                 ),
             )
         )
-        serializer = serializers.RoleSerializer(
-            queryset, many=True, context={"request": request}
-        )
+        serializer = serializers.RoleSerializer(queryset, many=True, context={"request": request})
         return rf_response.Response(serializer.data)
 
 

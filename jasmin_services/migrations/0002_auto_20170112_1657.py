@@ -38,9 +38,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "joined_users",
-                    models.ManyToManyField(
-                        blank=True, editable=False, to=settings.AUTH_USER_MODEL
-                    ),
+                    models.ManyToManyField(blank=True, editable=False, to=settings.AUTH_USER_MODEL),
                 ),
             ],
             options={

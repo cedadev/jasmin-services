@@ -402,9 +402,7 @@ class Migration(migrations.Migration):
                         max_length=100,
                         unique=True,
                         validators=[
-                            django.core.validators.RegexValidator(
-                                regex="^[a-zA-Z0-9_:-]+$"
-                            )
+                            django.core.validators.RegexValidator(regex="^[a-zA-Z0-9_:-]+$")
                         ],
                         verbose_name="LDAP Tag",
                     ),

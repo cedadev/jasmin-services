@@ -120,8 +120,7 @@ def notify_approvers(instance):
                             "color": "warning",
                             "title": "Submitted request requires attention",
                             "mrkdwn_in": ["text"],
-                            "text": f"Role has no active approvers: "
-                            f"<{link}|Review request>",
+                            "text": f"Role has no active approvers: " f"<{link}|Review request>",
                         }
                     ],
                 },
@@ -173,11 +172,7 @@ def grant_created(sender, instance, created, **kwargs):
     """
     Notifies the user when a grant is created.
     """
-    if (
-        created
-        and instance.active
-        and not re.match(r"train\d{3}", instance.access.user.username)
-    ):
+    if created and instance.active and not re.match(r"train\d{3}", instance.access.user.username):
         instance.access.user.notify(
             "grant_created",
             instance,
@@ -234,18 +229,14 @@ def account_suspended(sender, instance, created, **kwargs):
     the pending requests for that user.
     """
     if not instance.is_active:
-        for grant in Grant.objects.filter(
-            access__user=instance, revoked=False
-        ).filter_active():
+        for grant in Grant.objects.filter(access__user=instance, revoked=False).filter_active():
             grant.revoked = True
             if re.match(r"train\d{3}", instance.username):
                 grant.user_reason = "Training account was torn down"
             else:
                 grant.user_reason = "Account was suspended"
             grant.save()
-        for req in Request.objects.filter(
-            access__user=instance, state=RequestState.PENDING
-        ):
+        for req in Request.objects.filter(access__user=instance, state=RequestState.PENDING):
             req.state = RequestState.REJECTED
             if re.match(r"train\d{3}", instance.username):
                 req.user_reason = "Training account was torn down"

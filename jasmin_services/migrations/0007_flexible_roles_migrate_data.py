@@ -19,9 +19,7 @@ def create_role(Role, default_form, service, role_name, description, hidden, pos
     )
     # Add behaviours for the role from the service
     role.behaviours.add(
-        *service.behaviour_join_set.filter(role=role_name).values_list(
-            "behaviour", flat=True
-        )
+        *service.behaviour_join_set.filter(role=role_name).values_list("behaviour", flat=True)
     )
     # Add the role to any grants and requests
     service.grants.filter(role_old=role_name).update(role_new=role)
@@ -30,14 +28,10 @@ def create_role(Role, default_form, service, role_name, description, hidden, pos
 
 
 def create_user_role(Role, default_form, service):
-    return create_role(
-        Role, default_form, service, "USER", "Standard user role", False, 100
-    )
+    return create_role(Role, default_form, service, "USER", "Standard user role", False, 100)
 
 
-def create_view_users_role(
-    ContentType, Permission, Role, default_form, service, user_role
-):
+def create_view_users_role(ContentType, Permission, Role, default_form, service, user_role):
     role = create_role(
         Role,
         default_form,
@@ -60,9 +54,7 @@ def create_view_users_role(
     return role
 
 
-def create_approvers_role(
-    ContentType, Permission, Role, Request, default_form, service, user_role
-):
+def create_approvers_role(ContentType, Permission, Role, Request, default_form, service, user_role):
     role = create_role(
         Role,
         default_form,
@@ -118,9 +110,7 @@ def migrate(apps, schema_editor):
     # Process the services
     for service in Service.objects.all():
         user_role = create_user_role(Role, default_form, service)
-        create_view_users_role(
-            ContentType, Permission, Role, default_form, service, user_role
-        )
+        create_view_users_role(ContentType, Permission, Role, default_form, service, user_role)
         create_approvers_role(
             ContentType, Permission, Role, Request, default_form, service, user_role
         )

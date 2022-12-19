@@ -27,15 +27,11 @@ def user_has_service_perm(service, user, perm):
 def pending_req_count(context, service):
     # Find the role that the user in the context has permission to decide
     permission = "jasmin_services.decide_request"
-    if context["user"].has_perm(permission) or context["user"].has_perm(
-        permission, service
-    ):
+    if context["user"].has_perm(permission) or context["user"].has_perm(permission, service):
         user_roles = list(service.roles.all())
     else:
         user_roles = [
-            role
-            for role in service.roles.all()
-            if context["user"].has_perm(permission, role)
+            role for role in service.roles.all() if context["user"].has_perm(permission, role)
         ]
     return (
         Request.objects.filter_active()
