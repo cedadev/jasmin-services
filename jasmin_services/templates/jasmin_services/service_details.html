@@ -5,8 +5,6 @@
 
 {% block page_title %}{{ current_category.long_name }}{% endblock %}
 
-{% get_country user=request.user as user_country %}
-
 {% block breadcrumbs %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -28,9 +26,9 @@
 {% block content_panel %}
     <div class="row">
         <div class="col-lg-7 col-md-6">
-            {% if service.instution_countries and user_country not in service.instution_countries %}
+            {% if not user_may_apply.0 %}
                 <div class="alert alert-warning text-center">
-                    <div style="margin-bottom: 0.4em;"><i class="fa fa-fw fa-exclamation-triangle"></i> Your institution is not on the list of allowed institutions {{ user_country }}</div>
+                    <div style="margin-bottom: 0.4em;"><i class="fa fa-fw fa-exclamation-triangle"></i>{{ user_may_apply.1 }}</div>
                 </div>
             {% endif %}
             {% block description %}
@@ -44,7 +42,7 @@
         <div class="col-lg-5 col-md-6">
             {% if not requests and not grants and roles|length == 1 %}
                 <div class="well text-center">
-                    <a class="btn btn-success btn-lg {% if service.instution_countries and user_country not in service.instution_countries %} disabled {% endif %}"
+                    <a class="btn btn-success btn-lg {% if not user_may_apply.0 %}disabled{% endif %}"
                         href="{% url 'jasmin_services:role_apply' category=roles.0.service.category.name service=roles.0.service.name role=roles.0.name %}">
                         <i class="fa fa-fw fa-plus"></i> Apply for access
                     </a>
@@ -101,13 +99,13 @@
                                         {% if not next_requests %}
                                             {% if grant.revoked %}
                                                 <td style="width: 1%;">
-                                                    <a class="btn btn-success btn-sm btn-block {% if service.instution_countries and user_country not in service.instution_countries %} disabled {% endif %}" href="{{ apply_url }}">
+                                                    <a class="btn btn-success btn-sm btn-block {% if not user_may_apply.0 %}disabled{% endif %}" href="{{ apply_url }}">
                                                         <i class="fa fa-fw fa-plus"></i> Apply again
                                                     </a>
                                                 </td>
                                             {% elif grant.expiring or grant.expired %}
                                                 <td style="width: 1%;">
-                                                    <a class="btn btn-success btn-sm btn-block {% if service.instution_countries and user_country not in service.instution_countries %} disabled {% endif %}" href="{{ apply_url }}">
+                                                    <a class="btn btn-success btn-sm btn-block {% if not user_may_apply.0 %}disabled{% endif %}" href="{{ apply_url }}">
                                                         <i class="fa fa-fw fa-sync-alt"></i> Apply extend
                                                     </a>
                                                 </td>

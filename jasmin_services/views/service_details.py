@@ -1,4 +1,3 @@
-import logging
 from datetime import date
 
 from django.conf import settings
@@ -7,23 +6,19 @@ from django.shortcuts import render
 from django.views.decorators.http import require_safe
 
 from ..models import Grant, Request
-from .common import with_service
-
-_log = logging.getLogger(__name__)
+from . import common
 
 
 @require_safe
 @login_required
-@with_service
+@common.with_service
 def service_details(request, service):
-    """
-    Handler for ``/<category>/<service>/``.
+    """Handle ``/<category>/<service>/``.
 
     Responds to GET requests only. The user must be authenticated.
 
     Displays details for a service, including details of current access and requests.
     """
-
     # Get all the current managers and deputies of a services so that
     # we can display this information to users of the service.
     managers = (
@@ -91,14 +86,15 @@ def service_details(request, service):
             ]
             requests.append((role, role_requests))
         if not role.hidden or role_requests or role_grants:
-            # if multiple requests aren't allowed only add to "aply list" if there isn't an existing request or grant
+            # if multiple requests aren't allowed only add to "apply list"
+            # if there isn't an existing request or grant
             if not settings.MULTIPLE_REQUESTS_ALLOWED and (role_requests or role_grants):
                 continue
             roles.append(role)
 
     templates = [
-        "jasmin_services/{}/{}/service_details.html".format(service.category.name, service.name),
-        "jasmin_services/{}/service_details.html".format(service.category.name),
+        f"jasmin_services/{service.category.name}/{service.name}/service_details.html",
+        f"jasmin_services/{service.category.name}/service_details.html",
         "jasmin_services/service_details.html",
     ]
     return render(
@@ -111,5 +107,6 @@ def service_details(request, service):
             "roles": roles,
             "managers": managers,
             "deputies": deputies,
+            "user_may_apply": common.user_may_apply(request.user, service),
         },
     )

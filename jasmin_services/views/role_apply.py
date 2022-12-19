@@ -1,6 +1,7 @@
 import logging
 from datetime import date
 
+import django.http
 import requests as reqs
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -11,27 +12,33 @@ from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
 from ..models import Access, Grant, Group, Request, RequestState, Role
-from .common import redirect_to_service, with_service
+from . import common
 
 _log = logging.getLogger(__name__)
 
 
 @require_http_methods(["GET", "POST"])
 @login_required
-@with_service
+@common.with_service
 def role_apply(request, service, role, bool_grant=None, previous=None):
-    """
-    Handler for ``/<category>/<service>/apply/<role>/``.
+    """Handle for ``/<category>/<service>/apply/<role>/``.
 
     Responds to GET and POST requests. The user must be authenticated.
 
     Collects the necessary information to raise a request for a role.
     """
+    # Prevent users who are not allowed to apply for this service from doing so.
+    user_may_apply = common.user_may_apply(request.user, service)
+    if not user_may_apply[0]:
+        return django.http.HttpResponseForbidden(
+            "You do not have permission to apply for this service."
+        )
+
     try:
         role = Role.objects.get(service=service, name=role)
     except Role.DoesNotExist:
         messages.error(request, "Role does not exist")
-        return redirect_to_service(service)
+        return common.redirect_to_service(service)
 
     previous_grant = None
     previous_request = None
@@ -52,12 +59,12 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
         previous_grant and hasattr(previous_grant, "next_grant")
     ):
         messages.info(request, "Please use the most recent request or grant")
-        return redirect_to_service(service)
+        return common.redirect_to_service(service)
 
     # If the user has an active request for this chain it must be rejected
     if previous_request and previous_request.state != RequestState.REJECTED:
         messages.info(request, "You have already have an active request for the specified grant")
-        return redirect_to_service(service)
+        return common.redirect_to_service(service)
 
     # ONLY FOR CEDA SERVICES: Get licence url
     licence_url = None
@@ -120,7 +127,7 @@ def role_apply(request, service, role, bool_grant=None, previous=None):
                     req.save()
                     form.save(req)
             messages.success(request, "Request submitted successfully")
-            return redirect_to_service(service)
+            return common.redirect_to_service(service)
         else:
             messages.error(request, "Error with one or more fields")
     else:

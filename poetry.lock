@@ -851,6 +851,14 @@ docs = ["furo (>=2022.12.7)", "sphinx (>=5.3)", "sphinx-argparse-cli (>=1.10)", 
 testing = ["build[virtualenv] (>=0.9)", "covdefaults (>=2.2.2)", "devpi-process (>=0.3)", "diff-cover (>=7.3)", "distlib (>=0.3.6)", "flaky (>=3.7)", "hatch-vcs (>=0.2.1)", "hatchling (>=1.11.1)", "psutil (>=5.9.4)", "pytest (>=7.2)", "pytest-cov (>=4)", "pytest-mock (>=3.10)", "pytest-xdist (>=3.1)", "re-assert (>=1.1)", "time-machine (>=2.8.2)"]
 
 [[package]]
+name = "types-python-dateutil"
+version = "2.8.19.5"
+description = "Typing stubs for python-dateutil"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "types-pytz"
 version = "2022.7.0.0"
 description = "Typing stubs for pytz"
@@ -927,7 +935,7 @@ keycloak = ["python-keycloak"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "b6af6b2152cee26b980fbdd1a790a8c4f370b927272bf2358e35109dee11b55e"
+content-hash = "9254ce819204de83f5e4b0dff84d1d2bafc8e291c25dcce607ef8f5eb0348e2e"
 
 [metadata.files]
 asgiref = [
@@ -1358,6 +1366,10 @@ tomli = [
 tox = [
     {file = "tox-4.0.14-py3-none-any.whl", hash = "sha256:4e7e87ef5d1cf62f2b4413dd5ae5a940b24c0924627783b51c06c0e3d32ce225"},
     {file = "tox-4.0.14.tar.gz", hash = "sha256:498a53c66ba8c1005d0bbee4fe4c477913d4f27cadd5c00bc972f04ed31f8b19"},
+]
+types-python-dateutil = [
+    {file = "types-python-dateutil-2.8.19.5.tar.gz", hash = "sha256:ab91fc5f715f7d76d9a50d3dd74d0c68dfe38a54f0239cfa0506575ae4d87a9d"},
+    {file = "types_python_dateutil-2.8.19.5-py3-none-any.whl", hash = "sha256:253c267e71cac148003db200cb3fc572ab0e2f994b34a4c1de5d3f550f0ad5b2"},
 ]
 types-pytz = [
     {file = "types-pytz-2022.7.0.0.tar.gz", hash = "sha256:4f20c2953b3a3a0587e94489ec4c9e02c3d3aedb9ba5cd7e796e12f4cfa7027e"},
