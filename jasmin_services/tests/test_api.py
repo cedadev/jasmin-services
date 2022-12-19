@@ -1,16 +1,12 @@
 """Tests for the api endpoints."""
 import datetime as dt
+from zoneinfo import ZoneInfo
 
 import oauth2_provider.models
 import rest_framework.test as rf_test
 
 from .. import models
 from ..api import scopes
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
 
 
 class BaseTest(rf_test.APITestCase):

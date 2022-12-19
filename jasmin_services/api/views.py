@@ -13,15 +13,6 @@ import rest_framework.viewsets as rf_viewsets
 from .. import models
 from . import serializers
 
-# On python < 3.7 dt.fromisoformat does not exist.
-# Instead get it from backports.datetime_fromisoformat
-try:
-    dt.date.fromisoformat("2022-01-01")
-except AttributeError:
-    import backports.datetime_fromisoformat
-
-    backports.datetime_fromisoformat.MonkeyPatch.patch_fromisoformat()
-
 
 class ServicesViewSet(
     jasmin_django_utils.api.viewsets.ActionSerializerMixin,
