@@ -4,7 +4,7 @@ import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
 
-import jasmin_services.models.access_control
+import jasmin_services.models
 
 
 class Migration(migrations.Migration):
@@ -82,7 +82,7 @@ class Migration(migrations.Migration):
                 (
                     "expires",
                     models.DateField(
-                        default=jasmin_services.models.access_control._default_expiry,
+                        default=jasmin_services.models.grant._default_expiry,
                         verbose_name="expiry date",
                     ),
                 ),
