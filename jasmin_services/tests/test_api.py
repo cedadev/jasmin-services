@@ -112,7 +112,7 @@ class ServiceGoodScopeTest(BaseTest):
                 "summary": "First test category",
                 "description": "This should be a long description.",
                 "approver_message": "",
-                "instution_countries": [],
+                "institution_countries": [],
                 "hidden": True,
                 "position": 9999,
                 "ceda_managed": False,

@@ -56,7 +56,7 @@ class Service(models.Model):
         help_text="Service specific instructions to be added to the external " "approver message.",
     )
     #: Countries a users institution must be from to gain access
-    instution_countries = CountryField(
+    institution_countries = CountryField(
         multiple=True,
         blank=True,
         help_text="Coutries a user's institute must be located to begin "

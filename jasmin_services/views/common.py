@@ -44,7 +44,10 @@ def redirect_to_service(service, view_name="service_details"):
 def user_may_apply(user, service: Service) -> tuple[bool, str]:
     """Return wether a user is permitted to apply for a service."""
     # Check if the user's institution country matches the country requirements of the service.
-    if service.instution_countries and user.institution.country not in service.instution_countries:
+    if (
+        service.institution_countries
+        and user.institution.country not in service.institution_countries
+    ):
         return (
             False,
             "Your institution is not on the list of allowed institutions for this service.",

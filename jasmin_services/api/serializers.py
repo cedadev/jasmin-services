@@ -98,7 +98,7 @@ class ServiceSerializer(ServiceListSerializer):
             "summary",
             "description",
             "approver_message",
-            "instution_countries",
+            "institution_countries",
             "hidden",
             "position",
             "ceda_managed",
