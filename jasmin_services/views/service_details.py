@@ -19,26 +19,6 @@ def service_details(request, service):
 
     Displays details for a service, including details of current access and requests.
     """
-    # Get all the current managers and deputies of a services so that
-    # we can display this information to users of the service.
-    managers = (
-        Grant.objects.filter(
-            access__role__service=service,
-            expires__gt=date.today(),
-        )
-        .filter_active()
-        .filter(access__role__name="MANAGER")
-    )
-    managers = [x.access.user for x in managers]
-    deputies = (
-        Grant.objects.filter(
-            access__role__service=service,
-            expires__gt=date.today(),
-        )
-        .filter_active()
-        .filter(access__role__name="DEPUTY")
-    )
-    deputies = [x.access.user for x in deputies]
 
     # Get the active grants and requests for the service as a whole
     all_grants = Grant.objects.filter(
@@ -91,6 +71,33 @@ def service_details(request, service):
             if not settings.MULTIPLE_REQUESTS_ALLOWED and (role_requests or role_grants):
                 continue
             roles.append(role)
+
+        if grants:
+            # Get all the current managers and deputies of a services so that
+            # we can display this information to users of the service.
+            managers = (
+                Grant.objects.filter(
+                    access__role__service=service,
+                    expires__gt=date.today(),
+                    revoked=False,
+                )
+                .filter_active()
+                .filter(access__role__name="MANAGER")
+            )
+            managers = [x.access.user for x in managers]
+            deputies = (
+                Grant.objects.filter(
+                    access__role__service=service,
+                    expires__gt=date.today(),
+                    revoked=False,
+                )
+                .filter_active()
+                .filter(access__role__name="DEPUTY")
+            )
+            deputies = [x.access.user for x in deputies]
+        else:
+            managers = []
+            deputies = []
 
     templates = [
         f"jasmin_services/{service.category.name}/{service.name}/service_details.html",
