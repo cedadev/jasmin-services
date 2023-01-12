@@ -1,5 +1,5 @@
 """Behavious to apply changes to LDAP."""
-import sys
+import importlib
 
 import django.conf
 import django.core.exceptions
@@ -158,7 +158,9 @@ class LdapGroupBehaviour(Behaviour):
                 )
 
     def get_group_model(self):
-        return getattr(sys.modules[__name__], self.ldap_model)
+        return getattr(
+            importlib.import_module("jasmin_services.models.behaviours"), self.ldap_model
+        )
 
     def get_ldap_group(self):
         return self.get_group_model().objects.get(name=self.group_name)
