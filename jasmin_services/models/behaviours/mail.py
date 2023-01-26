@@ -41,6 +41,10 @@ class JoinJISCMailListBehaviour(Behaviour):
         self.save()
 
     def unapply(self, user, _role):
+        # Users must unsubscribe themselves
+        pass
+
+    def email_update_unapply(self, user, role):
         # If the user has no email address, they can't be subscribed
         if not user.email:
             return
