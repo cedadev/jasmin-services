@@ -12,7 +12,7 @@ python = "^3.9"
 jasmin-ldap = {git = "https://github.com/cedadev/jasmin-ldap.git", tag = "v1.0.0"}
 jasmin-django-utils = {git = "https://github.com/cedadev/jasmin-django-utils.git", tag = "v1.0.6" }# Also required for API.
 
-Django = "~3.2"
+Django = "~4.1"
 django-bootstrap5 = ">= 21.2, <= 22.2"
 django-markdown-deux = "^1.0.5"
 python-dateutil = "^2.8.2"
