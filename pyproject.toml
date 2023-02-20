@@ -46,7 +46,7 @@ django-oauth-toolkit = "^1.7.0"
 
 [tool.black]
 line-length = 100
-target-version = ['py39', 'py310', 'py311']
+target-version = ['py39']
 
 [tool.isort]
 profile = "black"

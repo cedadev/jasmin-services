@@ -1,8 +1,8 @@
 import logging
 
+import django.core.mail
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.mail import EmailMessage
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
@@ -47,19 +47,24 @@ def service_message(request, service):
         form = MessageForm(request.POST)
         if form.is_valid():
             reply_to = form.cleaned_data["reply_to"]
-            EmailMessage(
-                subject=form.cleaned_data["subject"],
-                body=render_to_string(
-                    "jasmin_services/email_message.txt",
-                    {
-                        "sender": request.user,
-                        "message": form.cleaned_data["message"],
-                        "reply_to": reply_to,
-                    },
-                ),
-                bcc=[u.email for u in form.cleaned_data["users"]],
-                reply_to=[request.user.email] if reply_to else [],
-            ).send()
+            body = render_to_string(
+                "jasmin_services/email_message.txt",
+                {
+                    "sender": request.user,
+                    "message": form.cleaned_data["message"],
+                    "reply_to": reply_to,
+                },
+            )
+            recipients = [u.email for u in form.cleaned_data["users"]]
+            with django.core.mail.get_connection() as connection:
+                for recipient in recipients:
+                    django.core.mail.EmailMessage(
+                        subject=form.cleaned_data["subject"],
+                        body=body,
+                        to=[recipient],
+                        reply_to=[request.user.email] if reply_to else [],
+                        connection=connection,
+                    ).send()
             messages.success(request, "Message sent")
             return redirect_to_service(service, view_name="service_users")
         else:
