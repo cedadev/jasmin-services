@@ -1548,4 +1548,4 @@ keycloak = ["python-keycloak"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "11aed81a2b20e22ea9a852478414ce1318a358d651036eed1808c2be576bdb84"
+content-hash = "8e21681991db268f2efbcc03ef4216babac11e9ac19031eb4ee6f0121eb13c47"
