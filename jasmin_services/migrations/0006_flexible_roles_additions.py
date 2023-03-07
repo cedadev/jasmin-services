@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("jasmin_metadata", "0002_auto_20170125_1755"),
         ("contenttypes", "0002_remove_content_type_name"),

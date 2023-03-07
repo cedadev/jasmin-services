@@ -4,12 +4,10 @@ from django.db import migrations
 
 
 def get_or_create_access(Access, user, role):
-
     return Access.objects.get_or_create(user=user, role=role)
 
 
 def create_grant_new(Grant_new, access, old_grant):
-
     return Grant_new.objects.create(
         access=access,
         granted_by=old_grant.granted_by,
@@ -50,7 +48,6 @@ def migrate(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("jasmin_services", "0013_new_grant_additions"),
     ]

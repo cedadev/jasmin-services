@@ -117,7 +117,6 @@ def migrate(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("jasmin_services", "0006_flexible_roles_additions"),
     ]

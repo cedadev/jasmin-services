@@ -8,7 +8,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("jasmin_services", "0004_migrate_ldap_group_data"),
     ]

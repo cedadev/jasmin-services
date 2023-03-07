@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("jasmin_services", "0007_flexible_roles_migrate_data"),
     ]

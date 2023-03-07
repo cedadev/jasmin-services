@@ -32,7 +32,6 @@ def migrate_ldap_group_data_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("jasmin_services", "0003_add_ldap_model_fields"),
     ]
