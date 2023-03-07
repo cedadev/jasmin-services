@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("jasmin_services", "0014_new_grant_migrate_data"),
     ]

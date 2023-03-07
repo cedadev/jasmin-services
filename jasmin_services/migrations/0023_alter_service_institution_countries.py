@@ -5,7 +5,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("jasmin_services", "0022_rename_instution_countries"),
     ]

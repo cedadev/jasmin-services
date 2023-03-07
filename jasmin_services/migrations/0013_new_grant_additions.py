@@ -8,7 +8,6 @@ import jasmin_services.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("jasmin_services", "0012_auto_20211108_1330"),
     ]
