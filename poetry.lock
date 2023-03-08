@@ -489,14 +489,14 @@ markdown2 = "*"
 
 [[package]]
 name = "django-oauth-toolkit"
-version = "1.7.1"
+version = "2.2.0"
 description = "OAuth2 Provider for Django"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "django-oauth-toolkit-1.7.1.tar.gz", hash = "sha256:37b690fa53f340c7391bdbc0fdbb32fd9ef8a7c012e72ee8754c331a2d7b4adb"},
-    {file = "django_oauth_toolkit-1.7.1-py3-none-any.whl", hash = "sha256:756e44421d0993f27705736b6c33a3d89018393859a31ac926296950f76e4433"},
+    {file = "django-oauth-toolkit-2.2.0.tar.gz", hash = "sha256:46890decb24a34e2a5382debeaf7752e50d90b7a11716cf2a9fd067097ec0963"},
+    {file = "django_oauth_toolkit-2.2.0-py3-none-any.whl", hash = "sha256:abd85c74af525a62365ec2049113e73a2ff8b46ef906e7104a7ba968ef02a11d"},
 ]
 
 [package.dependencies]
@@ -1576,4 +1576,4 @@ keycloak = ["python-keycloak"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "5116095b4da75d4053f23dcc62eaa03a5513fc10abf3f1df80ce0902db2192ad"
+content-hash = "4ab72a0b1e564f2dbf0faf3c2c8747fd723c09cbab6d17f6d783211ec849cac5"
