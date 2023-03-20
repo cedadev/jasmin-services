@@ -24,7 +24,7 @@ jasmin-notifications = {git = "https://github.com/cedadev/jasmin-notifications.g
 django-countries = "^7.2.1, !=7.3.0"
 djangorestframework = {version = "^3.13.1", optional = true}
 django-filter = {version = ">= 21.1, <= 22.1", optional = true}
-drf-spectacular = {version=">=0.22.0,<=0.26.0", optional = true}
+drf-spectacular = {version=">=0.22.0,<=0.26.1", optional = true}
 drf-spectacular-sidecar = {version="^2023.3.1", optional = true}
 python-keycloak = {version = "^2.14.0", optional = true, python = ">3.7"}
 
