@@ -33,7 +33,7 @@ api = ["djangorestframework", "django-filter", "drf-spectacular", "drf-spectacul
 keycloak = ["python-keycloak"]
 
 [tool.poetry.group.dev.dependencies]
-tox = "^4.4.7"
+tox = "^4.4.8"
 pytest = "^7.2.2"
 black = "^23.1.0"
 isort = "^5.10.1"
