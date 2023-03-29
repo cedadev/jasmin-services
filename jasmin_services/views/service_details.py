@@ -72,32 +72,32 @@ def service_details(request, service):
                 continue
             roles.append(role)
 
-        if grants:
-            # Get all the current managers and deputies of a services so that
-            # we can display this information to users of the service.
-            managers = (
-                Grant.objects.filter(
-                    access__role__service=service,
-                    expires__gt=date.today(),
-                    revoked=False,
-                )
-                .filter_active()
-                .filter(access__role__name="MANAGER")
+    if grants:
+        # Get all the current managers and deputies of a services so that
+        # we can display this information to users of the service.
+        managers = (
+            Grant.objects.filter(
+                access__role__service=service,
+                expires__gt=date.today(),
+                revoked=False,
             )
-            managers = [x.access.user for x in managers]
-            deputies = (
-                Grant.objects.filter(
-                    access__role__service=service,
-                    expires__gt=date.today(),
-                    revoked=False,
-                )
-                .filter_active()
-                .filter(access__role__name="DEPUTY")
+            .filter_active()
+            .filter(access__role__name="MANAGER")
+        )
+        managers = [x.access.user for x in managers]
+        deputies = (
+            Grant.objects.filter(
+                access__role__service=service,
+                expires__gt=date.today(),
+                revoked=False,
             )
-            deputies = [x.access.user for x in deputies]
-        else:
-            managers = []
-            deputies = []
+            .filter_active()
+            .filter(access__role__name="DEPUTY")
+        )
+        deputies = [x.access.user for x in deputies]
+    else:
+        managers = []
+        deputies = []
 
     templates = [
         f"jasmin_services/{service.category.name}/{service.name}/service_details.html",
