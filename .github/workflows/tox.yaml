@@ -28,7 +28,7 @@ jobs:
           python-version: ${{ matrix.py }}
       - uses: actions/checkout@v2
       - name: Install test dependencies.
-        run: python -m pip install tox>=4.0.16 tox-gh poetry
+        run: python -m pip install tox>=4.0.16 tox-gh poetry>=1.4.1
       - name: Print poetry version
         run: poetry --version
       - name: Setup test suite
