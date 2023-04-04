@@ -31,8 +31,6 @@ jobs:
         uses: snok/install-poetry@v1
         with:
           version: 1.4.2
-      - name: Test Poetry
-        run: poetry --version
       - name: Install test dependencies.
         run: pip install tox>=4.0.16 tox-gh
       - name: Setup test suite
