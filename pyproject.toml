@@ -26,7 +26,7 @@ djangorestframework = {version = "^3.13.1", optional = true}
 django-filter = {version = ">=21.1,<=23.1", optional = true}
 drf-spectacular = {version=">=0.22.0,<=0.26.1", optional = true}
 drf-spectacular-sidecar = {version="^2023.4.1", optional = true}
-python-keycloak = {version = "^2.15.2", optional = true, python = ">3.7"}
+python-keycloak = {version = "^2.15.3", optional = true, python = ">3.7"}
 
 [tool.poetry.extras]
 api = ["djangorestframework", "django-filter", "drf-spectacular", "drf-spectacular-sidecar"]
