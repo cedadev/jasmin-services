@@ -25,7 +25,7 @@ class JoinJISCMailListBehaviour(Behaviour):
 
     def apply(self, user, _role):
         # Don't join service users up to the mailing list
-        if user.service_user:
+        if user.user_type in ["SERVICE", "SHARED", "TRAINING"]:
             return
         # If the user is already in joined_users, there is nothing to do
         if self.joined_users.filter(pk=user.pk).exists():

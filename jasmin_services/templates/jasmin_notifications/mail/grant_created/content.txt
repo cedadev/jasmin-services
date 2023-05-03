@@ -2,7 +2,7 @@
 
 {% block content %}
 Hi {{ user.first_name }},
-{% if target.access.user.service_user %}
+{% if target.access.user.user_type == "SERVICE" %}
 The following access has been granted:
 
     Service: {{ target.access.role.service }}

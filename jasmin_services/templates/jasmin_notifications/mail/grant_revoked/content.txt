@@ -4,7 +4,7 @@
 Hi {{ user.first_name }},
 
 The following access has been revoked:
-{% if target.access.user.service_user %}
+{% if target.access.user.user_type == "SERVICE" %}
     Service: {{ target.access.role.service }}
     Role: {{ target.access.role.name }}
     User: {{ target.access.user }}
