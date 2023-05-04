@@ -4,8 +4,8 @@ Custom form widgets for the ``jasmin_services`` app.
 
 import json
 
+import django.urls
 from django import forms
-from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
@@ -44,7 +44,7 @@ def generic_object_text(request):
 admin_site_get_urls = admin.sites.AdminSite.get_urls
 admin.sites.AdminSite.get_urls = lambda model_admin, *args, **kwargs: [
     *admin_site_get_urls(model_admin, *args, **kwargs),
-    url(
+    django.urls.re_path(
         r"^generic_object_text/$",
         model_admin.admin_view(generic_object_text),
         name="generic_object_text",
