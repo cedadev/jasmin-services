@@ -739,7 +739,7 @@ requirements-deprecated-finder = ["pip-api", "pipreqs"]
 [[package]]
 name = "jasmin-django-utils"
 version = "1.0.6"
-description = "Django utilities used by JASMIN apps."
+description = ""
 category = "main"
 optional = false
 python-versions = "*"
@@ -816,8 +816,8 @@ django-polymorphic = "*"
 [package.source]
 type = "git"
 url = "https://github.com/cedadev/jasmin-metadata.git"
-reference = "v1.0.0"
-resolved_reference = "d6c8666be451eb7be0966a5c04923830145e0408"
+reference = "v1.0.1"
+resolved_reference = "19544ce1aee8512dd3e4a03eb7ac0b572f4732b9"
 
 [[package]]
 name = "jasmin-notifications"
@@ -1576,4 +1576,4 @@ keycloak = ["python-keycloak"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d3175c4f7543e3cb9e84074f9e92a12be2ebc83c3c6836f2b2a5d9bef7022ea9"
+content-hash = "eb751ca1e19ca8a3eb3002a81c4d8ee1cf8035a9a792eac49a5c67ed233ea8a7"
