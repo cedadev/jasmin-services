@@ -14,7 +14,7 @@ jasmin-django-utils = {git = "https://github.com/cedadev/jasmin-django-utils.git
 
 Django = ">=3.2,!=4.0,!=4.1,<4.3"
 django-bootstrap5 = "^23.1"
-django-markdown-deux = "^1.0.5"
+django-markdown-deux = "^1.0.6"
 python-dateutil = "^2.8.2"
 django-polymorphic = "^3.1.0"
 requests = "^2.27.1"
