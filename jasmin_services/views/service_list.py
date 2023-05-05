@@ -1,4 +1,5 @@
 import logging
+import urllib.parse
 
 from django import http
 from django.conf import settings
@@ -6,7 +7,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db.models import Exists, OuterRef, Q
 from django.shortcuts import render
-from django.utils.http import urlquote
 from django.views.decorators.http import require_safe
 
 from ..models import Category, Grant, Request
@@ -142,7 +142,7 @@ def service_list(request, category):
                 for service in page
             ],
             "page": page,
-            "preserved_filters": "query={}".format(urlquote(request.GET["query"]))
+            "preserved_filters": "query={}".format(urllib.parse.quote(request.GET["query"]))
             if "query" in request.GET
             else "",
         },

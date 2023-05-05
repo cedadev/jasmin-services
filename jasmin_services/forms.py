@@ -10,6 +10,7 @@ import uuid
 from datetime import date
 
 import django.contrib.auth
+import django.utils.encoding
 from dateutil.relativedelta import relativedelta
 from django import forms
 from django.conf import settings
@@ -17,7 +18,6 @@ from django.contrib.admin.widgets import AdminDateWidget, FilteredSelectMultiple
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.urls import reverse
-from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
@@ -373,7 +373,7 @@ class AdminSwitchableLookupWidget(forms.TextInput):
     def render(self, name, value, attrs=None, renderer=None):
         if attrs is None:
             attrs = {}
-        value = force_text(value) if value else ""
+        value = django.utils.encoding.force_str(value) if value else ""
         attrs["class"] = "vForeignKeyRawIdAdminField"
         attrs["style"] = "width: 20em !important;"
         # Translate the model_map into an href_map

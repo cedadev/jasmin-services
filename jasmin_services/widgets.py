@@ -5,6 +5,7 @@ Custom form widgets for the ``jasmin_services`` app.
 import json
 
 import django.urls
+import django.utils.encoding
 from django import forms
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
@@ -12,7 +13,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
-from django.utils.encoding import force_text
 
 
 #####
@@ -36,7 +36,7 @@ def generic_object_text(request):
     except ObjectDoesNotExist:
         content = "Object does not exist."
     else:
-        content = force_text(obj)
+        content = django.utils.encoding.force_str(obj)
     return HttpResponse(content=content, content_type="text/plain")
 
 
@@ -101,7 +101,7 @@ class AdminGfkObjectIdWidget(forms.TextInput):
         ctype_url_map = {}
         for ctype in ContentType.objects.all():
             try:
-                ctype_url_map[force_text(ctype.pk)] = reverse(
+                ctype_url_map[django.utils.encoding.force_str(ctype.pk)] = reverse(
                     "admin:{}_{}_changelist".format(ctype.app_label, ctype.model),
                     current_app=self.admin_site.name,
                 )
