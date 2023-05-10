@@ -4,6 +4,7 @@ import datetime as dt
 import django.contrib.auth
 import django.db.models as dj_models
 import django.utils.timezone
+import drf_spectacular.types
 import drf_spectacular.utils
 import jasmin_django_utils.api.viewsets
 import rest_framework.decorators as rf_decorators
@@ -38,7 +39,8 @@ class ServicesViewSet(
                 type=dt.date,
                 description="ISO Date on which you would like to know the active roles for a service.",
             )
-        ]
+        ],
+        responses=serializers.RoleSerializer(many=True),
     )
     @rf_decorators.action(detail=True, required_scopes=["jasmin.services.serviceroles.all"])
     def roles(self, request, pk=None):
@@ -84,6 +86,9 @@ class UsersViewSet(
     action_serializers = {"services": serializers.ServiceListSerializer}
     required_scopes = ["jasmin.services.userservices.all"]
 
+    @drf_spectacular.utils.extend_schema(
+        responses=serializers.ServiceListSerializer(many=True),
+    )
     @rf_decorators.action(detail=True)
     def services(self, request, username=None):
         """List the services of a given user."""
