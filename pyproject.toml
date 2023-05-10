@@ -10,7 +10,7 @@ python = "^3.9"
 
 # Dependencies of dependencies. Need to specify here so poetry knows where to get them from.
 jasmin-ldap = {git = "https://github.com/cedadev/jasmin-ldap.git", tag = "v1.0.0"}
-jasmin-django-utils = {git = "https://github.com/cedadev/jasmin-django-utils.git", tag = "v1.0.8" }# Also required for API.
+jasmin-django-utils = {git = "https://github.com/cedadev/jasmin-django-utils.git", tag = "v1.0.9" }# Also required for API.
 
 Django = ">=3.2,!=4.0,!=4.1,<4.3"
 django-bootstrap5 = "^23.1"
@@ -20,7 +20,7 @@ django-polymorphic = "^3.1.0"
 requests = "^2.27.1"
 jasmin-ldap-django = {git = "https://github.com/cedadev/jasmin-ldap-django.git", tag = "v1.0.1"}
 jasmin-metadata = {git = "https://github.com/cedadev/jasmin-metadata.git", tag = "v1.0.2"}
-jasmin-notifications = {git = "https://github.com/cedadev/jasmin-notifications.git", tag = "v1.2.6"}
+jasmin-notifications = {git = "https://github.com/cedadev/jasmin-notifications.git", tag = "v1.2.7"}
 django-countries = "^7.2.1, !=7.3.0"
 djangorestframework = {version = "^3.13.1", optional = true}
 django-filter = {version = "^23.2", optional = true}
