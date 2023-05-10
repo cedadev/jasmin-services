@@ -2,6 +2,7 @@
 import collections
 
 import django.contrib.auth
+import django_countries.serializers
 import rest_framework.serializers as rf_serial
 
 from .. import models
@@ -82,7 +83,7 @@ class CategorySerializer(CategoryListSerializer):
         fields = ["id", "url", "name", "long_name", "position", "services"]
 
 
-class ServiceSerializer(ServiceListSerializer):
+class ServiceSerializer(django_countries.serializers.CountryFieldMixin, ServiceListSerializer):
     """Full details of a service."""
 
     roles = RoleListSerializer(many=True)
