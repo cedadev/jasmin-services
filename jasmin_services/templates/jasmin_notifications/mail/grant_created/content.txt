@@ -2,7 +2,7 @@
 
 {% block content %}
 Hi {{ user.first_name }},
-{% if (target.access.user.user_type == "SERVICE" or (target.access.user.user_type == "SHARED") %}
+{% if (target.access.user.user_type == "SERVICE") or (target.access.user.user_type == "SHARED") %}
 The following access has been granted:
 
     Service: {{ target.access.role.service }}

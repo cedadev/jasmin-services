@@ -4,7 +4,7 @@
 Hi {{ user.first_name }},
 
 The following request requires additional information:
-{% if (target.access.user.user_type == "SERVICE" or (target.access.user.user_type == "SHARED") %}
+{% if (target.access.user.user_type == "SERVICE") or (target.access.user.user_type == "SHARED") %}
     Service: {{ target.access.role.service }}
     Role: {{ target.access.role.name }}
     User: {{ target.access.user }}
