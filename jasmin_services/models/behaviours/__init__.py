@@ -4,9 +4,9 @@ import sys
 
 import django.conf
 
-from .base import Behaviour
-from .ldap import Group, LdapGroupBehaviour, LdapTagBehaviour
-from .mail import JoinJISCMailListBehaviour
+from .base import Behaviour  # unimport:skip
+from .ldap import Group, LdapGroupBehaviour, LdapTagBehaviour  # unimport:skip
+from .mail import JoinJISCMailListBehaviour  # unimport:skip
 
 __all__ = []
 logger = logging.getLogger(__name__)

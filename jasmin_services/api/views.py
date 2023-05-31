@@ -4,7 +4,6 @@ import datetime as dt
 import django.contrib.auth
 import django.db.models as dj_models
 import django.utils.timezone
-import drf_spectacular.types
 import drf_spectacular.utils
 import jasmin_django_utils.api.viewsets
 import rest_framework.decorators as rf_decorators

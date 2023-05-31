@@ -5,8 +5,6 @@ Custom template filters for inspecting a user's roles for a service.
 __author__ = "Matt Pryor"
 __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 
-from datetime import date
-
 from django import template
 
 from ..models import Request, RequestState

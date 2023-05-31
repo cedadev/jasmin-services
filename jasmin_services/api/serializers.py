@@ -1,5 +1,4 @@
 """Serializers for the jasmin_services api."""
-import collections
 
 import django.contrib.auth
 import django_countries.serializers

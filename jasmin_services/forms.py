@@ -467,9 +467,6 @@ def admin_message_form_factory(service):
     )
 
 
-from django.contrib.admin.sites import site
-
-
 class AdminGrantForm(forms.ModelForm):
     class Meta:
         model = Grant

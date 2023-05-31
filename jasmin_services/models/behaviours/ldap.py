@@ -1,7 +1,6 @@
 """Behavious to apply changes to LDAP."""
 import importlib
 
-import django.conf
 import django.core.exceptions
 import django.core.validators
 import django.db.models
