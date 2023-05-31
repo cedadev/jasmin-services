@@ -481,6 +481,7 @@ class AdminGrantForm(forms.ModelForm):
             "previous_grant",
             "expires",
             "revoked",
+            "revoked_at",
             "user_reason",
             "internal_reason",
         )

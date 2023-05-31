@@ -1,5 +1,8 @@
 from datetime import date
 
+import django.db.models.signals
+import django.dispatch
+import django.utils.timezone
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -11,14 +14,12 @@ import jasmin_services.models
 
 
 class GrantQuerySet(models.QuerySet):
-    """
-    Custom queryset that allows filtering for the 'active' grants.
-    """
+    """Custom queryset that allows filtering for the 'active' grants."""
 
     def annotate_active(self):
         """
-        Returns a new queryset where each grant is annotated with a boolean
-        indicating whether it is 'active' or not.
+        Return a new queryset where each grant is annotated with a
+        boolean indicating whether it is 'active' or not.
         """
         return self.annotate(
             active=models.Case(
@@ -103,9 +104,18 @@ class Grant(HasMetadata):
     #:   * Access is assumed to expire at the **end** of the given day
     #:   * Default expiry is one year from now
     expires = models.DateField(default=_default_expiry, verbose_name="expiry date")
-    #: Indicates whether the grant has been revoked
-    #: This overrides any expiry date
+
+    # Indicates whether the grant has been revoked
+    # This overrides any expiry date
     revoked = models.BooleanField(default=False)
+    # Date at which this grant was revoked.
+    revoked_at = models.DateTimeField(
+        default=None,
+        null=True,
+        blank=True,
+        help_text="Date on which this grant was revoked.",
+    )
+
     #: If revoked, this is a reason for the user
     user_reason = models.TextField(
         blank=True,
@@ -200,3 +210,12 @@ class Grant(HasMetadata):
             errors["expires"] = "Expiry date must be in the future"
         if errors:
             raise ValidationError(errors)
+
+
+@django.dispatch.receiver(django.db.models.signals.pre_save, sender=Grant)
+def populate_revoked_at(sender, instance, **kwargs):
+    """Populate revoked_at timestamp when a grant is revoked."""
+    if (not instance.revoked) and instance.revoked_at:
+        instance.revoked_at = None
+    elif instance.revoked and (instance.revoked_at is None):
+        instance.revoked_at = django.utils.timezone.now()
