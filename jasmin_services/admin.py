@@ -547,6 +547,7 @@ class GrantAdmin(HasMetadataModelAdmin):
         "revoked",
         _ExpiredListFilter,
     )
+    autocomplete_fields = ("role", "user")
     # This is expensive and unnecessary
     show_full_result_count = False
     search_fields = (
@@ -771,6 +772,7 @@ class RequestAdmin(HasMetadataModelAdmin):
         _ActiveListFilter,
         _StateListFilter,
     )
+    autocomplete_fields = ("role", "user")
     # This is expensive and unnecessary
     show_full_result_count = False
     search_fields = (
