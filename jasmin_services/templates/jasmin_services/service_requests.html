@@ -1,8 +1,7 @@
 {% extends "jasmin_services/service_base.html" %}
 {% load markdown_deux_tags %}
 
-{% block head_title %}{{ service }} | JASMIN Accounts Portal{% endblock %}
-{% block page_title %}<code>{{ service }}</code>{% endblock %}
+{% block page_title %}{{ service }}{% endblock %}
 
 {% block service_breadcrumbs %}
     <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a></li>

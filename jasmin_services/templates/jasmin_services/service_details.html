@@ -1,9 +1,7 @@
 {% extends "jasmin_services/service_base.html" %}
 {% load markdown_deux_tags country_tags %}
 
-{% block head_title %}{{ service }} | JASMIN Accounts Portal{% endblock %}
-
-{% block page_title %}{{ current_category.long_name }}{% endblock %}
+{% block page_title %}{{ service }}{% endblock %}
 
 {% block service_breadcrumbs %}
     <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a></li>
@@ -27,11 +25,13 @@
                 </div>
             {% endif %}
             {% block description %}
+                <div class="p-2">
                 {% if service.description %}
                     {{ service.description|markdown }}
                 {% else %}
                     <p>{{ service.summary }}</p>
                 {% endif %}
+                </div>
             {% endblock %}
         </div>
         <div class="col-lg-5 col-md-6">
