@@ -30,7 +30,7 @@
     <div id="content-main">
         <form method="POST" id="retire_service_form">
             {% csrf_token %}
-                <input type="number" value="{{ service.id }}" name="service_id" hidden />
+            <input type="number" value="{{ service.id }}" name="service_id" hidden />
             <div class="submit-row">
                 <p>
                     Retiring a service expires all existing grants for the service and hides it from all user accessible interfaces.

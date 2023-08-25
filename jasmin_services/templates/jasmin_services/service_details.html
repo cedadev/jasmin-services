@@ -26,11 +26,11 @@
             {% endif %}
             {% block description %}
                 <div class="p-2">
-                {% if service.description %}
-                    {{ service.description|markdown }}
-                {% else %}
-                    <p>{{ service.summary }}</p>
-                {% endif %}
+                    {% if service.description %}
+                        {{ service.description|markdown }}
+                    {% else %}
+                        <p>{{ service.summary }}</p>
+                    {% endif %}
                 </div>
             {% endblock %}
         </div>

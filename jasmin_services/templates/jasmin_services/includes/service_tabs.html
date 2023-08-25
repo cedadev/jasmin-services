@@ -10,27 +10,27 @@
         <ul class="nav nav-tabs mb-2">
             <li class="nav-item">
                 <a class="nav-link {% if active == 'service_details' %}active{%endif%}"
-                    href="{% url 'jasmin_services:service_details' category=service.category.name service=service.name %}">
+                   href="{% url 'jasmin_services:service_details' category=service.category.name service=service.name %}">
                     Details</a>
             </li>
             {% if view_users %}
                 <li class="nav-item">
                     <a class= "nav-link {% if active == 'service_users' or active == 'grant_review' %}active{% endif %}"
-                        href="{% url 'jasmin_services:service_users' category=service.category.name service=service.name %}">
+                       href="{% url 'jasmin_services:service_users' category=service.category.name service=service.name %}">
                         Users</a>
                 </li>
             {% endif %}
             {% if send_message %}
                 <li class="nav-item">
                     <a class="nav-link {% if active == 'service_message' %}active{% endif %}"
-                        href="{% url 'jasmin_services:service_message' category=service.category.name service=service.name %}">
+                       href="{% url 'jasmin_services:service_message' category=service.category.name service=service.name %}">
                         Message users</a>
                 </li>
             {% endif %}
             {% if approver %}
                 <li class="nav-item">
                     <a class="nav-link {% if active == 'service_requests' or active == 'request_decide' %}active{% endif %}"
-                        href="{% url 'jasmin_services:service_requests' category=service.category.name service=service.name %}">
+                       href="{% url 'jasmin_services:service_requests' category=service.category.name service=service.name %}">
                         Pending requests
                         {% pending_req_count service=service as n_pending %}
                         {% if n_pending %}
@@ -42,7 +42,7 @@
             {% if grant_role %}
                 <li class="nav-item">
                     <a class="nav-link {% if active == 'grant_role' %}active{% endif %}"
-                        href="{% url 'jasmin_services:grant_role' category=service.category.name service=service.name %}">
+                       href="{% url 'jasmin_services:grant_role' category=service.category.name service=service.name %}">
                         Grant role</a>
                 </li>
             {% endif %}

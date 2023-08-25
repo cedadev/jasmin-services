@@ -3,45 +3,45 @@
 {% if req %}
     {% if req.rejected %}
         <button class="badge bg-danger"
-            data-bs-toggle="popover"
-            data-bs-content="{{ req.user_reason|markdown }}"
-            data-bs-placement="left"
-            data-bs-html='true'
-            title="Request rejected">
+                data-bs-toggle="popover"
+                data-bs-content="{{ req.user_reason|markdown }}"
+                data-bs-placement="left"
+                data-bs-html='true'
+                title="Request rejected">
             <i class="fas fa-ban"></i> {{ role.name }}
         </button>
     {% else %}
         <button class="btn badge bg-primary"
-            data-bs-toggle="popover"
-            data-bs-content="Request for access awaiting approval."
-            data-bs-placement="left"
-            title="Request pending">
+                data-bs-toggle="popover"
+                data-bs-content="Request for access awaiting approval."
+                data-bs-placement="left"
+                title="Request pending">
             <i class="fas fa-hourglass-half"></i> {{ role.name }}
         </button>
     {% endif %}
 {% elif grant %}
     {% if grant.revoked %}
         <button class="btn badge bg-danger"
-            data-bs-toggle="popover"
-            data-bs-content="{{ grant.user_reason|markdown }}"
-            data-bs-placement="left"
-            data-bs-html='true'
-            title="Access revoked">
+                data-bs-toggle="popover"
+                data-bs-content="{{ grant.user_reason|markdown }}"
+                data-bs-placement="left"
+                data-bs-html='true'
+                title="Access revoked">
             <i class="fas fa-ban"></i> {{ role.name }}
         </button>
     {% elif grant.expired %}
         <button class="btn badge bg-danger"
-            data-bs-toggle="popover"
-            data-bs-content="Access expired on {{ grant.expires }}"
-            data-bs-placement="left"
-            title="Access expired">
+                data-bs-toggle="popover"
+                data-bs-content="Access expired on {{ grant.expires }}"
+                data-bs-placement="left"
+                title="Access expired">
             <i class="fas fa-clock-o"></i> {{ role.name }}
     {% elif grant.expiring %}
         <button class="btn badge bg-warning"
-            data-bs-toggle="popover"
-            data-bs-content="Access expiring on {{ grant.expires }}"
-            data-bs-placement="left"
-            title="Access expiring">
+                data-bs-toggle="popover"
+                data-bs-content="Access expiring on {{ grant.expires }}"
+                data-bs-placement="left"
+                title="Access expiring">
             <i class="fas fa-clock-o"></i> {{ role.name }}
         </button>
     {% else %}
