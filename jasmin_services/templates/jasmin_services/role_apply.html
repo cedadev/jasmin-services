@@ -1,45 +1,40 @@
-{% extends 'layout.html' %}
+{% extends "jasmin_services/service_base.html" %}
 {% load django_bootstrap5 markdown_deux_tags %}
 
 {% block page_title %}Apply for role{% endblock %}
 
-{% block breadcrumbs %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">JASMIN Services</li>
-            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=role.service.category.name %}">{{ role.service.category }}</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name %}">{{ role.service.name }}</a></li>
-            <li class="breadcrumb-item active">Apply</li>
-        </ol>
-    </nav>
+{% block service_breadcrumbs %}
+    <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=role.service.category.name %}">{{ role.service.category }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name %}">{{ role.service.name }}</a></li>
+    <li class="breadcrumb-item active">Apply</li>
 {% endblock %}
 
 {% block content %}
     <form method="POST" action="" class="form-horizontal" onsubmit="submitted.disabled = true; return true;">
         {% csrf_token %}
 
-            <div class="form-group">
-                <div class="row">
-                    <label class="col-4 text-right control-label" for="id_service"><b>Service</b></label>
-                    <div class="col">
-                        <p class="form-control-static" id="id_service">
-                            <code>{{ role.service }}</code>
-                        </p>
-                    </div>
+        <div class="form-group">
+            <div class="row">
+                <label class="col-4 text-right control-label" for="id_service"><b>Service</b></label>
+                <div class="col">
+                    <p class="form-control-static" id="id_service">
+                        <code>{{ role.service }}</code>
+                    </p>
                 </div>
             </div>
-            <div class="form-group">
-                <div class="row">
-                    <label class="col-4 text-right control-label" for="id_role"><b>Role</b></label>
-                    <div class="col">
-                        <p class="form-control-static" id="id_role">
-                            <code>{{ role.name }}</code>
-                        </p>
-                    </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <label class="col-4 text-right control-label" for="id_role"><b>Role</b></label>
+                <div class="col">
+                    <p class="form-control-static" id="id_role">
+                        <code>{{ role.name }}</code>
+                    </p>
                 </div>
             </div>
+        </div>
 
-            {% if licence_url %}
+        {% if licence_url %}
             <div class="form-group">
                 <div class="row">
                     <label class="col-2 text-right control-label" for="id_licence"><b>License</b></label>
@@ -60,11 +55,11 @@
                     {% if req %}
                         <aside class="danger">
                             <header>
-                            {% if req.incomplete %}
-                                More infomation required
-                            {% else %}
-                                Previous request rejected
-                            {% endif %}
+                                {% if req.incomplete %}
+                                    More infomation required
+                                {% else %}
+                                    Previous request rejected
+                                {% endif %}
                             </header>
                             {{ req.user_reason|markdown }}
                         </aside>
@@ -87,9 +82,9 @@
                 </div>
             </div>
         {% endif %}
-            
+
         {% bootstrap_form form layout='horizontal' %}
-            
+
         <div class="form-group">
             <div class="row">
                 <div class="ml-auto">
@@ -132,4 +127,3 @@
         });
     </script>
 {% endblock %}
-

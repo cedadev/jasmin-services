@@ -1,16 +1,11 @@
-{% extends 'layout.html' %}
+{% extends "jasmin_services/service_base.html" %}
 {% load static django_bootstrap5 markdown_deux_tags pretty_name artefacts %}
 
 {% block page_title %}Revoke Grant{% endblock %}
 
-{% block breadcrumbs %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">JASMIN Services</li>
-            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ service.name }}</li>
-        </ol>
-    </nav>
+{% block service_breadcrumbs %}
+    <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ service.name }}</li>
 {% endblock %}
 
 {% block content_header %}{{ block.super }}
@@ -66,12 +61,12 @@
                 </div>
 
                 {% for datum in grant.metadata.all %}
-                <div class="row mb-3">
-                    <label class="col-sm-2 col-form-label" for="id_{{ datum.key }}">{{ datum.key|pretty_name }}</label>
-                    <div class="col-sm-10">
-                        <p class="form-control-plaintext" id="id_{{ datum.key }}">{{ datum.value }}</p>
+                    <div class="row mb-3">
+                        <label class="col-sm-2 col-form-label" for="id_{{ datum.key }}">{{ datum.key|pretty_name }}</label>
+                        <div class="col-sm-10">
+                            <p class="form-control-plaintext" id="id_{{ datum.key }}">{{ datum.value }}</p>
+                        </div>
                     </div>
-                </div>
                 {% endfor %}
 
                 {% block extra_context %}{% endblock %}

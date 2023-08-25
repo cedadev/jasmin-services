@@ -1,17 +1,14 @@
-{% extends 'layout.html' %}
+{% extends "jasmin_services/service_base.html" %}
 {% load markdown_deux_tags service_tags %}
 
 {% block head_title %}{{ service }} | JASMIN Accounts Portal{% endblock %}
 {% block page_title %}<code>{{ service }}</code>{% endblock %}
 
-{% block breadcrumbs %}
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item">JASMIN Services</li>
-        <li class="breadcrumb-item">
-            <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
-        </li>
-        <li class="breadcrumb-item active">{{ service.name }}</li>
-    </ol>
+{% block service_breadcrumbs %}
+    <li class="breadcrumb-item">
+        <a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a>
+    </li>
+    <li class="breadcrumb-item active">{{ service.name }}</li>
 {% endblock %}
 
 {% block content_header %}{{ block.super }}
@@ -162,7 +159,7 @@
                             {% if revoke_role and not grant.revoked and not grant.expired %}
                                 <td><a class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="right" title="Revoke this grant of access for this user." href="{% url 'jasmin_services:grant_review' pk=grant.id %}">Revoke</a></td>
                             {% else %}
-                            <td></td>
+                                <td></td>
                             {% endif %}
                             </tr>
                         {% endfor %}

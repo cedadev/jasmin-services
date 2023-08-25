@@ -1,16 +1,11 @@
-{% extends 'layout.html' %}
+{% extends "jasmin_services/service_base.html" %}
 {% load static django_bootstrap5 %}
 
 {% block page_title %}Send a message{% endblock %}
 
-{% block breadcrumbs %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">JASMIN Services</li>
-            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ service.name }}</li>
-        </ol>
-    </nav>
+{% block service_breadcrumbs %}
+    <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ service.name }}</li>
 {% endblock %}
 
 {% block content_header %}{{ block.super }}

@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+
+{% block breadcrumbs %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">JASMIN Services</li>
+            {% block service_breadcrumbs %}{% endblock%}
+        </ol>
+    </nav>
+{% endblock %}

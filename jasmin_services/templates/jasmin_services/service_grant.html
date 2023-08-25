@@ -1,76 +1,71 @@
-{% extends 'layout.html' %}
+{% extends "jasmin_services/service_base.html" %}
 {% load django_bootstrap5 %}
 
 {% block page_title %}Grant role{% endblock %}
 
-{% block breadcrumbs %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">JASMIN Services</li>
-            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_details' category=service.category.name service=service.name %}">{{ service.name }}</a></li>
-            <li class="breadcrumb-item active">Grant role</li>
-        </ol>
-    </nav>
+{% block service_breadcrumbs %}
+    <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_list' category=service.category.name %}">{{ service.category }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'jasmin_services:service_details' category=service.category.name service=service.name %}">{{ service.name }}</a></li>
+    <li class="breadcrumb-item active">Grant role</li>
 {% endblock %}
 
 {% block content_header %}{{ block.super }}
-<div class="row py-2">
-    <div class="col-md-12">
-        {% include "jasmin_services/includes/service_tabs.html" %}
+    <div class="row py-2">
+        <div class="col-md-12">
+            {% include "jasmin_services/includes/service_tabs.html" %}
+        </div>
     </div>
-</div>
 {% endblock %}
 
 {% block content_panel %}
-<div class="row">
-    <div class="col-md-8 col-md-offset-2">
-        <div class="banner banner-info text-center">
-            <p>You can use this form to grant a role to a specific user.</p>
-        </div>
-        <form method="POST" action="" class="form-horizontal" id="message-form">
-            {% csrf_token %}
-
-            {% bootstrap_form form layout='horizontal' %}
-
-            <div class="form-group">
-                <div class="col-sm-offset-3 col-sm-9">
-                    <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Grant role</button>
-                </div>
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="banner banner-info text-center">
+                <p>You can use this form to grant a role to a specific user.</p>
             </div>
-        </form>
+            <form method="POST" action="" class="form-horizontal" id="message-form">
+                {% csrf_token %}
+
+                {% bootstrap_form form layout='horizontal' %}
+
+                <div class="form-group">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Grant role</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 {% endblock %}
 
 {% block tail_js_extra %}
-<script type="text/javascript">
-    
+    <script type="text/javascript">
+
     // Reset the hiding of form-groups except for those we are worried about
-    $('.mb-3').not(':has([name^="expires_custom"])').show();
+        $('.mb-3').not(':has([name^="expires_custom"])').show();
     // Constants used in the function below
-    var CUSTOM_DATE = '7';
+        var CUSTOM_DATE = '7';
     // This function makes sure only fields which are needed are shown
-    var toggle_fields = function() {
-        var expires = $('[name="expires"]').find('option:selected').val();
-        var show_custom = ( expires == CUSTOM_DATE );
-        $('[name="expires_custom"]').closest('.mb-3')[show_custom ? 'show' : 'hide']();
-    }
-    toggle_fields();
-    $('[name="expires"]').on('change', toggle_fields);
+        var toggle_fields = function() {
+            var expires = $('[name="expires"]').find('option:selected').val();
+            var show_custom = ( expires == CUSTOM_DATE );
+            $('[name="expires_custom"]').closest('.mb-3')[show_custom ? 'show' : 'hide']();
+        }
+        toggle_fields();
+        $('[name="expires"]').on('change', toggle_fields);
 
     // For date fields, replace the control with an input group
-    $('input[type="date"]').each(function() {
-        var $input = $(this);
-        var $inputGroup = $('<div class="input-group"><span class="input-group-addon"><i class="fa fa-fw fa-calendar"></i></span></div>').insertBefore($input);
-        $input.attr('type', 'text').detach().prependTo($inputGroup);
-        $input.datepicker({
-            'format' : 'yyyy-mm-dd',
-            'startDate' : new Date(),
-            'autoclose' : true
+        $('input[type="date"]').each(function() {
+            var $input = $(this);
+            var $inputGroup = $('<div class="input-group"><span class="input-group-addon"><i class="fa fa-fw fa-calendar"></i></span></div>').insertBefore($input);
+            $input.attr('type', 'text').detach().prependTo($inputGroup);
+            $input.datepicker({
+                'format' : 'yyyy-mm-dd',
+                'startDate' : new Date(),
+                'autoclose' : true
+            });
         });
-    });
 
-    
-</script>
+
+    </script>
 {% endblock %}

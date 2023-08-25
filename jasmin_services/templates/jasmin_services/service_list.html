@@ -1,14 +1,9 @@
-{% extends "layout.html" %}
+{% extends "jasmin_services/service_base.html" %}
 
 {% block page_title %}{{ current_category.long_name }}{% endblock %}
 
-{% block breadcrumbs %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">JASMIN Services</li>
-            <li class="breadcrumb-item active" aria-current="page">{{ current_category.long_name }}</li>
-        </ol>
-    </nav>
+{% block service_breadcrumbs %}
+    <li class="breadcrumb-item active" aria-current="page">{{ current_category.long_name }}</li>
 {% endblock %}
 
 {% block content_panel %}
