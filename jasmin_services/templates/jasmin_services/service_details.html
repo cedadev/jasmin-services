@@ -255,42 +255,44 @@
                     </div>
 
                 {% endif %}
-                {% if grants %}
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Managers & Deputies</h3>
-                        </div>
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Role</th>
-                                    <th>Name</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for manager in managers%}
-                                    <tr class="active">
-                                        <td class="text-muted" style="width: 1%;"><i></i></td>
-                                        <td><code>MANAGER</code></td>
-                                        <td>{{manager.first_name}} {{manager.last_name}}</td>
-                                        <td></td>
+                {% block managers_deputies %}
+                    {% if grants %}
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Managers & Deputies</h3>
+                            </div>
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Role</th>
+                                        <th>Name</th>
+                                        <th></th>
                                     </tr>
-                                {% endfor %}
-                                {% for deputy in deputies%}
-                                    <tr class="active">
-                                        <td class="text-muted" style="width: 1%;"><i></i></td>
-                                        <td><code>DEPUTY</code></td>
-                                        <td>{{deputy.first_name}} {{deputy.last_name}}</td>
-                                        <td></td>
-                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for manager in managers%}
+                                        <tr class="active">
+                                            <td class="text-muted" style="width: 1%;"><i></i></td>
+                                            <td><code>MANAGER</code></td>
+                                            <td>{{manager.first_name}} {{manager.last_name}}</td>
+                                            <td></td>
+                                        </tr>
+                                    {% endfor %}
+                                    {% for deputy in deputies%}
+                                        <tr class="active">
+                                            <td class="text-muted" style="width: 1%;"><i></i></td>
+                                            <td><code>DEPUTY</code></td>
+                                            <td>{{deputy.first_name}} {{deputy.last_name}}</td>
+                                            <td></td>
+                                        </tr>
 
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                {% endblock %}
             {% endif %}
         </div>
     </div>
