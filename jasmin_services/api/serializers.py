@@ -103,3 +103,23 @@ class ServiceSerializer(django_countries.serializers.CountryFieldMixin, ServiceL
             "position",
             "ceda_managed",
         ]
+
+
+class UserGrantSerializer(rf_serial.ModelSerializer):
+    """Simple details about a service."""
+
+    service = ServiceListSerializer(source="access.role.service", read_only=True)
+    role = RoleListSerializer(source="access.role", read_only=True)
+
+    class Meta:
+        model = models.Grant
+        fields = [
+            "id",
+            "service",
+            "role",
+            "granted_at",
+            "expires",
+            "revoked",
+            "revoked_at",
+            "user_reason",
+        ]

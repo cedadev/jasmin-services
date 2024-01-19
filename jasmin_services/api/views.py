@@ -83,7 +83,10 @@ class UsersViewSet(
 ):
     queryset = django.contrib.auth.get_user_model().objects
     lookup_field = "username"
-    action_serializers = {"services": serializers.ServiceListSerializer}
+    action_serializers = {
+        "services": serializers.ServiceListSerializer,
+        "grants": serializers.UserGrantSerializer,
+    }
     required_scopes = ["jasmin.services.userservices.all"]
 
     @drf_spectacular.utils.extend_schema(
@@ -100,6 +103,24 @@ class UsersViewSet(
         )
 
         serializer = serializers.ServiceListSerializer(
+            queryset, many=True, context={"request": request}
+        )
+        return rf_response.Response(serializer.data)
+
+    @drf_spectacular.utils.extend_schema(
+        responses=serializers.UserGrantSerializer(many=True),
+    )
+    @rf_decorators.action(detail=True)
+    def grants(self, request, username=None):
+        """List the grants of a given user."""
+        user = self.get_object()
+        queryset = models.Grant.objects.filter(
+            access__user=user,
+            revoked=False,
+            expires__gte=dt.datetime.now(),
+        ).prefetch_related("access__role__service")
+
+        serializer = serializers.UserGrantSerializer(
             queryset, many=True, context={"request": request}
         )
         return rf_response.Response(serializer.data)
