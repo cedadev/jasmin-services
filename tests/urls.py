@@ -1,4 +1,5 @@
 """URLs for tests of jasmin_services."""
+
 import drf_spectacular.views
 import rest_framework.routers as rf_routers
 from django.urls import include, path

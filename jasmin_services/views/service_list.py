@@ -142,8 +142,10 @@ def service_list(request, category):
                 for service in page
             ],
             "page": page,
-            "preserved_filters": "query={}".format(urllib.parse.quote(request.GET["query"]))
-            if "query" in request.GET
-            else "",
+            "preserved_filters": (
+                "query={}".format(urllib.parse.quote(request.GET["query"]))
+                if "query" in request.GET
+                else ""
+            ),
         },
     )

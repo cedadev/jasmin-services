@@ -1,4 +1,5 @@
 """Behavious to apply changes to LDAP."""
+
 import importlib
 
 import django.core.exceptions

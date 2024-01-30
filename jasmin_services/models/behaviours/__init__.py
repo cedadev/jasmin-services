@@ -1,4 +1,5 @@
 """Module defining specific category implementations."""
+
 import logging
 import sys
 
