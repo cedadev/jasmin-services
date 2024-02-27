@@ -140,25 +140,10 @@ class RoleApplyView(
     def get_context_data(self, **kwargs):
         """Add the role, grant and request to the context."""
         context = super().get_context_data(**kwargs)
-
-        # ONLY FOR CEDA SERVICES: Get licence url
-        licence_url = None
-        if settings.LICENCE_REQUIRED:
-            groups = [b for b in self.role.behaviours.all() if isinstance(b, Group)]
-            if groups:
-                group = groups[0]
-                response = requests.get(
-                    settings.licence_url,
-                    params={"group": group.name},
-                )
-                json_response = response.json()
-                licence_url = json_response["licence"]
-
         context |= {
             "role": self.role,
             "grant": self.previous_grant,
             "req": self.previous_request,
-            "licence_url": licence_url,
         }
         return context
 
