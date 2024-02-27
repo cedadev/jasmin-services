@@ -35,12 +35,12 @@ urlpatterns = [
     ),
     path(
         "<slug:category>/<slug:service>/apply/<slug:role>/",
-        views.role_apply,
+        views.RoleApplyView.as_view(),
         name="role_apply",
     ),
     path(
         "<slug:category>/<slug:service>/apply/<slug:role>/<int:bool_grant>/<int:previous>/",
-        views.role_apply,
+        views.RoleApplyView.as_view(),
         name="role_apply",
     ),
     path("request/<int:pk>/decide/", views.request_decide, name="request_decide"),

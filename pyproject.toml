@@ -40,6 +40,7 @@ isort = "^5.10.1"
 mypy = "^1.2.0"
 types-python-dateutil = "^2.8.19.12"
 django-stubs = {extras = ["compatible-mypy"], version = "^4.2.0"}
+pylint-django = "^2.5.5"
 
 [tool.poetry.group.test.dependencies]
 django-oauth-toolkit = "^1.7.0"
@@ -61,6 +62,9 @@ django_settings_module = "tests.settings"
 
 [tool.pydocstyle]
 ignore = ['D106']
+
+[tool.pylint.main]
+load-plugins = 'pylint_django'
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = ['too-few-public-methods', 'missing-class-docstring']
