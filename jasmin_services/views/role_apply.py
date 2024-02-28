@@ -3,37 +3,27 @@ from datetime import date
 
 import django.contrib.auth.mixins
 import django.core.exceptions
-import django.http
 import django.views.generic
 import django.views.generic.edit
-import requests
 from dateutil.relativedelta import relativedelta
-from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
 
-from .. import models
-from ..models import Access, Grant, Group, Request, RequestState, Role
-from . import common
+from ..models import Access, Grant, Request, RequestState, Role
+from . import common, mixins
 
 _log = logging.getLogger(__name__)
 
 
 class RoleApplyView(
-    django.contrib.auth.mixins.LoginRequiredMixin, django.views.generic.edit.FormView
+    django.contrib.auth.mixins.LoginRequiredMixin,
+    mixins.WithServiceMixin,
+    django.views.generic.edit.FormView,
 ):
     """Handle for ``/<category>/<service>/apply/<role>/``.
 
     Collects the necessary information to raise a request for a role.
     """
-
-    @staticmethod
-    def get_service(category_name, service_name):
-        """Get a service from it's category and name."""
-        try:
-            return models.Service.objects.get(name=service_name, category__name=category_name)
-        except models.Service.DoesNotExist as err:
-            raise django.http.Http404("Service does not exist.") from err
 
     @staticmethod
     def get_previous_request_and_grant(bool_grant, previous):
@@ -73,11 +63,6 @@ class RoleApplyView(
         # pylint: disable=attribute-defined-outside-init
         super().setup(request, *args, **kwargs)
         self.redirect_to_service = True
-
-        # Get the service from the request.
-        self.service = self.get_service(kwargs["category"], kwargs["service"])
-        if self.service.disabled:
-            raise django.http.Http404("Service has been retired.")
 
         # Prevent users who are not allowed to apply for this service from doing so.
         user_may_apply = common.user_may_apply(request.user, self.service)

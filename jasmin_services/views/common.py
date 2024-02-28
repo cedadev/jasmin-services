@@ -1,4 +1,5 @@
 """Common functions for jasmin_services views."""
+
 import functools
 import logging
 
