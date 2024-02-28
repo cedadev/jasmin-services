@@ -1,6 +1,4 @@
-"""
-URL configuration for the JASMIN services app.
-"""
+"""URL configuration for the JASMIN services app."""
 
 __author__ = "Matt Pryor"
 __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
@@ -25,7 +23,7 @@ urlpatterns = [
         "<slug:category>/<slug:service>/",
         include(
             [
-                path("", views.service_details, name="service_details"),
+                path("", views.ServiceDetailsView.as_view(), name="service_details"),
                 path("requests/", views.service_requests, name="service_requests"),
                 path("users/", views.service_users, name="service_users"),
                 path("message/", views.service_message, name="service_message"),
