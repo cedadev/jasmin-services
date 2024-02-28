@@ -1,11 +1,12 @@
+import datetime as dt
 import logging
 from datetime import date
 
+import django.conf
 import django.contrib.auth.mixins
 import django.core.exceptions
 import django.views.generic
 import django.views.generic.edit
-from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.db import transaction
 
@@ -149,7 +150,10 @@ class RoleApplyView(
                 req.resulting_grant = Grant.objects.create(
                     access=access,
                     granted_by="automatic",
-                    expires=date.today() + relativedelta(years=1),
+                    expires=date.today()
+                    + dt.timedelta(
+                        days=django.conf.settings.JASMIN_SERVICES.get("AUTO_ACCEPT_GRANT_TIME", 365)
+                    ),
                 )
 
                 if self.previous_request is not None:
