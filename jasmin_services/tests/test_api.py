@@ -1,4 +1,5 @@
 """Tests for the api endpoints."""
+
 import datetime as dt
 from zoneinfo import ZoneInfo
 
