@@ -3,6 +3,8 @@ from datetime import date
 
 import django.contrib.auth.mixins
 import django.core.exceptions
+import django.http
+import django.urls
 import django.views.generic
 import django.views.generic.edit
 from dateutil.relativedelta import relativedelta
@@ -177,4 +179,11 @@ class RoleApplyView(
                 form.save(req)
 
         messages.success(self.request, "Request submitted successfully")
-        return common.redirect_to_service(self.service)
+        return django.http.HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        """Set default success url to service details page."""
+        return django.urls.reverse(
+            "jasmin_services:service_details",
+            kwargs={"category": self.service.category.name, "service": self.service.name},
+        )
