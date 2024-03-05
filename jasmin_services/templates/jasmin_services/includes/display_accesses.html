@@ -1,0 +1,88 @@
+{% load markdown_deux_tags %}
+<thead>
+    <tr>
+        <th></th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th>Expires</th>
+        <th></th>
+        <th></th>
+    </tr>
+</thead>
+<tbody>
+    {% for access in accesses %}
+        {% if access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
+            <tr class="table-danger">
+                <td class="text-danger" style="width: 1%;"><i class="fa fa-fw fa-ban"></i></td>
+        {% elif access.status == "EXPIRED" or access.status == "EXPIRING" %}
+            <tr class="table-warning">
+                <td class="text-warning" style="width: 1%;"><i class="far fa-fw fa-clock"></i></td>
+        {% elif access.status == "ACTIVE" %}
+            <tr class="table-success">
+                <td class="text-success" style="width: 1%;"><i class="fa fa-fw fa-check"></i></td>
+        {% elif access.status == "PENDING" %}
+            <tr>
+                <td class="text-muted" style="width: 1%;"><i class="fa fa-fw fa-hourglass-half"></i></td>
+        {% else %}
+            <tr>
+                <td></td>
+        {% endif %}
+        <td><code>{{ access.access.role.name }}</code></td>
+        <td><code>{{ access.status }}</code></td>
+        <td>{{ access.frontend.start|date:"DATE_FORMAT" }}</td>
+        <td>{{ access.expires|date:"DATE_FORMAT"|default:"-" }}</td>
+        <td>
+            {% if access.status == "EXPIRING" or access.status == "EXPIRED" %}
+                <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">
+                    Extend
+                </a>
+            {% elif access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
+                <button class="btn btn-warning btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#access-collapse-{{ access.frontend.id }}">
+                    See Reason
+                </button>
+            {% endif %}
+        </td>
+        <td>
+            <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#access-collapse-{{ access.frontend.id }}">
+                <i class="fas fa-fw fa-info"></i>
+            </button>
+        </td>
+        </tr>
+        <tr class="collapse" id="access-collapse-{{ access.frontend.id }}">
+            <td colspan="7">
+                <p>This is a {{ access.frontend.type }} for the role of {{ access.access.role.name }} for this service.</p>
+                <hr />
+                {% if access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
+                    <p>This {{ access.frontend.type|lower }} was {{ access.status|lower }} for the following reason:</p>
+                    <p>{{ access.user_reason|markdown }} </p>
+                    {% if access.status == "INCOMPLETE"%}
+                        <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Add Info</a>
+                    {% elif access.status == "REVOKED" or access.status == "REJECTED" %}
+                        <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Reapply</a>
+                    {% endif %}
+                    <hr />
+                {% endif %}
+                {% if access.status == "EXPIRING" %}
+                    <p>This grant is expiring soon.</p>
+                    <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Extend</a>
+                    <hr />
+                {% endif %}
+                {% if access.status == "EXPIRED" %}
+                    <p>This grant is has expired.</p>
+                    <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Extend</a>
+                    <hr />
+                {% endif %}
+                {% if access.status == "PENDING" %}
+                    <p>This request is awaiting consideration. You don't need to do anything.</p>
+                    <hr />
+                {% endif %}
+                <p>When you submitted your application, you supplied the following information:</p>
+                {% for metadata in access.metadata.all %}
+                    <h5>{{ metadata.key }}:</h5> <p><i>{{metadata.value}}</i></p>
+                {% endfor %}
+                <hr />
+            </td>
+        </tr>
+    {% endfor %}
+</tbody>

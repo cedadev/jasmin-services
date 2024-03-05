@@ -1,7 +1,9 @@
 from datetime import date
 
 import django.views.generic
+import jasmin_metadata.models
 from django.conf import settings
+from django.db.models import Q, Subquery
 
 from ..models import Grant, Request
 from . import common, mixins
@@ -38,56 +40,25 @@ class ServiceDetailsView(
         context = super().get_context_data(**kwargs)
 
         # Get the active grants and requests for the service as a whole
-        all_grants = Grant.objects.filter(
-            access__role__service=self.service, access__user=self.request.user
-        ).filter_active()
-        all_requests = Request.objects.filter(
-            access__role__service=self.service, access__user=self.request.user
-        ).filter_active()
+        grants = (
+            Grant.objects.filter(access__role__service=self.service, access__user=self.request.user)
+            .filter_active()
+            .prefetch_related("metadata")
+        )
+        requests = (
+            Request.objects.filter(
+                access__role__service=self.service, access__user=self.request.user
+            )
+            .filter_active()
+            .prefetch_related("metadata")
+        )
 
-        # roles is a list of the roles of the service that have an active grant
-        # or request or aren't hidden
-        roles = []
-        grants = []
-        requests = []
-        for role in self.service.roles.all():
-            role_grants = all_grants.filter(access__role=role)
-            role_requests = all_requests.filter(access__role=role)
-            if role_grants:
-                # Add metadata so users can tell grants apart
-                role_grants = [
-                    (
-                        rg,
-                        getattr(
-                            rg.metadata.filter(key="supporting_information").first(),
-                            "value",
-                            None,
-                        ),
-                        rg.next_requests.all(),
-                    )
-                    for rg in role_grants
-                ]
-                grants.append((role, role_grants))
-            if role_requests:
-                # Add metadata so users can tell requests apart
-                role_requests = [
-                    (
-                        rr,
-                        getattr(
-                            rr.metadata.filter(key="supporting_information").first(),
-                            "value",
-                            None,
-                        ),
-                    )
-                    for rr in role_requests
-                ]
-                requests.append((role, role_requests))
-            if not role.hidden or role_requests or role_grants:
-                # if multiple requests aren't allowed only add to "apply list"
-                # if there isn't an existing request or grant
-                if not settings.MULTIPLE_REQUESTS_ALLOWED and (role_requests or role_grants):
-                    continue
-                roles.append(role)
+        # Get the roles the user is able to see.
+        # This is any roles which aren't hidden, or any role the user
+        # Has an access (request or grant) for.
+        visible_roles = self.service.roles.filter(
+            Q(hidden=False) | Q(access__user=self.request.user)
+        )
 
         # If the user holds an active grant in the service
         # get all the current managers and deputies of a services so that
@@ -99,11 +70,15 @@ class ServiceDetailsView(
             managers = []
             deputies = []
 
+        # To give pretty name of supporting information, add the fields.
+        # But it would be better to annotate the real query.
+        metadata_names = jasmin_metadata.models.Field.objects.all()
+
         context |= {
             "service": self.service,
             "requests": requests,
             "grants": grants,
-            "roles": roles,
+            "roles": visible_roles,
             "managers": managers,
             "deputies": deputies,
             "user_may_apply": common.user_may_apply(self.request.user, self.service),
