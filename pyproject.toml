@@ -9,7 +9,7 @@ license = "BSD-3-Clause"
 python = "^3.9"
 
 # Dependencies of dependencies. Need to specify here so poetry knows where to get them from.
-jasmin-ldap = {git = "https://github.com/cedadev/jasmin-ldap.git", tag = "v1.0.0"}
+jasmin-ldap = {git = "https://github.com/cedadev/jasmin-ldap.git", tag = "v1.0.1"}
 jasmin-django-utils = {git = "https://github.com/cedadev/jasmin-django-utils.git", tag = "v1.0.9" }# Also required for API.
 
 Django = ">=3.2,!=4.0,!=4.1,<4.3"
