@@ -6,13 +6,13 @@ authors = ["Matt Pryor <matt.pryor@stfc.ac.uk>"]
 license = "BSD-3-Clause"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 
 # Dependencies of dependencies. Need to specify here so poetry knows where to get them from.
 jasmin-ldap = {git = "https://github.com/cedadev/jasmin-ldap.git", tag = "v1.0.2"}
 jasmin-django-utils = {git = "https://github.com/cedadev/jasmin-django-utils.git", tag = "v1.0.9" }# Also required for API.
 
-Django = ">=3.2,!=4.0,!=4.1,<4.3"
+Django = ">=4.2"
 django-bootstrap5 = "^23.1"
 django-markdown-deux = "^1.0.6"
 python-dateutil = "^2.8.2"
