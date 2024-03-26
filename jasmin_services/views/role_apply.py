@@ -83,7 +83,7 @@ class RoleApplyView(
             return
 
         # Get the previous request or grant, if it is supplies.
-        error, self.previous_request, self.previous_grant = self.get_previous_request_and_grant(
+        error, self.previous_grant, self.previous_request = self.get_previous_request_and_grant(
             kwargs.get("bool_grant", None), kwargs.get("previous", None)
         )
         if error is not None:
