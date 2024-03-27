@@ -9,6 +9,7 @@ import itertools
 import random
 import string
 
+import django.conf
 import django.urls
 from django import template
 
@@ -44,7 +45,7 @@ def pending_req_count(context, service):
 
 
 @register.inclusion_tag("jasmin_services/includes/display_accesses.html")
-def display_accesses(*all_accesses):
+def display_accesses(user, *all_accesses):
     """Process a list of either requests or grants for display."""
 
     accesses = list(itertools.chain.from_iterable(all_accesses))
@@ -54,7 +55,6 @@ def display_accesses(*all_accesses):
     id_ = 0
     # We loop through the list, and add some information which is not otherwise available.
     for access in accesses:
-        print(access)
         access.frontend = {
             "start": (access.requested_at if isinstance(access, Request) else access.granted_at),
             "id": f"{id_part}_{id_}",
@@ -69,9 +69,10 @@ def display_accesses(*all_accesses):
                     "previous": access.id,
                 },
             ),
+            "may_apply": access.access.role.user_may_apply(user),
         }
         id_ += 1
 
-    accesses = sorted(accesses, key=lambda x: x.frontend["start"])
+    accesses = sorted(accesses, key=lambda x: x.frontend["start"], reverse=True)
 
     return {"accesses": accesses}

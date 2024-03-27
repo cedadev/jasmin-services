@@ -3,9 +3,9 @@ from datetime import date
 import django.views.generic
 import jasmin_metadata.models
 from django.conf import settings
-from django.db.models import Q, Subquery
+from django.db.models import OuterRef, Q, Subquery
 
-from ..models import Grant, Request
+from .. import models
 from . import common, mixins
 
 
@@ -25,7 +25,7 @@ class ServiceDetailsView(
     def get_service_roleholders(service, role_name):
         """Get the holders of a given role for a service."""
         holders = (
-            Grant.objects.filter(
+            models.Grant.objects.filter(
                 access__role__service=service,
                 expires__gt=date.today(),
                 revoked=False,
@@ -39,14 +39,20 @@ class ServiceDetailsView(
         """Add information about service to the context."""
         context = super().get_context_data(**kwargs)
 
+        roles = self.service.get_user_active_roles(self.request.user)
+        for role in roles:
+            print(role.id)
+
         # Get the active grants and requests for the service as a whole
         grants = (
-            Grant.objects.filter(access__role__service=self.service, access__user=self.request.user)
+            models.Grant.objects.filter(
+                access__role__service=self.service, access__user=self.request.user
+            )
             .filter_active()
             .prefetch_related("metadata")
         )
         requests = (
-            Request.objects.filter(
+            models.Request.objects.filter(
                 access__role__service=self.service, access__user=self.request.user
             )
             .filter_active()

@@ -39,10 +39,10 @@
                 {% if grants or requests%}
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Your Requests and Grants</h3>
+                            <h3 class="card-title">Your Requests or Grants</h3>
                         </div>
                         <table class="table table-striped">
-                            {% display_accesses grants requests %}
+                            {% display_accesses auth.user grants requests %}
                         </table>
                     </div>
                 {% endif %}

@@ -1,6 +1,9 @@
+import datetime as dt
 import functools
 from datetime import date
 
+import django.apps
+import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -8,6 +11,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
+from django.db.models import Q
 from jasmin_metadata.models import Form
 
 from .behaviours import Behaviour
@@ -28,7 +32,7 @@ class RoleQuerySet(models.QuerySet):
             object_permission__in=RoleObjectPermission.objects.filter(
                 functools.reduce(
                     lambda q, obj: q
-                    | models.Q(
+                    | Q(
                         permission__content_type__app_label=app_label,
                         permission__codename=codename,
                         content_type=ContentType.objects.get_for_model(obj),
@@ -36,7 +40,7 @@ class RoleQuerySet(models.QuerySet):
                     ),
                     objs,
                     # This is a Q object that is always false
-                    models.Q(pk__isnull=True),
+                    Q(pk__isnull=True),
                 )
             )
         )
@@ -138,6 +142,16 @@ class Role(models.Model):
             )
             .distinct()
         )
+
+    def user_may_apply(self, user):
+        """Helper for if the user is allowed to apply for this role."""
+        if settings.MULTIPLE_REQUESTS_ALLOWED:
+            return True
+        return self.accesses.filter(
+            Q(grant__revoked=True)
+            | Q(grant__expires__lt=(django.utils.timezone.localdate() + dt.timedelta(days=60))),
+            user=user,
+        ).exists()
 
     def enable(self, user):
         """Enable this role for the given user."""

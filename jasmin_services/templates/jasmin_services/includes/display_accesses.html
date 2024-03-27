@@ -12,6 +12,7 @@
 </thead>
 <tbody>
     {% for access in accesses %}
+    {{ access.frontend.may_apply }}
         {% if access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
             <tr class="table-danger">
                 <td class="text-danger" style="width: 1%;"><i class="fa fa-fw fa-ban"></i></td>
