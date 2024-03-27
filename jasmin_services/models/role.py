@@ -144,14 +144,21 @@ class Role(models.Model):
         )
 
     def user_may_apply(self, user):
-        """Helper for if the user is allowed to apply for this role."""
+        """Return true if user is allowed to apply for this role."""
+        # If multiple requests are allowed, they are always allowed to apply.
         if settings.MULTIPLE_REQUESTS_ALLOWED:
             return True
-        return self.accesses.filter(
-            Q(grant__revoked=True)
-            | Q(grant__expires__lt=(django.utils.timezone.localdate() + dt.timedelta(days=60))),
-            user=user,
-        ).exists()
+        # Otherwise get the valid (and not expiring soon) grants and requests the user has.
+        # If they have any, they are not allowed to apply.
+        valid_grants_requests = self.accesses.filter(user=user).filter(
+            Q(
+                Q(grant__revoked=False)  # Valid grants are not revoked.
+                & Q(grant__expires__gt=(django.utils.timezone.localdate() + dt.timedelta(days=60)))
+            )
+            | Q(request__state="PENDING")
+            | Q(request__incomplete=True)
+        )
+        return not valid_grants_requests.exists()
 
     def enable(self, user):
         """Enable this role for the given user."""

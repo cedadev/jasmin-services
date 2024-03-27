@@ -45,34 +45,6 @@ def pending_req_count(context, service):
 
 
 @register.inclusion_tag("jasmin_services/includes/display_accesses.html")
-def display_accesses(user, *all_accesses):
-    """Process a list of either requests or grants for display."""
-
-    accesses = list(itertools.chain.from_iterable(all_accesses))
-
-    # This ID is used to create CSS ids. Must be unique per access.
-    id_part = "".join(random.choice(string.ascii_lowercase) for i in range(5))
-    id_ = 0
-    # We loop through the list, and add some information which is not otherwise available.
-    for access in accesses:
-        access.frontend = {
-            "start": (access.requested_at if isinstance(access, Request) else access.granted_at),
-            "id": f"{id_part}_{id_}",
-            "type": ("REQUEST" if isinstance(access, Request) else "GRANT"),
-            "apply_url": django.urls.reverse(
-                "jasmin_services:role_apply",
-                kwargs={
-                    "category": access.access.role.service.category.name,
-                    "service": access.access.role.service.name,
-                    "role": access.access.role.name,
-                    "bool_grant": 0 if isinstance(access, Request) else 1,
-                    "previous": access.id,
-                },
-            ),
-            "may_apply": access.access.role.user_may_apply(user),
-        }
-        id_ += 1
-
-    accesses = sorted(accesses, key=lambda x: x.frontend["start"], reverse=True)
-
+def display_accesses(accesses):
+    """Template tag to display a list of accesses (requests and or grants)."""
     return {"accesses": accesses}

@@ -1,3 +1,6 @@
+import itertools
+import random
+import string
 from datetime import date
 
 import django.views.generic
@@ -35,13 +38,42 @@ class ServiceDetailsView(
         )
         return [x.access.user for x in holders]
 
+    @staticmethod
+    def display_accesses(user, *all_accesses):
+        """Process a list of either requests or grants for display."""
+        accesses = list(itertools.chain.from_iterable(all_accesses))
+
+        # This ID is used to create CSS ids. Must be unique per access.
+        id_part = "".join(random.choice(string.ascii_lowercase) for i in range(5))
+        id_ = 0
+        # We loop through the list, and add some information which is not otherwise available.
+        for access in accesses:
+            access.frontend = {
+                "start": (
+                    access.requested_at if isinstance(access, models.Request) else access.granted_at
+                ),
+                "id": f"{id_part}_{id_}",
+                "type": ("REQUEST" if isinstance(access, models.Request) else "GRANT"),
+                "apply_url": django.urls.reverse(
+                    "jasmin_services:role_apply",
+                    kwargs={
+                        "category": access.access.role.service.category.name,
+                        "service": access.access.role.service.name,
+                        "role": access.access.role.name,
+                        "bool_grant": 0 if isinstance(access, models.Request) else 1,
+                        "previous": access.id,
+                    },
+                ),
+                "may_apply": access.access.role.user_may_apply(user),
+            }
+            id_ += 1
+
+        accesses = sorted(accesses, key=lambda x: x.frontend["start"], reverse=True)
+        return accesses
+
     def get_context_data(self, **kwargs):
         """Add information about service to the context."""
         context = super().get_context_data(**kwargs)
-
-        roles = self.service.get_user_active_roles(self.request.user)
-        for role in roles:
-            print(role.id)
 
         # Get the active grants and requests for the service as a whole
         grants = (
@@ -59,17 +91,19 @@ class ServiceDetailsView(
             .prefetch_related("metadata")
         )
 
-        # Get the roles the user is able to see.
+        # Get the roles the user is able to apply for.
         # This is any roles which aren't hidden, or any role the user
         # Has an access (request or grant) for.
-        visible_roles = self.service.roles.filter(
-            Q(hidden=False) | Q(access__user=self.request.user)
-        )
+        may_apply_roles = [
+            x
+            for x in self.service.roles.filter(Q(hidden=False) | Q(access__user=self.request.user))
+            if x.user_may_apply(self.request.user)
+        ]
 
         # If the user holds an active grant in the service
         # get all the current managers and deputies of a services so that
         # we can display this information to users of the service.
-        if grants:
+        if grants.exists():
             managers = self.get_service_roleholders(self.service, "MANAGER")
             deputies = self.get_service_roleholders(self.service, "DEPUTY")
         else:
@@ -82,12 +116,11 @@ class ServiceDetailsView(
 
         context |= {
             "service": self.service,
-            "requests": requests,
-            "grants": grants,
-            "roles": visible_roles,
+            "roles": may_apply_roles,
             "managers": managers,
             "deputies": deputies,
             "user_may_apply": common.user_may_apply(self.request.user, self.service),
+            "accesses": self.display_accesses(self.request.user, grants, requests),
         }
         return context
 

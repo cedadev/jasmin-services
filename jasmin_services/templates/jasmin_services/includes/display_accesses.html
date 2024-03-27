@@ -12,7 +12,6 @@
 </thead>
 <tbody>
     {% for access in accesses %}
-    {{ access.frontend.may_apply }}
         {% if access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
             <tr class="table-danger">
                 <td class="text-danger" style="width: 1%;"><i class="fa fa-fw fa-ban"></i></td>
@@ -34,10 +33,12 @@
         <td>{{ access.frontend.start|date:"DATE_FORMAT" }}</td>
         <td>{{ access.expires|date:"DATE_FORMAT"|default:"-" }}</td>
         <td>
-            {% if access.status == "EXPIRING" or access.status == "EXPIRED" %}
+            {% if  access.status == "EXPIRING" or access.status == "EXPIRED" %}
+                {% if access.frontend.may_apply %}
                 <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">
                     Extend
                 </a>
+            {% endif %}
             {% elif access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
                 <button class="btn btn-warning btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#access-collapse-{{ access.frontend.id }}">
                     See Reason
@@ -57,19 +58,21 @@
                 {% if access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
                     <p>This {{ access.frontend.type|lower }} was {{ access.status|lower }} for the following reason:</p>
                     <p>{{ access.user_reason|markdown }} </p>
-                    {% if access.status == "INCOMPLETE"%}
+                    {% if access.frontend.may_apply and access.status == "INCOMPLETE"%}
                         <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Add Info</a>
                     {% elif access.status == "REVOKED" or access.status == "REJECTED" %}
+                        {% if access.frontend.may_apply %}
                         <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Reapply</a>
+                    {% endif %}
                     {% endif %}
                     <hr />
                 {% endif %}
-                {% if access.status == "EXPIRING" %}
+                {% if access.frontend.may_apply and access.status == "EXPIRING" %}
                     <p>This grant is expiring soon.</p>
                     <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Extend</a>
                     <hr />
                 {% endif %}
-                {% if access.status == "EXPIRED" %}
+                {% if access.frontend.may_apply and access.status == "EXPIRED" %}
                     <p>This grant is has expired.</p>
                     <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Extend</a>
                     <hr />

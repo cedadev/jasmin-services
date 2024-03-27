@@ -36,13 +36,13 @@
         </div>
         <div class="col-md-6">
             {% block service_access %}
-                {% if grants or requests%}
+                {% if accesses %}
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Your Requests or Grants</h3>
                         </div>
                         <table class="table table-striped">
-                            {% display_accesses auth.user grants requests %}
+                            {% display_accesses accesses %}
                         </table>
                     </div>
                 {% endif %}
@@ -82,7 +82,7 @@
                 {% endif %}
             {% endblock service_roles %}
             {% block managers_deputies %}
-                {% if grants %}
+                {% if managers or deputies %}
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Managers & Deputies</h3>
