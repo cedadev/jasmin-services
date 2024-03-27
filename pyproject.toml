@@ -27,6 +27,7 @@ django-filter = {version = "^24.1", optional = true}
 drf-spectacular = {version="^0.27.1", optional = true}
 drf-spectacular-sidecar = {version="^2024.1.1", optional = true}
 python-keycloak = {version = "^3.2.0", optional = true}
+setuptools = "^69.2.0" # Setuptools is a dependency of django-countries. See https://github.com/SmileyChris/django-countries/issues/442 for details.
 
 [tool.poetry.extras]
 api = ["djangorestframework", "django-filter", "drf-spectacular", "drf-spectacular-sidecar"]
@@ -41,9 +42,11 @@ mypy = "^1.2.0"
 types-python-dateutil = "^2.8.19.12"
 django-stubs = {extras = ["compatible-mypy"], version = "^4.2.0"}
 pylint-django = "^2.5.5"
+bandit = "^1.7.8"
 
 [tool.poetry.group.test.dependencies]
 django-oauth-toolkit = "^1.7.0"
+coverage = "^7.4.4"
 
 [tool.black]
 line-length = 100
@@ -68,6 +71,18 @@ load-plugins = 'pylint_django'
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = ['too-few-public-methods', 'missing-class-docstring']
+
+[tool.coverage.run]
+branch = true
+include = [
+    "jasmin_services/*",
+    ]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+skip_covered = true
+fail_under = 40
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools>=59.6.0"]
