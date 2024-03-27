@@ -5,6 +5,11 @@ description = "Django application for managing services, roles and access."
 authors = ["Matt Pryor <matt.pryor@stfc.ac.uk>"]
 license = "BSD-3-Clause"
 
+packages = [
+    { include = "jasmin_services"},
+    { include = "jasmin_metadata"},
+]
+
 [tool.poetry.dependencies]
 python = "^3.10"
 
@@ -19,7 +24,6 @@ python-dateutil = "^2.8.2"
 django-polymorphic = {git = "https://github.com/jazzband/django-polymorphic.git", rev = "f4286f583d6f91e896b73e450154af0fea3935a4"}
 requests = "^2.27.1"
 jasmin-ldap-django = {git = "https://github.com/cedadev/jasmin-ldap-django.git", rev = "2b708c9136f31e8819ffff00fcb95567c27ed659"}
-jasmin-metadata = {git = "https://github.com/cedadev/jasmin-metadata.git", tag = "v1.0.2"}
 jasmin-notifications = {git = "https://github.com/cedadev/jasmin-notifications.git", tag = "v1.2.7"}
 django-countries = "^7.6.0"
 djangorestframework = {version = "^3.13.1", optional = true}
@@ -27,6 +31,7 @@ django-filter = {version = "^24.1", optional = true}
 drf-spectacular = {version="^0.27.1", optional = true}
 drf-spectacular-sidecar = {version="^2024.1.1", optional = true}
 python-keycloak = {version = "^3.2.0", optional = true}
+django-picklefield = "^3.1"
 
 [tool.poetry.extras]
 api = ["djangorestframework", "django-filter", "drf-spectacular", "drf-spectacular-sidecar"]
