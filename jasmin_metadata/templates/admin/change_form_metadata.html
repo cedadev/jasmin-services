@@ -1,0 +1,12 @@
+{% extends "admin/change_form.html" %}
+{% load admin_urls %}
+
+{% block after_field_sets %}
+    {{ block.super }}
+    {% if metadata_form %}
+        <input type="hidden" name="_has_metadata" value="1" />
+        {% for fieldset in metadata_form %}
+            {% include "admin/includes/fieldset.html" %}
+        {% endfor %}
+    {% endif %}
+{% endblock %}
