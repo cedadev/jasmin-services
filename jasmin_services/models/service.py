@@ -1,9 +1,10 @@
+import django.utils.safestring
+import django.utils.timezone
 from django.db import models
 from django.urls import reverse_lazy
-from django.utils.safestring import mark_safe
 from django_countries.fields import CountryField
 
-from .category import Category
+from .. import models as js_models
 
 
 class Service(models.Model):
@@ -25,11 +26,11 @@ class Service(models.Model):
         )
 
         anchor = f'<a href="{details_url}">Details</a>'
-        return mark_safe(anchor)
+        return django.utils.safestring.mark_safe(anchor)
 
     #: The category that the service belongs to
     category = models.ForeignKey(
-        Category, models.CASCADE, related_name="services", related_query_name="service"
+        js_models.Category, models.CASCADE, related_name="services", related_query_name="service"
     )
     #: The name of the service
     name = models.SlugField(
@@ -88,6 +89,14 @@ class Service(models.Model):
         default=False,
         help_text="Whether this service is disabled. Disabled services are hidden, and impossible to apply for.",
     )
+
+    def get_user_active_roles(self, user):
+        """Given a user, return their active roles in this service."""
+        return self.roles.filter(
+            access__user=user,
+            access__grant__revoked=False,
+            access__grant__expires__gte=django.utils.timezone.localdate(),
+        ).distinct()
 
     def __str__(self):
         return f"{self.category} : {self.name}"

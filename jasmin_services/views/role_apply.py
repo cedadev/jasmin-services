@@ -29,7 +29,7 @@ class RoleApplyView(
     """
 
     @staticmethod
-    def get_previous_request_and_grant(bool_grant, previous):
+    def get_previous_request_and_grant(bool_grant: int, previous: int):
         """Get the previous request or grant from the id supplied."""
         error = None
         previous_grant = None

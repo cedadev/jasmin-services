@@ -176,6 +176,19 @@ class Grant(HasMetadata):
         today = date.today()
         return today <= self.expires < (today + relativedelta(months=2))
 
+    @property
+    def status(self):
+        """Shortcut to get the status of this grant."""
+        if self.revoked:
+            status = "REVOKED"
+        elif self.expired:
+            status = "EXPIRED"
+        elif self.expiring:
+            status = "EXPIRING"
+        else:
+            status = "ACTIVE"
+        return status
+
     def clean(self):
         errors = {}
         try:

@@ -171,6 +171,11 @@ class Request(HasMetadata):
         return "{} : {}".format(self.access, "INCOMPETE" if self.incomplete else self.state)
 
     @property
+    def status(self):
+        """Shortcut to get the proper status of the request."""
+        return "INCOMPLETE" if self.incomplete else self.state
+
+    @property
     def active(self):
         """
         Returns ``True`` if this request is the active request for the
