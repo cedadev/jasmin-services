@@ -4,9 +4,10 @@ import string
 from datetime import date
 
 import django.views.generic
-import jasmin_metadata.models
 from django.conf import settings
 from django.db.models import OuterRef, Q, Subquery
+
+import jasmin_metadata.models
 
 from .. import models
 from . import common, mixins

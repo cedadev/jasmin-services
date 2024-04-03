@@ -1,4 +1,5 @@
 {% load markdown_deux_tags %}
+{% load service_tags %}
 <thead>
     <tr>
         <th></th>
@@ -81,11 +82,7 @@
                     <p>This request is awaiting consideration. You don't need to do anything.</p>
                     <hr />
                 {% endif %}
-                <p>When you submitted your application, you supplied the following information:</p>
-                {% for metadata in access.metadata.all %}
-                    <h5>{{ metadata.key }}:</h5> <p><i>{{metadata.value}}</i></p>
-                {% endfor %}
-                <hr />
+                {% display_metadata access.metadata %}
             </td>
         </tr>
     {% endfor %}
