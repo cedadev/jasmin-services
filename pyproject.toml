@@ -80,6 +80,7 @@ disable = ['too-few-public-methods', 'missing-class-docstring']
 branch = true
 include = [
     "jasmin_services/*",
+    "jasmin_metadata/*"
     ]
 
 [tool.coverage.report]
