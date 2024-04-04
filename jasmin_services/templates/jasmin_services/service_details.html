@@ -19,106 +19,110 @@
 {% block content_panel %}
     <div class="row">
         <div class="col-md-6">
-            {% if not user_may_apply.0 %}
-                <div class="alert alert-warning text-center">
-                    <div style="margin-bottom: 0.4em;"><i class="fa fa-fw fa-exclamation-triangle"></i>{{ user_may_apply.1 }}</div>
-                </div>
-            {% endif %}
-            {% block description %}
-                <div class="p-2">
-                    {% if service.description %}
-                        {{ service.description|markdown }}
-                    {% else %}
-                        <p>{{ service.summary }}</p>
-                    {% endif %}
-                </div>
-            {% endblock %}
+            {% block service_details_left_panel %}
+                {% if not user_may_apply.0 %}
+                    <div class="alert alert-warning text-center">
+                        <div style="margin-bottom: 0.4em;"><i class="fa fa-fw fa-exclamation-triangle"></i>{{ user_may_apply.1 }}</div>
+                    </div>
+                {% endif %}
+                {% block description %}
+                    <div class="p-2">
+                        {% if service.description %}
+                            {{ service.description|markdown }}
+                        {% else %}
+                            <p>{{ service.summary }}</p>
+                        {% endif %}
+                    </div>
+                {% endblock %}
+            {% endblock service_details_left_panel %}
         </div>
         <div class="col-md-6">
-            {% block service_access %}
-                {% if accesses %}
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Your Requests or Grants</h3>
+            {% block service_details_right_panel %}
+                {% block service_access %}
+                    {% if accesses %}
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Your Requests or Grants</h3>
+                            </div>
+                            <table class="table table-striped">
+                                {% display_accesses accesses %}
+                            </table>
                         </div>
-                        <table class="table table-striped">
-                            {% display_accesses accesses %}
-                        </table>
-                    </div>
-                {% endif %}
-            {% endblock service_access %}
-            {% block service_roles %}
-                {% if roles %}
-                    <div class="card">
-                        <div class="card-header"><h3 class="card-title">Apply for Access</h3></div>
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Role</th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for role in roles %}
+                    {% endif %}
+                {% endblock service_access %}
+                {% block service_roles %}
+                    {% if roles %}
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title">Apply for Access</h3></div>
+                            <table class="table table-striped">
+                                <thead>
                                     <tr>
-                                        <td class="text-muted" style="width: 1%;"><i class="far fa-fw fa-circle"></i></td>
-                                        <td><code>{{ role.name }}</code></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td style="width: 1%;">
-                                            <a class="btn btn-success btn-sm btn-block"
-                                               href="{% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name %}">
-                                                <i class="fa fa-fw fa-plus"></i> Apply
-                                            </a>
-                                        </td>
+                                        <th></th>
+                                        <th>Role</th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
                                     </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
-            {% endblock service_roles %}
-            {% block managers_deputies %}
-                {% if managers or deputies %}
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Managers & Deputies</h3>
+                                </thead>
+                                <tbody>
+                                    {% for role in roles %}
+                                        <tr>
+                                            <td class="text-muted" style="width: 1%;"><i class="far fa-fw fa-circle"></i></td>
+                                            <td><code>{{ role.name }}</code></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td style="width: 1%;">
+                                                <a class="btn btn-success btn-sm btn-block"
+                                                   href="{% url 'jasmin_services:role_apply' category=service.category.name service=service.name role=role.name %}">
+                                                    <i class="fa fa-fw fa-plus"></i> Apply
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Role</th>
-                                    <th>Name</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for manager in managers%}
-                                    <tr class="active">
-                                        <td class="text-muted" style="width: 1%;"><i></i></td>
-                                        <td><code>MANAGER</code></td>
-                                        <td>{{manager.first_name}} {{manager.last_name}}</td>
-                                        <td></td>
+                    {% endif %}
+                {% endblock service_roles %}
+                {% block managers_deputies %}
+                    {% if managers or deputies %}
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Managers & Deputies</h3>
+                            </div>
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Role</th>
+                                        <th>Name</th>
+                                        <th></th>
                                     </tr>
-                                {% endfor %}
-                                {% for deputy in deputies%}
-                                    <tr class="active">
-                                        <td class="text-muted" style="width: 1%;"><i></i></td>
-                                        <td><code>DEPUTY</code></td>
-                                        <td>{{deputy.first_name}} {{deputy.last_name}}</td>
-                                        <td></td>
-                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for manager in managers%}
+                                        <tr class="active">
+                                            <td class="text-muted" style="width: 1%;"><i></i></td>
+                                            <td><code>MANAGER</code></td>
+                                            <td>{{manager.first_name}} {{manager.last_name}}</td>
+                                            <td></td>
+                                        </tr>
+                                    {% endfor %}
+                                    {% for deputy in deputies%}
+                                        <tr class="active">
+                                            <td class="text-muted" style="width: 1%;"><i></i></td>
+                                            <td><code>DEPUTY</code></td>
+                                            <td>{{deputy.first_name}} {{deputy.last_name}}</td>
+                                            <td></td>
+                                        </tr>
 
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
-            {% endblock %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                {% endblock %}
+            {%endblock service_details_right_panel %}
         </div>
     </div>
     </div>
