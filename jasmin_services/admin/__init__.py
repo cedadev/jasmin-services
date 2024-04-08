@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 
 import django.shortcuts
 from django import http
+from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin.options import IS_POPUP_VAR
 from django.contrib.admin.utils import quote
@@ -21,42 +22,37 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import Resolver404, path, re_path, resolve, reverse
 from django.utils.safestring import mark_safe
+
 from jasmin_metadata.admin import HasMetadataModelAdmin
 from jasmin_metadata.models import Form, Metadatum
-from polymorphic.admin import (
-    PolymorphicChildModelAdmin,
-    PolymorphicChildModelFilter,
-    PolymorphicParentModelAdmin,
-)
 
-from .actions import (
+from .. import models as service_models
+from ..actions import (
     remind_pending,
     send_expiry_notifications,
     synchronise_service_access,
 )
-from .forms import (
+from ..forms import (
     AdminDecisionForm,
     AdminGrantForm,
     AdminRequestForm,
     AdminRevokeForm,
-    LdapGroupBehaviourAdminForm,
     admin_message_form_factory,
 )
-from .models import (
+from ..models import (
     Access,
-    Behaviour,
     Category,
     Grant,
-    JoinJISCMailListBehaviour,
-    LdapGroupBehaviour,
-    LdapTagBehaviour,
     Request,
     RequestState,
     Role,
     RoleObjectPermission,
-    Service,
+    Service
 )
-from .widgets import AdminGfkContentTypeWidget, AdminGfkObjectIdWidget
+from ..widgets import AdminGfkContentTypeWidget, AdminGfkObjectIdWidget
+
+# Load the admin for behaviours which are turned on.
+from . import behaviour  # unimport:skip
 
 
 class GroupAdmin(admin.ModelAdmin):
@@ -101,10 +97,6 @@ class GroupAdmin(admin.ModelAdmin):
 
 
 # Register the LDAP group models defined in settings using this admin
-from django.conf import settings
-
-from . import models as service_models
-
 for grp in settings.JASMIN_SERVICES["LDAP_GROUPS"]:
     admin.site.register(getattr(service_models, grp["MODEL_NAME"]), GroupAdmin)
 
@@ -422,41 +414,6 @@ class RoleAdmin(admin.ModelAdmin):
         return str(obj)
 
     full_name.short_description = "Name"
-
-    def has_module_permission(self, request):
-        # Prevent this admin showing up on the index page
-        return False
-
-
-@admin.register(JoinJISCMailListBehaviour)
-class JoinJISCMailListBehaviourAdmin(PolymorphicChildModelAdmin):
-    base_model = JoinJISCMailListBehaviour
-
-
-@admin.register(LdapTagBehaviour)
-class LdapTagBehaviourAdmin(PolymorphicChildModelAdmin):
-    base_model = LdapTagBehaviour
-
-
-@admin.register(LdapGroupBehaviour)
-class LdapGroupBehaviourAdmin(PolymorphicChildModelAdmin):
-    base_model = LdapGroupBehaviour
-    form = LdapGroupBehaviourAdminForm
-
-
-@admin.register(Behaviour)
-class BehaviourAdmin(PolymorphicParentModelAdmin):
-    base_model = Behaviour
-    child_models = (LdapTagBehaviour, LdapGroupBehaviour, JoinJISCMailListBehaviour)
-    polymorphic_list = True
-
-    list_display = ("behaviour_as_string",)
-    list_filter = (PolymorphicChildModelFilter,)
-
-    def behaviour_as_string(self, obj):
-        return str(obj)
-
-    behaviour_as_string.short_description = "Behaviour"
 
     def has_module_permission(self, request):
         # Prevent this admin showing up on the index page

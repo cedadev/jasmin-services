@@ -7,10 +7,10 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
-from jasmin_metadata.models import HasMetadata
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
 import jasmin_services.models
+from jasmin_metadata.models import HasMetadata
 
 
 class GrantQuerySet(models.QuerySet):
