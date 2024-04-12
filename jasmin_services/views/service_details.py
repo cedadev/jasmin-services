@@ -97,7 +97,9 @@ class ServiceDetailsView(
         # Has an access (request or grant) for.
         may_apply_roles = [
             x
-            for x in self.service.roles.filter(Q(hidden=False) | Q(access__user=self.request.user))
+            for x in self.service.roles.filter(
+                Q(hidden=False) | Q(access__user=self.request.user)
+            ).distinct()
             if x.user_may_apply(self.request.user)
         ]
 
