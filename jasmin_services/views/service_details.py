@@ -1,13 +1,9 @@
-import itertools
 import random
 import string
 from datetime import date
 
-import django.views.generic
-from django.conf import settings
-from django.db.models import OuterRef, Q, Subquery
-
-import jasmin_metadata.models
+import django.contrib.auth.mixins
+from django.db.models import Q
 
 from .. import models
 from . import common, mixins
@@ -16,7 +12,7 @@ from . import common, mixins
 class ServiceDetailsView(
     django.contrib.auth.mixins.LoginRequiredMixin,
     mixins.WithServiceMixin,
-    django.views.generic.TemplateView,
+    mixins.AsyncTemplateView,
 ):
     """Handle ``/<category>/<service>/``.
 
@@ -26,7 +22,7 @@ class ServiceDetailsView(
     """
 
     @staticmethod
-    def get_service_roleholders(service, role_name):
+    async def get_service_roleholders(service, role_name):
         """Get the holders of a given role for a service."""
         holders = (
             models.Grant.objects.filter(
@@ -36,94 +32,101 @@ class ServiceDetailsView(
             )
             .filter_active()
             .filter(access__role__name=role_name)
+            .select_related("access__user")
         )
-        return [x.access.user for x in holders]
+        result = []
+        async for item in holders:
+            result.append(item.access.user)
+        return result
 
     @staticmethod
-    def display_accesses(user, *all_accesses):
+    async def process_access(access, user, id_part, id_):
+        access.frontend = {
+            "start": (
+                access.requested_at if isinstance(access, models.Request) else access.granted_at
+            ),
+            "id": f"{id_part}_{id_}",
+            "type": ("REQUEST" if isinstance(access, models.Request) else "GRANT"),
+            "apply_url": django.urls.reverse(
+                "jasmin_services:role_apply",
+                kwargs={
+                    "category": access.access.role.service.category.name,
+                    "service": access.access.role.service.name,
+                    "role": access.access.role.name,
+                    "bool_grant": 0 if isinstance(access, models.Request) else 1,
+                    "previous": access.id,
+                },
+            ),
+            "may_apply": await access.access.role.auser_may_apply(user),
+        }
+        return access
+
+    async def display_accesses(self, user, grants, requests):
         """Process a list of either requests or grants for display."""
-        accesses = list(itertools.chain.from_iterable(all_accesses))
+        processed = []
 
         # This ID is used to create CSS ids. Must be unique per access.
         id_part = "".join(random.choice(string.ascii_lowercase) for i in range(5))
         id_ = 0
         # We loop through the list, and add some information which is not otherwise available.
-        for access in accesses:
-            access.frontend = {
-                "start": (
-                    access.requested_at if isinstance(access, models.Request) else access.granted_at
-                ),
-                "id": f"{id_part}_{id_}",
-                "type": ("REQUEST" if isinstance(access, models.Request) else "GRANT"),
-                "apply_url": django.urls.reverse(
-                    "jasmin_services:role_apply",
-                    kwargs={
-                        "category": access.access.role.service.category.name,
-                        "service": access.access.role.service.name,
-                        "role": access.access.role.name,
-                        "bool_grant": 0 if isinstance(access, models.Request) else 1,
-                        "previous": access.id,
-                    },
-                ),
-                "may_apply": access.access.role.user_may_apply(user),
-            }
+        async for grant in grants:
+            processed.append(await self.process_access(grant, user, id_part, id_))
+            id_ += 1
+        async for request in requests:
+            processed.append(await self.process_access(request, user, id_part, id_))
             id_ += 1
 
-        accesses = sorted(accesses, key=lambda x: x.frontend["start"], reverse=True)
+        accesses = sorted(processed, key=lambda x: x.frontend["start"], reverse=True)
         return accesses
 
-    def get_context_data(self, **kwargs):
+    async def get_context_data(self, **kwargs):
         """Add information about service to the context."""
-        context = super().get_context_data(**kwargs)
+        self.service = self.service or await self.aget_service(
+            kwargs["category"], kwargs["service"]
+        )
+        context = await super().get_context_data(**kwargs)
+
+        user = await self.request.auser()
 
         # Get the active grants and requests for the service as a whole
         grants = (
-            models.Grant.objects.filter(
-                access__role__service=self.service, access__user=self.request.user
-            )
+            models.Grant.objects.filter(access__role__service=self.service, access__user=user)
             .filter_active()
-            .prefetch_related("metadata")
+            .prefetch_related("metadata", "access__role__service__category")
         )
         requests = (
-            models.Request.objects.filter(
-                access__role__service=self.service, access__user=self.request.user
-            )
+            models.Request.objects.filter(access__role__service=self.service, access__user=user)
             .filter_active()
-            .prefetch_related("metadata")
+            .prefetch_related("metadata", "access__role__service__category")
         )
 
         # Get the roles the user is able to apply for.
         # This is any roles which aren't hidden, or any role the user
         # Has an access (request or grant) for.
-        may_apply_roles = [
-            x
-            for x in self.service.roles.filter(
-                Q(hidden=False) | Q(access__user=self.request.user)
-            ).distinct()
-            if x.user_may_apply(self.request.user)
-        ]
+        may_apply_roles = []
+        async for role in self.service.roles.filter(
+            Q(hidden=False) | Q(access__user=user)
+        ).distinct():
+            if await role.auser_may_apply(user):
+                may_apply_roles.append(role)
 
         # If the user holds an active grant in the service
         # get all the current managers and deputies of a services so that
         # we can display this information to users of the service.
-        if grants.exists():
-            managers = self.get_service_roleholders(self.service, "MANAGER")
-            deputies = self.get_service_roleholders(self.service, "DEPUTY")
+        if await grants.aexists():
+            managers = await self.get_service_roleholders(self.service, "MANAGER")
+            deputies = await self.get_service_roleholders(self.service, "DEPUTY")
         else:
             managers = []
             deputies = []
-
-        # To give pretty name of supporting information, add the fields.
-        # But it would be better to annotate the real query.
-        metadata_names = jasmin_metadata.models.Field.objects.all()
 
         context |= {
             "service": self.service,
             "roles": may_apply_roles,
             "managers": managers,
             "deputies": deputies,
-            "user_may_apply": common.user_may_apply(self.request.user, self.service),
-            "accesses": self.display_accesses(self.request.user, grants, requests),
+            "user_may_apply": common.user_may_apply(user, self.service),
+            "accesses": await self.display_accesses(user, grants, requests),
         }
         return context
 
