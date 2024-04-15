@@ -81,9 +81,7 @@ class ServiceDetailsView(
 
     async def get_context_data(self, **kwargs):
         """Add information about service to the context."""
-        self.service = self.service or await self.aget_service(
-            kwargs["category"], kwargs["service"]
-        )
+        self.service = await self.aget_service(kwargs["category"], kwargs["service"])
         context = await super().get_context_data(**kwargs)
 
         user = await self.request.auser()
