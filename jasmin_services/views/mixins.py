@@ -1,3 +1,5 @@
+import asgiref.sync
+import django.contrib.auth.mixins
 import django.http
 
 from .. import models
@@ -59,3 +61,21 @@ class AsyncTemplateView(
     async def get(self, request, *args, **kwargs):
         context = await self.get_context_data(**kwargs)
         return self.render_to_response(context)
+
+
+class AsyncLoginRequiredMixin(
+    django.contrib.auth.mixins.LoginRequiredMixin,
+):
+    def handle_no_permission(self):
+        """Wrap the handle_no_permission function to return an async response if required.
+
+        Similar to : https://github.com/django/django/blob/main/django/views/generic/base.py#L145
+        """
+        response = super().handle_no_permission()
+        if self.view_is_async and (not asgiref.sync.iscoroutinefunction(response)):
+
+            async def func():
+                return response
+
+            return func()
+        return response

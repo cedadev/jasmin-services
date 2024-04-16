@@ -10,7 +10,7 @@ from . import common, mixins
 
 
 class ServiceDetailsView(
-    django.contrib.auth.mixins.LoginRequiredMixin,
+    mixins.AsyncLoginRequiredMixin,
     mixins.WithServiceMixin,
     mixins.AsyncTemplateView,
 ):
