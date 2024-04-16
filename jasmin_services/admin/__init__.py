@@ -47,7 +47,7 @@ from ..models import (
     RequestState,
     Role,
     RoleObjectPermission,
-    Service
+    Service,
 )
 from ..widgets import AdminGfkContentTypeWidget, AdminGfkObjectIdWidget
 
