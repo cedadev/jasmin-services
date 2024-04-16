@@ -108,10 +108,13 @@ class ServiceDetailsView(
             if await role.auser_may_apply(user):
                 may_apply_roles.append(role)
 
+        # Check if the user has any active grants in the service
+        user_has_grant = await grants.aexists()
+
         # If the user holds an active grant in the service
         # get all the current managers and deputies of a services so that
         # we can display this information to users of the service.
-        if await grants.aexists():
+        if user_has_grant:
             managers = await self.get_service_roleholders(self.service, "MANAGER")
             deputies = await self.get_service_roleholders(self.service, "DEPUTY")
         else:
@@ -124,6 +127,7 @@ class ServiceDetailsView(
             "managers": managers,
             "deputies": deputies,
             "user_may_apply": common.user_may_apply(user, self.service),
+            "user_has_grant": user_has_grant,
             "accesses": await self.display_accesses(user, grants, requests),
         }
         return context
