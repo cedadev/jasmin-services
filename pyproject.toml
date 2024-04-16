@@ -21,7 +21,7 @@ jasmin-django-utils = {git = "https://github.com/cedadev/jasmin-django-utils.git
 jasmin-notifications = {git = "https://github.com/cedadev/jasmin-notifications.git", tag = "v1.2.7"}
 
 Django = ">=4.2"
-django-bootstrap5 = "^23.1"
+django-bootstrap5 = "^24.1"
 django-markdown-deux = "^1.0.6"
 python-dateutil = "^2.8.2"
 django-polymorphic = {git = "https://github.com/jazzband/django-polymorphic.git", rev = "f4286f583d6f91e896b73e450154af0fea3935a4"}
