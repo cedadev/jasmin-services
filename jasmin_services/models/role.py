@@ -2,7 +2,6 @@ import datetime as dt
 import functools
 from datetime import date
 
-import django.apps
 import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth import get_user_model

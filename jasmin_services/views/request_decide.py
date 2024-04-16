@@ -1,5 +1,6 @@
 import logging
 
+import django.db
 from django import http
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -16,6 +17,7 @@ _log = logging.getLogger(__name__)
 
 @require_http_methods(["GET", "POST"])
 @login_required
+@django.db.transaction.atomic
 def request_decide(request, pk):
     """
     Handler for ``/request/<pk>/decide/``.
