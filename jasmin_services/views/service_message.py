@@ -1,6 +1,7 @@
 import logging
 
 import django.core.mail
+import django.db
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
@@ -15,6 +16,7 @@ _log = logging.getLogger(__name__)
 
 @require_http_methods(["GET", "POST"])
 @login_required
+@django.db.transaction.atomic
 @with_service
 def service_message(request, service):
     """

@@ -4,7 +4,6 @@ Custom template filters for inspecting a user's roles for a service.
 
 __author__ = "Matt Pryor"
 __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
-
 from django import template
 
 from ..models import Request, RequestState
@@ -36,3 +35,15 @@ def pending_req_count(context, service):
         .filter(access__role__in=user_roles, state=RequestState.PENDING)
         .count()
     )
+
+
+@register.inclusion_tag("jasmin_services/includes/display_accesses.html")
+def display_accesses(accesses):
+    """Template tag to display a list of accesses (requests and or grants)."""
+    return {"accesses": accesses}
+
+
+@register.inclusion_tag("jasmin_services/includes/display_metadata.html")
+def display_metadata(metadata):
+    """Template tag to display a list of metadata for an access."""
+    return {"metadata": metadata}

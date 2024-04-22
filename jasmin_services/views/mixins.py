@@ -1,3 +1,5 @@
+import asgiref.sync
+import django.contrib.auth.mixins
 import django.http
 
 from .. import models
@@ -7,20 +9,73 @@ class WithServiceMixin:
     """Mixin to add service to class-based view attributes."""
 
     @staticmethod
-    def get_service(category_name, service_name):
+    def get_service(category_name: str, service_name: str) -> models.Service:
         """Get a service from it's category and name."""
         try:
-            return models.Service.objects.get(name=service_name, category__name=category_name)
+            service = models.Service.objects.get(name=service_name, category__name=category_name)
         except models.Service.DoesNotExist as err:
             raise django.http.Http404("Service does not exist.") from err
-
-    def setup(self, request, *args, **kwargs):
-        """Add service to class atrributes."""
-        # pylint: disable=attribute-defined-outside-init
-
-        # Get the service from the request.
-        self.service = self.get_service(kwargs["category"], kwargs["service"])
-        if self.service.disabled:
+        if service.disabled:
             raise django.http.Http404("Service has been retired.")
+        return service
 
-        super().setup(request, *args, **kwargs)
+    @staticmethod
+    async def aget_service(category_name: str, service_name: str) -> models.Service:
+        """Async version of get_service."""
+        try:
+            service = await models.Service.objects.select_related("category").aget(
+                name=service_name, category__name=category_name
+            )
+        except models.Service.DoesNotExist as err:
+            raise django.http.Http404("Service does not exist.") from err
+        if service.disabled:
+            raise django.http.Http404("Service has been retired.")
+        return service
+
+
+class AsyncContextMixin:
+    """Reimpliment ContextMixin async.
+
+    https://github.com/django/django/blob/main/django/views/generic/base.py#L21
+    """
+
+    extra_context = None
+
+    async def get_context_data(self, **kwargs):
+        kwargs.setdefault("view", self)
+        if self.extra_context is not None:
+            kwargs.update(self.extra_context)
+        return kwargs
+
+
+class AsyncTemplateView(
+    django.views.generic.base.TemplateResponseMixin,
+    AsyncContextMixin,
+    django.views.View,
+):
+    """Reimpliment TemplateView as async.
+
+    https://github.com/django/django/blob/main/django/views/generic/base.py#L220
+    """
+
+    async def get(self, request, *args, **kwargs):
+        context = await self.get_context_data(**kwargs)
+        return self.render_to_response(context)
+
+
+class AsyncLoginRequiredMixin(
+    django.contrib.auth.mixins.LoginRequiredMixin,
+):
+    def handle_no_permission(self):
+        """Wrap the handle_no_permission function to return an async response if required.
+
+        Similar to : https://github.com/django/django/blob/main/django/views/generic/base.py#L145
+        """
+        response = super().handle_no_permission()
+        if self.view_is_async and (not asgiref.sync.iscoroutinefunction(response)):
+
+            async def func():
+                return response
+
+            return func()
+        return response

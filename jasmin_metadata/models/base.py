@@ -5,10 +5,13 @@ Django models for the JASMIN services app.
 __author__ = "Matt Pryor"
 __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 
+import asgiref.sync
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from picklefield.fields import PickledObjectField
+
+import jasmin_metadata.models
 
 
 class Metadatum(models.Model):
@@ -33,6 +36,19 @@ class Metadatum(models.Model):
     key = models.CharField(max_length=200)
     #: The pickled value for the datum
     value = PickledObjectField(null=True)
+
+    def get_friendly_name(self):
+        """Get the friendly name of the metadata object's field.
+
+        The key is not always unique.
+        If it is unique, or if all labels for idential keys are the same, return the label.
+        Else, return the key.
+        """
+        labels = jasmin_metadata.models.Field.objects.values("label").filter(name=self.key)
+        labels = set(x["label"] for x in labels)
+        if len(labels) == 1:
+            return labels.pop()
+        return self.key
 
 
 class HasMetadata(models.Model):

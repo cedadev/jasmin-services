@@ -1,6 +1,8 @@
+import datetime as dt
 import functools
 from datetime import date
 
+import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -8,6 +10,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
+from django.db.models import Q
 
 from jasmin_metadata.models import Form
 
@@ -29,7 +32,7 @@ class RoleQuerySet(models.QuerySet):
             object_permission__in=RoleObjectPermission.objects.filter(
                 functools.reduce(
                     lambda q, obj: q
-                    | models.Q(
+                    | Q(
                         permission__content_type__app_label=app_label,
                         permission__codename=codename,
                         content_type=ContentType.objects.get_for_model(obj),
@@ -37,7 +40,7 @@ class RoleQuerySet(models.QuerySet):
                     ),
                     objs,
                     # This is a Q object that is always false
-                    models.Q(pk__isnull=True),
+                    Q(pk__isnull=True),
                 )
             )
         )
@@ -139,6 +142,37 @@ class Role(models.Model):
             )
             .distinct()
         )
+
+    def _user_may_apply_query(self, user):
+        """Return a query of a users valid requests and grants."""
+        # Otherwise get the valid (and not expiring soon) grants and requests the user has.
+        # If they have any, they are not allowed to apply.
+        return self.accesses.filter(user=user).filter(
+            # Get any currently valid grants.
+            Q(
+                Q(grant__revoked=False)  # Valid grants are not revoked.
+                & Q(grant__expires__gt=(django.utils.timezone.localdate() + dt.timedelta(days=60)))
+            )
+            # And any pending requests.
+            | Q(request__state="PENDING")
+            # And any rejected requests which have been marked as incomplete.
+            | Q(Q(request__incomplete=False) & Q(request__state="PENDING"))
+        )
+
+    def user_may_apply(self, user):
+        """Return true if user is allowed to apply for this role."""
+        # If multiple requests are allowed, they are always allowed to apply.
+        if settings.MULTIPLE_REQUESTS_ALLOWED:
+            return True
+        query = self._user_may_apply_query(user)
+        return not query.exists()
+
+    async def auser_may_apply(self, user):
+        """Async implemetation of user_may_apply."""
+        if settings.MULTIPLE_REQUESTS_ALLOWED:
+            return True
+        query = self._user_may_apply_query(user)
+        return not await query.aexists()
 
     def enable(self, user):
         """Enable this role for the given user."""
