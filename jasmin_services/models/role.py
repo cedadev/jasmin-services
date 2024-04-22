@@ -148,12 +148,15 @@ class Role(models.Model):
         # Otherwise get the valid (and not expiring soon) grants and requests the user has.
         # If they have any, they are not allowed to apply.
         return self.accesses.filter(user=user).filter(
+            # Get any currently valid grants.
             Q(
                 Q(grant__revoked=False)  # Valid grants are not revoked.
                 & Q(grant__expires__gt=(django.utils.timezone.localdate() + dt.timedelta(days=60)))
             )
+            # And any pending requests.
             | Q(request__state="PENDING")
-            | Q(request__incomplete=True)
+            # And any rejected requests which have been marked as incomplete.
+            | Q(Q(request__incomplete=False) & Q(request__state="PENDING"))
         )
 
     def user_may_apply(self, user):
