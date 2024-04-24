@@ -152,7 +152,9 @@ class Role(models.Model):
             Q(
                 Q(grant__revoked=False)  # Valid grants are not revoked.
                 & Q(grant__next_grant__isnull=True)  # filter only 'active' grants
-                & Q(grant__expires__gt=(django.utils.timezone.localdate() - dt.timedelta(days=60)))
+                & Q(
+                    grant__expires__gt=(django.utils.timezone.localdate() + dt.timedelta(days=60))
+                )  # Only include grants which don't expire in the next 60 days.
             )
             # And any pending requests.
             | Q(request__state="PENDING")
