@@ -20,7 +20,7 @@ class LdapGroupBehaviourAdminForm(forms.ModelForm):
         )
         # Use a switchable lookup widget for group_name with the model we found,
         # switching on the value of ldap_model
-        from . import models as models_module
+        from .. import models as models_module
 
         self.fields["group_name"].widget = AdminSwitchableLookupWidget(
             "ldap_model",
