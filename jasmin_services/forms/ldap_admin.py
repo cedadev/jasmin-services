@@ -2,6 +2,7 @@ from django import forms
 from django.conf import settings
 
 from ..models import LdapGroupBehaviour
+from . import AdminSwitchableLookupWidget
 
 
 class LdapGroupBehaviourAdminForm(forms.ModelForm):
