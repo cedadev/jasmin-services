@@ -29,7 +29,7 @@ class RoleApplyView(
     """
 
     @staticmethod
-    def get_previous_request_and_grant(bool_grant, previous):
+    def get_previous_request_and_grant(bool_grant: int, previous: int):
         """Get the previous request or grant from the id supplied."""
         error = None
         previous_grant = None
@@ -65,6 +65,7 @@ class RoleApplyView(
         """
         # pylint: disable=attribute-defined-outside-init
         super().setup(request, *args, **kwargs)
+        self.service = self.get_service(kwargs["category"], kwargs["service"])
         self.redirect_to_service = True
 
         # Prevent users who are not allowed to apply for this service from doing so.

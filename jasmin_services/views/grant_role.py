@@ -2,6 +2,7 @@ import logging
 from datetime import date
 
 import django.contrib.auth
+import django.db
 from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -17,6 +18,7 @@ _log = logging.getLogger(__name__)
 
 @require_http_methods(["GET", "POST"])
 @login_required
+@django.db.transaction.atomic
 @with_service
 def grant_role(request, service):
     """Handle ``/<category>/<service>/grant/``.
