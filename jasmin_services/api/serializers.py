@@ -13,7 +13,7 @@ class ServiceUserSerializer(rf_serial.HyperlinkedModelSerializer):
 
     class Meta:
         model = django.contrib.auth.get_user_model()
-        fields = ["id", "url", "username"]
+        fields = ["id", "url", "username", "email"]
         extra_kwargs = {"url": {"view_name": "user-detail", "lookup_field": "username"}}
 
 
