@@ -40,7 +40,7 @@ categories_router = rest_framework_nested.routers.NestedSimpleRouter(
 )
 categories_router.register(
     "services",
-    apiviews.NestedServicesViewSet,
+    apiviews.ServicesNestedUnderCategoriesViewSet,
     basename="category-services",
 )
 

@@ -77,7 +77,13 @@ class ServicesViewSet(
         return rf_response.Response(serializer.data)
 
 
-class NestedServicesViewSet(ServicesViewSet):
+class ServicesNestedUnderCategoriesViewSet(ServicesViewSet):
+    """Viewset to allow services to be nested under categories.
+
+    Same as ServicesViewset, but lookup the service by name instead of pk,
+    and filter by category.
+    """
+
     lookup_field = "name"
 
     def get_queryset(self):
