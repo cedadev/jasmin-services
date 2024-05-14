@@ -13,7 +13,7 @@ urlpatterns = [
     # fmt: off
     path("services/", include("jasmin_services.urls", namespace="services")),
 
-    path("api/v1/", include([
+    path("api/", include([
             path("schema/", drf_spectacular.views.SpectacularAPIView.as_view(), name="schema"),
             path('schema/swagger-ui/', drf_spectacular.views.SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
             path("", include(api_router.urls)),

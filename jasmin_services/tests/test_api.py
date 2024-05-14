@@ -67,7 +67,7 @@ class ServiceGoodScopeTest(BaseTest):
             [
                 {
                     "id": self.service1.id,
-                    "url": f"http://testserver/api/v1/services/{self.service1.id}/",
+                    "url": f"http://testserver/api/v1/categories/{self.service1.category.name}/services/{self.service1.name}/",
                     "category": {
                         "id": self.category.id,
                         "url": "http://testserver/api/v1/categories/test_cat/",
@@ -79,7 +79,7 @@ class ServiceGoodScopeTest(BaseTest):
                 },
                 {
                     "id": self.service2.id,
-                    "url": f"http://testserver/api/v1/services/{self.service2.id}/",
+                    "url": f"http://testserver/api/v1/categories/{self.service2.category.name}/services/{self.service2.name}/",
                     "category": {
                         "id": self.category.id,
                         "url": "http://testserver/api/v1/categories/test_cat/",
@@ -102,7 +102,7 @@ class ServiceGoodScopeTest(BaseTest):
             response.json(),
             {
                 "id": self.service1.id,
-                "url": f"http://testserver/api/v1/services/{self.service1.id}/",
+                "url": f"http://testserver/api/v1/categories/{self.service1.category.name}/services/{self.service1.name}/",
                 "name": "testservice1",
                 "category": {
                     "id": self.category.id,
