@@ -24,7 +24,6 @@ def swapable_view(setting_name: str, default_view_class: django.views.View) -> d
     # If the setting is a string, try to import it.
     if isinstance(setting_name, str):
         view_class = django.utils.module_loading.import_string(setting_value)
-        print(view_class)
         if not issubclass(view_class, default_view_class):
             raise django.core.exceptions.ImproperlyConfigured(
                 f"Swappable view {default_view_class} for {setting_name} must be a subclass of {default_view_class}."
