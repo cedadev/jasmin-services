@@ -104,6 +104,7 @@ class ServicesNestedUnderCategoriesViewSet(ServicesViewSet):
     """
 
     lookup_field = "name"
+    required_scopes = ["jasmin.services.services.all"]
 
     def get_queryset(self):
         queryset = super().get_queryset()
