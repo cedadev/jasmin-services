@@ -140,7 +140,6 @@ class UsersViewSet(
         return rf_response.Response(serializer.data)
 
 
-
 class CategoriesViewSet(
     jasmin_django_utils.api.viewsets.ActionSerializerMixin,
     rf_viewsets.ReadOnlyModelViewSet,
