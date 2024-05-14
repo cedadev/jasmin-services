@@ -123,17 +123,17 @@ class UsersViewSet(
         filter_params = {}
 
         # Option to filter by service query param
-        service = self.request.query_params.get('service')
+        service = self.request.query_params.get("service")
         if service is not None:
-            filter_params['access__role__service__name'] = service
+            filter_params["access__role__service__name"] = service
 
         # Option to filter by category query param
-        category = self.request.query_params.get('category')
+        category = self.request.query_params.get("category")
         if category is not None:
-            filter_params['access__role__service__category__name'] = category
+            filter_params["access__role__service__category__name"] = category
 
         queryset = queryset.filter(**filter_params)
-        
+
         serializer = serializers.UserGrantSerializer(
             queryset, many=True, context={"request": request}
         )
