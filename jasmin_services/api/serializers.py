@@ -3,6 +3,7 @@
 import django.contrib.auth
 import django_countries.serializers
 import rest_framework.serializers as rf_serial
+import rest_framework_nested.serializers
 
 from .. import models
 
@@ -53,22 +54,32 @@ class CategoryListSerializer(rf_serial.HyperlinkedModelSerializer):
         extra_kwargs = {"url": {"view_name": "category-detail", "lookup_field": "name"}}
 
 
-class ServiceListSerializer(rf_serial.HyperlinkedModelSerializer):
+class ServiceListSerializer(rest_framework_nested.serializers.NestedHyperlinkedModelSerializer):
     """Simple details about a service."""
 
     category = CategoryListSerializer()
 
+    parent_lookup_kwargs = {
+        "category_name": "category__name",
+    }
+
     class Meta:
         model = models.Service
         fields = ["id", "url", "category", "name", "summary", "hidden"]
+        extra_kwargs = {"url": {"view_name": "category-services-detail", "lookup_field": "name"}}
 
 
-class CategoryServiceSerializer(ServiceListSerializer):
+class CategoryServiceSerializer(rest_framework_nested.serializers.NestedHyperlinkedModelSerializer):
     """Simple details about a service, excluding it's category."""
+
+    parent_lookup_kwargs = {
+        "category_name": "category__name",
+    }
 
     class Meta:
         model = models.Service
         fields = ["id", "url", "name", "summary", "hidden"]
+        extra_kwargs = {"url": {"view_name": "category-services-detail", "lookup_field": "name"}}
 
 
 class CategorySerializer(CategoryListSerializer):
@@ -87,6 +98,10 @@ class ServiceSerializer(django_countries.serializers.CountryFieldMixin, ServiceL
 
     roles = RoleListSerializer(many=True)
 
+    parent_lookup_kwargs = {
+        "category_name": "category__name",
+    }
+
     class Meta:
         model = models.Service
         fields = [
@@ -103,3 +118,4 @@ class ServiceSerializer(django_countries.serializers.CountryFieldMixin, ServiceL
             "position",
             "ceda_managed",
         ]
+        extra_kwargs = {"url": {"view_name": "category-services-detail", "lookup_field": "name"}}
