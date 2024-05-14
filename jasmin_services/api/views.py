@@ -126,27 +126,15 @@ class UserServicesViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
         ).distinct()
 
 
-class UsersViewSet(
-    jasmin_django_utils.api.viewsets.ActionSerializerMixin,
-    rf_viewsets.GenericViewSet,
-):
-    queryset = django.contrib.auth.get_user_model().objects
-    lookup_field = "username"
-    action_serializers = {
-        "services": serializers.ServiceListSerializer,
-        "grants": serializers.UserGrantSerializer,
-    }
-    required_scopes = ["jasmin.services.userservices.all"]
+class UserGrantsViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
+    """Get the grants associated with a user."""
 
-    @drf_spectacular.utils.extend_schema(
-        responses=serializers.UserGrantSerializer(many=True),
-    )
-    @rf_decorators.action(detail=True)
-    def grants(self, request, username=None):
-        """List the grants of a given user."""
-        user = self.get_object()
+    required_scopes = ["jasmin.services.userservices.all"]
+    serializer_class = serializers.UserGrantSerializer
+
+    def get_queryset(self):
         queryset = models.Grant.objects.filter(
-            access__user=user,
+            access__user__username=self.kwargs["user_username"],
             revoked=False,
             expires__gte=dt.datetime.now(),
         ).prefetch_related("access__role__service")
@@ -164,11 +152,7 @@ class UsersViewSet(
             filter_params["access__role__service__category__name"] = category
 
         queryset = queryset.filter(**filter_params)
-
-        serializer = serializers.UserGrantSerializer(
-            queryset, many=True, context={"request": request}
-        )
-        return rf_response.Response(serializer.data)
+        return queryset
 
 
 class CategoriesViewSet(

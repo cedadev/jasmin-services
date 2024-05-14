@@ -40,6 +40,12 @@ users_router.register(
     apiviews.UserServicesViewSet,
     basename="users-services",
 )
+# Register route to get user's grants.
+users_router.register(
+    "grants",
+    apiviews.UserGrantsViewSet,
+    basename="users-grants",
+)
 
 # Create a route for accesing service by id.
 primary_router.register(
