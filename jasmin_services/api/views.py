@@ -10,7 +10,6 @@ import jasmin_django_utils.api.viewsets
 import rest_framework.decorators as rf_decorators
 import rest_framework.response as rf_response
 import rest_framework.viewsets as rf_viewsets
-from django_filters.rest_framework import DjangoFilterBackend
 
 from .. import models
 from . import serializers
