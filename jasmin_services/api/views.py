@@ -120,10 +120,22 @@ class UsersViewSet(
             expires__gte=dt.datetime.now(),
         ).prefetch_related("access__role__service")
 
+        # Option to filter by service name query param
+        service_name = self.request.query_params.get('service_name')
+        if service_name is not None:
+            queryset = queryset.filter(access__role__service__name=service_name)
+        # Option to filter by category query param
+        category = self.request.query_params.get('category')
+        if category is not None:
+            queryset = queryset.filter(access__role__service__category__name=category)
+
         serializer = serializers.UserGrantSerializer(
             queryset, many=True, context={"request": request}
         )
+        filterset_fields = ["service__name"]
+        search_fields = ["service__name"]
         return rf_response.Response(serializer.data)
+
 
 
 class CategoriesViewSet(
