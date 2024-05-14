@@ -8,6 +8,7 @@ import django.utils.timezone
 import drf_spectacular.utils
 import jasmin_django_utils.api.viewsets
 import rest_framework.decorators as rf_decorators
+import rest_framework.mixins as rf_mixins
 import rest_framework.response as rf_response
 import rest_framework.viewsets as rf_viewsets
 
@@ -111,32 +112,18 @@ class ServicesNestedUnderCategoriesViewSet(ServicesViewSet):
         return queryset.filter(category__name=self.kwargs["category_name"])
 
 
-class UsersViewSet(
-    jasmin_django_utils.api.viewsets.ActionSerializerMixin,
-    rf_viewsets.GenericViewSet,
-):
-    queryset = django.contrib.auth.get_user_model().objects
-    lookup_field = "username"
-    action_serializers = {"services": serializers.ServiceListSerializer}
-    required_scopes = ["jasmin.services.userservices.all"]
+class UserServicesViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
+    """Get the services assocated with a user."""
 
-    @drf_spectacular.utils.extend_schema(
-        responses=serializers.ServiceListSerializer(many=True),
-    )
-    @rf_decorators.action(detail=True)
-    def services(self, request, username=None):
-        """List the services of a given user."""
-        user = self.get_object()
-        queryset = models.Service.objects.filter(
-            role__access__user=user,
+    required_scopes = ["jasmin.services.userservices.all"]
+    serializer_class = serializers.ServiceListSerializer
+
+    def get_queryset(self):
+        return models.Service.objects.filter(
+            role__access__user__username=self.kwargs["user_username"],
             role__access__grant__revoked=False,
             role__access__grant__expires__gte=dt.datetime.now(),
-        )
-
-        serializer = serializers.ServiceListSerializer(
-            queryset, many=True, context={"request": request}
-        )
-        return rf_response.Response(serializer.data)
+        ).distinct()
 
 
 class CategoriesViewSet(
