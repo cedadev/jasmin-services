@@ -8,6 +8,7 @@ import django.utils.timezone
 import drf_spectacular.utils
 import jasmin_django_utils.api.viewsets
 import rest_framework.decorators as rf_decorators
+import rest_framework.mixins as rf_mixins
 import rest_framework.response as rf_response
 import rest_framework.viewsets as rf_viewsets
 
@@ -31,7 +32,9 @@ class ServicesViewSet(
     filterset_fields = ["category", "hidden", "ceda_managed"]
     search_fields = ["name"]
 
-    @drf_spectacular.utils.extend_schema(
+
+@drf_spectacular.utils.extend_schema_view(
+    list=drf_spectacular.utils.extend_schema(
         parameters=[
             drf_spectacular.utils.OpenApiParameter(
                 name="on_date",
@@ -42,12 +45,17 @@ class ServicesViewSet(
         ],
         responses=serializers.RoleSerializer(many=True),
     )
-    @rf_decorators.action(detail=True, required_scopes=["jasmin.services.serviceroles.all"])
-    def roles(self, request, pk=None):
-        """List roles in a services and their holders."""
-        self.filterset_fields = []
-        self.search_fields = []
+)
+class RolesNestedUnderServicesViewSet(rf_viewsets.ReadOnlyModelViewSet):
+    """View roles for a service."""
 
+    serializer_class = serializers.RoleSerializer
+    required_scopes = ["jasmin.services.serviceroles.all"]
+    lookup_field = "name"
+
+    def get_queryset(self):
+
+        # Add query to lookup roleholders by date.
         date_string = self.request.query_params.get("on_date", False)
         if date_string:
             on_date = dt.date.fromisoformat(date_string)
@@ -59,7 +67,20 @@ class ServicesViewSet(
             tzinfo=django.utils.timezone.get_current_timezone(),
         )
 
-        service = self.get_object()
+        # Get the correct service to get roles form.
+        # This view can either be nexted under /services/pk/roles or
+        # /categories/<name>/services/<name>roles/
+        # And we will get slightly different kwargs in each case.
+        try:
+            # If nested, we will get the category and service name.
+            service = models.Service.objects.get(
+                category__name=self.kwargs["category_name"],
+                name=self.kwargs["service_name"],
+            )
+        except KeyError:
+            # Otherwise, we get the service pk.
+            service = models.Service.objects.get(pk=self.kwargs["service_pk"])
+
         queryset = models.Role.objects.filter(service=service).prefetch_related(
             dj_models.Prefetch(
                 "accesses",
@@ -73,8 +94,36 @@ class ServicesViewSet(
                 ),
             )
         )
-        serializer = serializers.RoleSerializer(queryset, many=True, context={"request": request})
-        return rf_response.Response(serializer.data)
+        return queryset
+
+
+class ServicesNestedUnderCategoriesViewSet(ServicesViewSet):
+    """Viewset to allow services to be nested under categories.
+
+    Same as ServicesViewset, but lookup the service by name instead of pk,
+    and filter by category.
+    """
+
+    lookup_field = "name"
+    required_scopes = ["jasmin.services.services.all"]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(category__name=self.kwargs["category_name"])
+
+
+class UserServicesViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
+    """Get the services assocated with a user."""
+
+    required_scopes = ["jasmin.services.userservices.all"]
+    serializer_class = serializers.ServiceListSerializer
+
+    def get_queryset(self):
+        return models.Service.objects.filter(
+            role__access__user__username=self.kwargs["user_username"],
+            role__access__grant__revoked=False,
+            role__access__grant__expires__gte=dt.datetime.now(),
+        ).distinct()
 
 
 class UsersViewSet(
@@ -88,24 +137,6 @@ class UsersViewSet(
         "grants": serializers.UserGrantSerializer,
     }
     required_scopes = ["jasmin.services.userservices.all"]
-
-    @drf_spectacular.utils.extend_schema(
-        responses=serializers.ServiceListSerializer(many=True),
-    )
-    @rf_decorators.action(detail=True)
-    def services(self, request, username=None):
-        """List the services of a given user."""
-        user = self.get_object()
-        queryset = models.Service.objects.filter(
-            role__access__user=user,
-            role__access__grant__revoked=False,
-            role__access__grant__expires__gte=dt.datetime.now(),
-        )
-
-        serializer = serializers.ServiceListSerializer(
-            queryset, many=True, context={"request": request}
-        )
-        return rf_response.Response(serializer.data)
 
     @drf_spectacular.utils.extend_schema(
         responses=serializers.UserGrantSerializer(many=True),
