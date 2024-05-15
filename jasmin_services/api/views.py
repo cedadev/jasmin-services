@@ -126,6 +126,30 @@ class UserServicesViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
         ).distinct()
 
 
+@drf_spectacular.utils.extend_schema_view(
+    list=drf_spectacular.utils.extend_schema(
+        parameters=[
+            drf_spectacular.utils.OpenApiParameter(
+                name="service",
+                required=False,
+                type=str,
+                description="Name of the service you would like to filter the grants for.",
+            ),
+            drf_spectacular.utils.OpenApiParameter(
+                name="category",
+                required=False,
+                type=str,
+                description="Name of the category you would like to filter the grants for."
+            ),
+            drf_spectacular.utils.OpenApiParameter(
+                name="role",
+                required=False,
+                type=str,
+                description="Name of the role you would like to filter the grants for."
+            ),
+        ]
+    ),
+)
 class UserGrantsViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
     """Get the grants associated with a user."""
 
