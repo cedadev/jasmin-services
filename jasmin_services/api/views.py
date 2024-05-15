@@ -151,6 +151,11 @@ class UserGrantsViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
         if category is not None:
             filter_params["access__role__service__category__name"] = category
 
+        # Option to filter by grant role name
+        role = self.request.query_params.get("role")
+        if role is not None:
+            filter_params["access__role__name"] = role
+
         queryset = queryset.filter(**filter_params)
         return queryset
 
