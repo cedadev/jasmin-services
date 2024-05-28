@@ -13,7 +13,7 @@ import rest_framework.response as rf_response
 import rest_framework.viewsets as rf_viewsets
 
 from .. import models
-from . import serializers
+from . import filters, serializers
 
 
 class ServicesViewSet(
@@ -50,6 +50,7 @@ class RolesNestedUnderServicesViewSet(rf_viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.RoleSerializer
     required_scopes = ["jasmin.services.serviceroles.all"]
     lookup_field = "name"
+    filterset_class = filters.RoleFilter
 
     def get_queryset(self):
         # If we are generating swagger definitions, return the correct
@@ -128,6 +129,7 @@ class ServicesNestedUnderCategoriesViewSet(ServicesViewSet):
 
     lookup_field = "name"
     required_scopes = ["jasmin.services.services.all"]
+    filterset_fields = ["name"]
 
     def get_queryset(self):
         queryset = super().get_queryset()
