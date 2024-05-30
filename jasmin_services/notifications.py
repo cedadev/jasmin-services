@@ -1,17 +1,15 @@
-"""
-This module contains signals used by the JASMIN account app.
-"""
+"""This module contains signals used by the JASMIN account app."""
 
 __author__ = "Matt Pryor"
 __copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
 
+import datetime as dt
 import logging
 import os
 import re
 from datetime import date
 
-import requests
-from dateutil.relativedelta import relativedelta
+import httpx
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import signals
@@ -30,9 +28,7 @@ _log = logging.getLogger(__name__)
 
 
 def register_notifications(app_config, verbosity=2, interactive=True, **kwargs):
-    """
-    ``post_migrate`` signal handler that registers notification types for this app.
-    """
+    """``post_migrate`` signal handler that registers notification types for this app."""
     NotificationType.create(
         name="request_confirm",
         level=NotificationLevel.INFO,
@@ -78,9 +74,7 @@ def register_notifications(app_config, verbosity=2, interactive=True, **kwargs):
 
 @receiver(signals.post_save, sender=Request)
 def confirm_request(sender, instance, created, **kwargs):
-    """
-    Notifies the user that their request was received.
-    """
+    """Notifies the user that their request was received."""
     if created and instance.active and instance.state == RequestState.PENDING:
         instance.access.user.notify(
             "request_confirm",
@@ -96,9 +90,7 @@ def confirm_request(sender, instance, created, **kwargs):
 
 
 def notify_approvers(instance):
-    """
-    Notifies potential approvers for a request to poke them into action.
-    """
+    """Notifies potential approvers for a request to poke them into action."""
     if instance.active and instance.state == RequestState.PENDING:
         approvers = instance.access.role.approvers.exclude(pk=instance.access.user.pk)
         # If the role has some approvers, notify them
@@ -111,7 +103,7 @@ def notify_approvers(instance):
             link = settings.BASE_URL + reverse(
                 "admin:jasmin_services_request_decide", args=(instance.pk,)
             )
-            requests.post(
+            httpx.post(
                 settings.SLACK_WEBHOOK,
                 json={
                     "username": os.uname()[1],
@@ -129,27 +121,21 @@ def notify_approvers(instance):
 
 @receiver(signals.post_save, sender=Request)
 def notify_approvers_created(sender, instance, created, **kwargs):
-    """
-    Notifies potential approvers to poke them into action.
-    """
+    """Notifies potential approvers to poke them into action."""
     if created:
         notify_approvers(instance)
 
 
 @receiver(signals.post_save, sender=Request)
 def request_decided(sender, instance, created, **kwargs):
-    """
-    When a request is decided, clear any request_pending notifications associated with it.
-    """
+    """When a request is decided, clear any request_pending notifications associated with it."""
     if instance.state in [RequestState.APPROVED, RequestState.REJECTED]:
         Notification.objects.filter_target(instance).update(followed_at=timezone.now())
 
 
 @receiver(signals.post_save, sender=Request)
 def request_rejected(sender, instance, created, **kwargs):
-    """
-    Notifies the user when their request has been decided.
-    """
+    """Notifies the user when their request has been decided."""
     if instance.active and instance.state == RequestState.REJECTED:
         # Only send the notification once
         template = "request_incomplete" if instance.incomplete else "request_rejected"
@@ -169,9 +155,7 @@ def request_rejected(sender, instance, created, **kwargs):
 
 @receiver(signals.post_save, sender=Grant)
 def grant_created(sender, instance, created, **kwargs):
-    """
-    Notifies the user when a grant is created.
-    """
+    """Notifies the user when a grant is created."""
     if created and instance.active and not re.match(r"train\d{3}", instance.access.user.username):
         instance.access.user.notify(
             "grant_created",
@@ -188,9 +172,7 @@ def grant_created(sender, instance, created, **kwargs):
 
 @receiver(signals.post_save, sender=Grant)
 def grant_revoked(sender, instance, created, **kwargs):
-    """
-    Notifies the user when a grant is revoked. Also ensures that access is revoked.
-    """
+    """Notifies the user when a grant is revoked. Also ensures that access is revoked."""
     if (
         instance.active
         and instance.revoked
@@ -212,9 +194,7 @@ def grant_revoked(sender, instance, created, **kwargs):
 
 @receiver(signals.post_save, sender=Grant)
 def grant_sync_access(sender, instance, created, **kwargs):
-    """
-    Synchronises access whenever a grant is saved, if the grant is active.
-    """
+    """Synchronises access whenever a grant is saved, if the grant is active."""
     if instance.active:
         if instance.revoked or instance.expired:
             instance.access.role.disable(instance.access.user)
@@ -271,7 +251,7 @@ def account_reactivated(sender, instance, created, **kwargs):
                 Grant.objects.create(
                     access=access,
                     granted_by=grant.granted_by,
-                    expires=date.today() + relativedelta(months=1),
+                    expires=date.today() + dt.timedelta(days=30),
                     previous_grant=grant,
                 )
         for req in Request.objects.filter(
