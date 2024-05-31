@@ -42,28 +42,40 @@ class BaseTest(rf_test.APITestCase):
         )
         metaform = jasmin_metadata.models.Form.objects.create(name="test")
         # Populate some data.
-        self.category = models.Category.objects.create(
-            name="test_cat", long_name="Meow", position=1
+        self.category1 = models.Category.objects.create(
+            name="test_cat1", long_name="Meow", position=1
+        )
+        self.category2 = models.Category.objects.create(
+            name="test_cat2", long_name="Woof", position=1
         )
         self.service1 = models.Service.objects.create(
-            category=self.category,
+            category=self.category1,
             name="testservice1",
             summary="First test category",
             description="This should be a long description.",
         )
         self.service2 = models.Service.objects.create(
-            category=self.category,
+            category=self.category2,
             name="testservice2",
             summary="Another test category",
             description="This should be a long description.",
         )
-        # Grant the user a role within the service.
-        role = models.Role.objects.create(
+        # Grant the user roles within the services.
+        manager_role = models.Role.objects.create(
             service=self.service1, name="MANAGER", description="Manager.", metadata_form=metaform
         )
-        access = models.Access.objects.create(user=self.user, role=role)
-        self.grant = models.Grant.objects.create(
-            access=access,
+        manager_access = models.Access.objects.create(user=self.user, role=manager_role)
+        self.manager_grant = models.Grant.objects.create(
+            access=manager_access,
+            granted_by=self.user.username,
+            expires=dt.date.today() + dt.timedelta(days=365),
+        )
+        deputy_role = models.Role.objects.create(
+            service=self.service2, name="DEPUTY", description="Deputy.", metadata_form=metaform
+        )
+        deputy_access = models.Access.objects.create(user=self.user, role=deputy_role)
+        self.deputy_grant = models.Grant.objects.create(
+            access=deputy_access,
             granted_by=self.user.username,
             expires=dt.date.today() + dt.timedelta(days=365),
         )
@@ -89,9 +101,9 @@ class ServiceGoodScopeTest(BaseTest):
                     "id": self.service1.id,
                     "url": f"http://testserver/api/v1/categories/{self.service1.category.name}/services/{self.service1.name}/",
                     "category": {
-                        "id": self.category.id,
-                        "url": "http://testserver/api/v1/categories/test_cat/",
-                        "name": "test_cat",
+                        "id": self.category1.id,
+                        "url": "http://testserver/api/v1/categories/test_cat1/",
+                        "name": "test_cat1",
                     },
                     "name": "testservice1",
                     "summary": "First test category",
@@ -101,9 +113,9 @@ class ServiceGoodScopeTest(BaseTest):
                     "id": self.service2.id,
                     "url": f"http://testserver/api/v1/categories/{self.service2.category.name}/services/{self.service2.name}/",
                     "category": {
-                        "id": self.category.id,
-                        "url": "http://testserver/api/v1/categories/test_cat/",
-                        "name": "test_cat",
+                        "id": self.category2.id,
+                        "url": "http://testserver/api/v1/categories/test_cat2/",
+                        "name": "test_cat2",
                     },
                     "name": "testservice2",
                     "summary": "Another test category",
@@ -125,9 +137,9 @@ class ServiceGoodScopeTest(BaseTest):
                 "url": f"http://testserver/api/v1/categories/{self.service1.category.name}/services/{self.service1.name}/",
                 "name": "testservice1",
                 "category": {
-                    "id": self.category.id,
-                    "url": "http://testserver/api/v1/categories/test_cat/",
-                    "name": "test_cat",
+                    "id": self.category1.id,
+                    "url": "http://testserver/api/v1/categories/test_cat1/",
+                    "name": "test_cat1",
                 },
                 "roles": [{"id": 1, "name": "MANAGER"}],
                 "summary": "First test category",
@@ -153,53 +165,89 @@ class UserGrantsTest(BaseTest):
             response.json(),
             [
                 {
-                    "id": self.grant.id,
+                    "id": self.manager_grant.id,
                     "service": {
                         "id": self.service1.id,
-                        "url": "http://testserver/api/v1/categories/test_cat/services/testservice1/",
+                        "url": "http://testserver/api/v1/categories/test_cat1/services/testservice1/",
                         "category": {
-                            "id": self.category.id,
-                            "url": "http://testserver/api/v1/categories/test_cat/",
-                            "name": "test_cat",
+                            "id": self.category1.id,
+                            "url": "http://testserver/api/v1/categories/test_cat1/",
+                            "name": "test_cat1",
                         },
                         "name": "testservice1",
                         "summary": "First test category",
                         "hidden": True,
                     },
                     "role": {"id": 1, "name": "MANAGER"},
-                    "granted_at": self.grant.granted_at.astimezone(
+                    "granted_at": self.manager_grant.granted_at.astimezone(
                         ZoneInfo(django.conf.settings.TIME_ZONE)
                     ).strftime("%Y-%m-%dT%H:%M:%S.%f%:z"),
-                    "expires": self.grant.expires.strftime("%Y-%m-%d"),
+                    "expires": self.manager_grant.expires.strftime("%Y-%m-%d"),
+                    "revoked": False,
+                    "revoked_at": None,
+                    "user_reason": "",
+                },
+                {
+                    "id": self.deputy_grant.id,
+                    "service": {
+                        "id": self.service2.id,
+                        "url": "http://testserver/api/v1/categories/test_cat2/services/testservice2/",
+                        "category": {
+                            "id": self.category2.id,
+                            "url": "http://testserver/api/v1/categories/test_cat2/",
+                            "name": "test_cat2",
+                        },
+                        "name": "testservice2",
+                        "summary": "Another test category",
+                        "hidden": True,
+                    },
+                    "role": {"id": 2, "name": "DEPUTY"},
+                    "granted_at": self.deputy_grant.granted_at.astimezone(
+                        ZoneInfo(django.conf.settings.TIME_ZONE)
+                    ).strftime("%Y-%m-%dT%H:%M:%S.%f%:z"),
+                    "expires": self.deputy_grant.expires.strftime("%Y-%m-%d"),
                     "revoked": False,
                     "revoked_at": None,
                     "user_reason": "",
                 }
             ],
         )
-        # self.assertIn("content?", response.content.decode(utf-8))
 
-
-#     def test_grants_list(self):
-#         """Check that the API's list grants view works."""
-#         response = self.client.get(
-#             f"/api/v1/users/{self.user}/grants/", HTTP_AUTHORIZATION=f"Bearer {self.token.token}"
-#         )
-#         self.assertEqual(response.status_code, 200)
-#         self.assertListEqual(
-#             response.json(),
-#             [
-#                 {
-#                     info here...
-#                 }
-#             ],
-#         )
-
-#     def test_grants_filter_category(self):
-#         """Test that filtering with category query param works."""
-#         response = self.client.get(
-
-#         )
+    def test_grants_filter_category(self):
+        """Test that filtering with category query param works."""
+        response = self.client.get(
+            f"/api/v1/users/{self.user.username}/grants/?category={self.category1.name}",
+            HTTP_AUTHORIZATION=f"Bearer {self.token.token}",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertListEqual(
+            response.json(),
+            [
+                {
+                    "id": self.manager_grant.id,
+                    "service": {
+                        "id": self.service1.id,
+                        "url": "http://testserver/api/v1/categories/test_cat1/services/testservice1/",
+                        "category": {
+                            "id": self.category1.id,
+                            "url": "http://testserver/api/v1/categories/test_cat1/",
+                            "name": "test_cat1",
+                        },
+                        "name": "testservice1",
+                        "summary": "First test category",
+                        "hidden": True,
+                    },
+                    "role": {"id": 1, "name": "MANAGER"},
+                    "granted_at": self.manager_grant.granted_at.astimezone(
+                        ZoneInfo(django.conf.settings.TIME_ZONE)
+                    ).strftime("%Y-%m-%dT%H:%M:%S.%f%:z"),
+                    "expires": self.manager_grant.expires.strftime("%Y-%m-%d"),
+                    "revoked": False,
+                    "revoked_at": None,
+                    "user_reason": "",
+                }
+            ]
+        )
 
 #     def test_grants_filter_service(self):
 
