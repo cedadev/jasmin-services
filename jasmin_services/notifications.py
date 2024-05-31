@@ -173,17 +173,20 @@ def grant_created(sender, instance, created, **kwargs):
     Notifies the user when a grant is created.
     """
     if created and instance.active and not re.match(r"train\d{3}", instance.access.user.username):
-        instance.access.user.notify(
-            "grant_created",
-            instance,
-            reverse(
-                "jasmin_services:service_details",
-                kwargs={
-                    "category": instance.access.role.service.category.name,
-                    "service": instance.access.role.service.name,
-                },
-            ),
-        )
+        try:
+            instance.access.user.notify(
+                "grant_created",
+                instance,
+                reverse(
+                    "jasmin_services:service_details",
+                    kwargs={
+                        "category": instance.access.role.service.category.name,
+                        "service": instance.access.role.service.name,
+                    },
+                ),
+            )
+        except AttributeError:
+            pass
 
 
 @receiver(signals.post_save, sender=Grant)
