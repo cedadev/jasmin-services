@@ -155,7 +155,7 @@ class ServiceGoodScopeTest(BaseTest):
 
 class UserGrantsTest(BaseTest):
     def test_user(self):
-        """Test that a page has been made for the user."""
+        """Test the user grants API endpoint."""
         response = self.client.get(
             f"/api/v1/users/{self.user.username}/grants/",
             HTTP_AUTHORIZATION=f"Bearer {self.token.token}",
@@ -209,7 +209,7 @@ class UserGrantsTest(BaseTest):
                     "revoked": False,
                     "revoked_at": None,
                     "user_reason": "",
-                }
+                },
             ],
         )
 
@@ -246,11 +246,77 @@ class UserGrantsTest(BaseTest):
                     "revoked_at": None,
                     "user_reason": "",
                 }
-            ]
+            ],
         )
 
-#     def test_grants_filter_service(self):
+    def test_grants_filter_service(self):
+        """Test that filtering with service query param works."""
+        response = self.client.get(
+            f"/api/v1/users/{self.user.username}/grants/?service={self.service2.name}",
+            HTTP_AUTHORIZATION=f"Bearer {self.token.token}",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertListEqual(
+            response.json(),
+            [
+                {
+                    "id": self.deputy_grant.id,
+                    "service": {
+                        "id": self.service2.id,
+                        "url": "http://testserver/api/v1/categories/test_cat2/services/testservice2/",
+                        "category": {
+                            "id": self.category2.id,
+                            "url": "http://testserver/api/v1/categories/test_cat2/",
+                            "name": "test_cat2",
+                        },
+                        "name": "testservice2",
+                        "summary": "Another test category",
+                        "hidden": True,
+                    },
+                    "role": {"id": 2, "name": "DEPUTY"},
+                    "granted_at": self.deputy_grant.granted_at.astimezone(
+                        ZoneInfo(django.conf.settings.TIME_ZONE)
+                    ).strftime("%Y-%m-%dT%H:%M:%S.%f%:z"),
+                    "expires": self.deputy_grant.expires.strftime("%Y-%m-%d"),
+                    "revoked": False,
+                    "revoked_at": None,
+                    "user_reason": "",
+                }
+            ],
+        )
 
-#     def test_grants_filter_role(self):
-
-#     def test_grants_filter_multiple_params(self):
+    def test_grants_filter_role(self):
+        """Test that filtering with role query param works."""
+        response = self.client.get(
+            f"/api/v1/users/{self.user.username}/grants/?role=MANAGER",
+            HTTP_AUTHORIZATION=f"Bearer {self.token.token}",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertListEqual(
+            response.json(),
+            [
+                {
+                    "id": self.manager_grant.id,
+                    "service": {
+                        "id": self.service1.id,
+                        "url": "http://testserver/api/v1/categories/test_cat1/services/testservice1/",
+                        "category": {
+                            "id": self.category1.id,
+                            "url": "http://testserver/api/v1/categories/test_cat1/",
+                            "name": "test_cat1",
+                        },
+                        "name": "testservice1",
+                        "summary": "First test category",
+                        "hidden": True,
+                    },
+                    "role": {"id": 1, "name": "MANAGER"},
+                    "granted_at": self.manager_grant.granted_at.astimezone(
+                        ZoneInfo(django.conf.settings.TIME_ZONE)
+                    ).strftime("%Y-%m-%dT%H:%M:%S.%f%:z"),
+                    "expires": self.manager_grant.expires.strftime("%Y-%m-%d"),
+                    "revoked": False,
+                    "revoked_at": None,
+                    "user_reason": "",
+                }
+            ],
+        )
