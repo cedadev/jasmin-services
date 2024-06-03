@@ -2,7 +2,6 @@
 
 import datetime as dt
 
-import django.contrib.auth
 import django.db.models as dj_models
 import django.utils.timezone
 import drf_spectacular.utils
@@ -186,13 +185,13 @@ class UserServicesViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
                 name="category",
                 required=False,
                 type=str,
-                description="Name of the category you would like to filter the grants for."
+                description="Name of the category you would like to filter the grants for.",
             ),
             drf_spectacular.utils.OpenApiParameter(
                 name="role",
                 required=False,
                 type=str,
-                description="Name of the role you would like to filter the grants for."
+                description="Name of the role you would like to filter the grants for.",
             ),
         ]
     ),

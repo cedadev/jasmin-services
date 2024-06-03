@@ -2,7 +2,6 @@ import random
 import string
 from datetime import date
 
-import django.contrib.auth.mixins
 from django.db.models import Q
 
 from .. import models

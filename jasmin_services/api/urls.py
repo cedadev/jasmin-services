@@ -2,7 +2,6 @@
 
 import types
 
-import django.urls
 import rest_framework.routers as rf_routers
 import rest_framework_nested.routers
 
