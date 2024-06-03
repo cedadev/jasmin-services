@@ -13,7 +13,7 @@ import rest_framework.response as rf_response
 import rest_framework.viewsets as rf_viewsets
 
 from .. import models
-from . import serializers
+from . import filters, serializers
 
 
 class ServicesViewSet(
@@ -26,7 +26,6 @@ class ServicesViewSet(
     serializer_class = serializers.ServiceSerializer
     action_serializers = {
         "list": serializers.ServiceListSerializer,
-        "roles": serializers.RoleSerializer,
     }
     required_scopes = ["jasmin.services.services.all"]
     filterset_fields = ["category", "hidden", "ceda_managed"]
@@ -41,10 +40,9 @@ class ServicesViewSet(
                 required=False,
                 type=dt.date,
                 description="ISO Date on which you would like to know the active roles for a service.",
-            )
-        ],
-        responses=serializers.RoleSerializer(many=True),
-    )
+            ),
+        ]
+    ),
 )
 class RolesNestedUnderServicesViewSet(rf_viewsets.ReadOnlyModelViewSet):
     """View roles for a service."""
@@ -52,8 +50,13 @@ class RolesNestedUnderServicesViewSet(rf_viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.RoleSerializer
     required_scopes = ["jasmin.services.serviceroles.all"]
     lookup_field = "name"
+    filterset_class = filters.RoleFilter
 
     def get_queryset(self):
+        # If we are generating swagger definitions, return the correct
+        # queryset to allow types to be infered without error.
+        if getattr(self, "swagger_fake_view", False):
+            return models.Role.objects.none()
 
         # Add query to lookup roleholders by date.
         date_string = self.request.query_params.get("on_date", False)
@@ -97,6 +100,26 @@ class RolesNestedUnderServicesViewSet(rf_viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
+@drf_spectacular.utils.extend_schema_view(
+    list=drf_spectacular.utils.extend_schema(
+        parameters=[
+            drf_spectacular.utils.OpenApiParameter(
+                name="category_name",
+                type=str,
+                location=drf_spectacular.utils.OpenApiParameter.PATH,
+            ),
+        ],
+    ),
+    retrieve=drf_spectacular.utils.extend_schema(
+        parameters=[
+            drf_spectacular.utils.OpenApiParameter(
+                name="category_name",
+                type=str,
+                location=drf_spectacular.utils.OpenApiParameter.PATH,
+            ),
+        ]
+    ),
+)
 class ServicesNestedUnderCategoriesViewSet(ServicesViewSet):
     """Viewset to allow services to be nested under categories.
 
@@ -106,12 +129,31 @@ class ServicesNestedUnderCategoriesViewSet(ServicesViewSet):
 
     lookup_field = "name"
     required_scopes = ["jasmin.services.services.all"]
+    filterset_fields = ["name"]
 
     def get_queryset(self):
         queryset = super().get_queryset()
+
+        # If we are generating swagger definitions, return the correct
+        # queryset to allow types to be infered without error.
+        if getattr(self, "swagger_fake_view", False):
+            return queryset.none()
+
         return queryset.filter(category__name=self.kwargs["category_name"])
 
 
+@drf_spectacular.utils.extend_schema_view(
+    list=drf_spectacular.utils.extend_schema(
+        parameters=[
+            drf_spectacular.utils.OpenApiParameter(
+                name="user_username",
+                required=True,
+                type=str,
+                location=drf_spectacular.utils.OpenApiParameter.PATH,
+            )
+        ],
+    )
+)
 class UserServicesViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
     """Get the services assocated with a user."""
 
@@ -119,6 +161,11 @@ class UserServicesViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
     serializer_class = serializers.ServiceListSerializer
 
     def get_queryset(self):
+        # If we are generating swagger definitions, return the correct
+        # queryset to allow types to be infered without error.
+        if getattr(self, "swagger_fake_view", False):
+            return models.Service.objects.none()
+
         return models.Service.objects.filter(
             role__access__user__username=self.kwargs["user_username"],
             role__access__grant__revoked=False,
