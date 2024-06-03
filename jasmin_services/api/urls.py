@@ -2,7 +2,6 @@
 
 import types
 
-import django.urls
 import rest_framework.routers as rf_routers
 import rest_framework_nested.routers
 
@@ -39,6 +38,12 @@ users_router.register(
     "services",
     apiviews.UserServicesViewSet,
     basename="users-services",
+)
+# Register route to get user's grants.
+users_router.register(
+    "grants",
+    apiviews.UserGrantsViewSet,
+    basename="users-grants",
 )
 
 # Create a route for accesing service by id.

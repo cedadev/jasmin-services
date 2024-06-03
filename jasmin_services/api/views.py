@@ -2,7 +2,6 @@
 
 import datetime as dt
 
-import django.contrib.auth
 import django.db.models as dj_models
 import django.utils.timezone
 import drf_spectacular.utils
@@ -171,6 +170,64 @@ class UserServicesViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
             role__access__grant__revoked=False,
             role__access__grant__expires__gte=dt.datetime.now(),
         ).distinct()
+
+
+@drf_spectacular.utils.extend_schema_view(
+    list=drf_spectacular.utils.extend_schema(
+        parameters=[
+            drf_spectacular.utils.OpenApiParameter(
+                name="service",
+                required=False,
+                type=str,
+                description="Name of the service you would like to filter the grants for.",
+            ),
+            drf_spectacular.utils.OpenApiParameter(
+                name="category",
+                required=False,
+                type=str,
+                description="Name of the category you would like to filter the grants for.",
+            ),
+            drf_spectacular.utils.OpenApiParameter(
+                name="role",
+                required=False,
+                type=str,
+                description="Name of the role you would like to filter the grants for.",
+            ),
+        ]
+    ),
+)
+class UserGrantsViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
+    """Get the grants associated with a user."""
+
+    required_scopes = ["jasmin.services.userservices.all"]
+    serializer_class = serializers.UserGrantSerializer
+
+    def get_queryset(self):
+        queryset = models.Grant.objects.filter(
+            access__user__username=self.kwargs["user_username"],
+            revoked=False,
+            expires__gte=dt.datetime.now(),
+        ).prefetch_related("access__role__service")
+
+        filter_params = {}
+
+        # Option to filter by service query param
+        service = self.request.query_params.get("service")
+        if service is not None:
+            filter_params["access__role__service__name"] = service
+
+        # Option to filter by category query param
+        category = self.request.query_params.get("category")
+        if category is not None:
+            filter_params["access__role__service__category__name"] = category
+
+        # Option to filter by grant role name
+        role = self.request.query_params.get("role")
+        if role is not None:
+            filter_params["access__role__name"] = role
+
+        queryset = queryset.filter(**filter_params)
+        return queryset
 
 
 class CategoriesViewSet(
