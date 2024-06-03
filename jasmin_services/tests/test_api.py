@@ -3,15 +3,22 @@
 import datetime as dt
 from zoneinfo import ZoneInfo
 
+import django.conf
+import django.contrib.auth
 import oauth2_provider.models
 import rest_framework.test as rf_test
-import django.contrib.auth
-import django.conf
+
+import jasmin_metadata.models
 
 from .. import models
 from ..api import scopes
 
-import jasmin_metadata.models
+DJANGO_TZ = ZoneInfo(django.conf.settings.TIME_ZONE)
+
+# Python <3.12 does not support the %:z strftime format.
+# So we must construct the correct offset string ourselves.
+utc_offset_amount = int(dt.datetime.now(tz=DJANGO_TZ).utcoffset().total_seconds() / 3600)
+utc_offset = f"+{utc_offset_amount:02}:00"
 
 
 class BaseTest(rf_test.APITestCase):
@@ -179,9 +186,9 @@ class UserGrantsTest(BaseTest):
                         "hidden": True,
                     },
                     "role": {"id": 1, "name": "MANAGER"},
-                    "granted_at": self.manager_grant.granted_at.astimezone(
-                        ZoneInfo(django.conf.settings.TIME_ZONE)
-                    ).strftime("%Y-%m-%dT%H:%M:%S.%f%:z"),
+                    "granted_at": self.manager_grant.granted_at.astimezone(DJANGO_TZ).strftime(
+                        f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
+                    ),
                     "expires": self.manager_grant.expires.strftime("%Y-%m-%d"),
                     "revoked": False,
                     "revoked_at": None,
@@ -202,9 +209,9 @@ class UserGrantsTest(BaseTest):
                         "hidden": True,
                     },
                     "role": {"id": 2, "name": "DEPUTY"},
-                    "granted_at": self.deputy_grant.granted_at.astimezone(
-                        ZoneInfo(django.conf.settings.TIME_ZONE)
-                    ).strftime("%Y-%m-%dT%H:%M:%S.%f%:z"),
+                    "granted_at": self.deputy_grant.granted_at.astimezone(DJANGO_TZ).strftime(
+                        f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
+                    ),
                     "expires": self.deputy_grant.expires.strftime("%Y-%m-%d"),
                     "revoked": False,
                     "revoked_at": None,
@@ -238,9 +245,9 @@ class UserGrantsTest(BaseTest):
                         "hidden": True,
                     },
                     "role": {"id": 1, "name": "MANAGER"},
-                    "granted_at": self.manager_grant.granted_at.astimezone(
-                        ZoneInfo(django.conf.settings.TIME_ZONE)
-                    ).strftime("%Y-%m-%dT%H:%M:%S.%f%:z"),
+                    "granted_at": self.manager_grant.granted_at.astimezone(DJANGO_TZ).strftime(
+                        f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
+                    ),
                     "expires": self.manager_grant.expires.strftime("%Y-%m-%d"),
                     "revoked": False,
                     "revoked_at": None,
@@ -274,9 +281,9 @@ class UserGrantsTest(BaseTest):
                         "hidden": True,
                     },
                     "role": {"id": 2, "name": "DEPUTY"},
-                    "granted_at": self.deputy_grant.granted_at.astimezone(
-                        ZoneInfo(django.conf.settings.TIME_ZONE)
-                    ).strftime("%Y-%m-%dT%H:%M:%S.%f%:z"),
+                    "granted_at": self.deputy_grant.granted_at.astimezone(DJANGO_TZ).strftime(
+                        f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
+                    ),
                     "expires": self.deputy_grant.expires.strftime("%Y-%m-%d"),
                     "revoked": False,
                     "revoked_at": None,
@@ -310,9 +317,9 @@ class UserGrantsTest(BaseTest):
                         "hidden": True,
                     },
                     "role": {"id": 1, "name": "MANAGER"},
-                    "granted_at": self.manager_grant.granted_at.astimezone(
-                        ZoneInfo(django.conf.settings.TIME_ZONE)
-                    ).strftime("%Y-%m-%dT%H:%M:%S.%f%:z"),
+                    "granted_at": self.manager_grant.granted_at.astimezone(DJANGO_TZ).strftime(
+                        f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
+                    ),
                     "expires": self.manager_grant.expires.strftime("%Y-%m-%d"),
                     "revoked": False,
                     "revoked_at": None,
