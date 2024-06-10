@@ -2,6 +2,7 @@ import random
 import string
 from datetime import date
 
+import django.urls
 from django.db.models import Q
 
 from .. import models
