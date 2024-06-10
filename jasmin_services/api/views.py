@@ -201,6 +201,7 @@ class UserGrantsViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
 
     required_scopes = ["jasmin.services.userservices.all"]
     serializer_class = serializers.UserGrantSerializer
+    filterset_class = filters.UserGrantsFilter
 
     def get_queryset(self):
         queryset = models.Grant.objects.filter(
@@ -208,25 +209,6 @@ class UserGrantsViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
             revoked=False,
             expires__gte=dt.datetime.now(),
         ).prefetch_related("access__role__service")
-
-        filter_params = {}
-
-        # Option to filter by service query param
-        service = self.request.query_params.get("service")
-        if service is not None:
-            filter_params["access__role__service__name"] = service
-
-        # Option to filter by category query param
-        category = self.request.query_params.get("category")
-        if category is not None:
-            filter_params["access__role__service__category__name"] = category
-
-        # Option to filter by grant role name
-        role = self.request.query_params.get("role")
-        if role is not None:
-            filter_params["access__role__name"] = role
-
-        queryset = queryset.filter(**filter_params)
         return queryset
 
 
