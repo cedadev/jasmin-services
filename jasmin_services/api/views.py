@@ -176,6 +176,12 @@ class UserServicesViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
     list=drf_spectacular.utils.extend_schema(
         parameters=[
             drf_spectacular.utils.OpenApiParameter(
+                name="user_username",
+                required=True,
+                type=str,
+                location=drf_spectacular.utils.OpenApiParameter.PATH,
+            ),
+            drf_spectacular.utils.OpenApiParameter(
                 name="service",
                 required=False,
                 type=str,
@@ -204,6 +210,11 @@ class UserGrantsViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
     filterset_class = filters.UserGrantsFilter
 
     def get_queryset(self):
+        # If we are generating swagger definitions, return the correct
+        # queryset to allow types to be infered without error.
+        if getattr(self, "swagger_fake_view", False):
+            return models.Grant.objects.none()
+
         queryset = models.Grant.objects.filter(
             access__user__username=self.kwargs["user_username"],
             revoked=False,
