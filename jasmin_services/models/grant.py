@@ -133,6 +133,9 @@ class Grant(HasMetadata):
         "self", models.SET_NULL, null=True, blank=True, related_name="next_grant"
     )
 
+    # Add a field for an internal comment about the grant.
+    internal_comment = models.TextField(blank=True, verbose_name="Internal nodes")
+
     @property
     def user(self):
         return self.access.user
