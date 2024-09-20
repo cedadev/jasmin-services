@@ -1,5 +1,7 @@
 import inspect
 
+import django.db.models.signals
+import django.dispatch
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
@@ -260,3 +262,27 @@ class Request(HasMetadata):
                 pass
         if errors:
             raise ValidationError(errors)
+
+
+@django.dispatch.receiver(django.db.models.signals.pre_save, sender=Request)
+def ensure_previous_grant(sender, instance, **kwargs):
+    """Make sure requests have a previous_request and/or previous_grant.
+
+    This makes sure that request, and the resulting grants, are attached to the right point in the chain.
+    """
+    if (instance.pk is None) and (not settings.MULTIPLE_REQUESTS_ALLOWED):
+        if not instance.previous_request:
+            active_request = sender.objects.filter(
+                access=instance.access,
+                resulting_grant__isnull=True,
+                next_request__isnull=True,
+            ).first()
+            if active_request:
+                instance.previous_request = active_request
+
+        if not instance.previous_grant:
+            active_grant = Grant.objects.filter(
+                access=instance.access, next_grant__isnull=True
+            ).first()
+            if active_grant:
+                instance.previous_grant = active_grant
