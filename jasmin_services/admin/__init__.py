@@ -40,10 +40,11 @@ from ..widgets import AdminGfkContentTypeWidget, AdminGfkObjectIdWidget
 
 # Load the admin for behaviours which are turned on.
 from . import behaviour  # unimport:skip
-from . import filters, grant
+from . import dashboard, filters, grant
 
 # Register admins from submodules.
 admin.site.register(Grant, grant.GrantAdmin)
+admin.site.register_view("jasmin_services/dashboard/", view=dashboard.AdminDashboardView)
 
 
 class GroupAdmin(admin.ModelAdmin):
