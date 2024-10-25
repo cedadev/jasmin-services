@@ -2,7 +2,9 @@
 
 import datetime as dt
 
+import django.contrib.auth.decorators
 import django.db.models as dj_models
+import django.utils.decorators
 import django.utils.timezone
 import drf_spectacular.utils
 import jasmin_django_utils.api.viewsets
@@ -15,6 +17,9 @@ from .. import models
 from . import filters, serializers
 
 
+@django.utils.decorators.method_decorator(
+    django.contrib.auth.decorators.login_not_required, name="dispatch"
+)
 class ServicesViewSet(
     jasmin_django_utils.api.viewsets.ActionSerializerMixin,
     rf_viewsets.ReadOnlyModelViewSet,
@@ -42,6 +47,9 @@ class ServicesViewSet(
             ),
         ]
     ),
+)
+@django.utils.decorators.method_decorator(
+    django.contrib.auth.decorators.login_not_required, name="dispatch"
 )
 class RolesNestedUnderServicesViewSet(rf_viewsets.ReadOnlyModelViewSet):
     """View roles for a service."""
@@ -119,6 +127,9 @@ class RolesNestedUnderServicesViewSet(rf_viewsets.ReadOnlyModelViewSet):
         ]
     ),
 )
+@django.utils.decorators.method_decorator(
+    django.contrib.auth.decorators.login_not_required, name="dispatch"
+)
 class ServicesNestedUnderCategoriesViewSet(ServicesViewSet):
     """Viewset to allow services to be nested under categories.
 
@@ -152,6 +163,9 @@ class ServicesNestedUnderCategoriesViewSet(ServicesViewSet):
             )
         ],
     )
+)
+@django.utils.decorators.method_decorator(
+    django.contrib.auth.decorators.login_not_required, name="dispatch"
 )
 class UserServicesViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
     """Get the services assocated with a user."""
@@ -202,6 +216,9 @@ class UserServicesViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
         ]
     ),
 )
+@django.utils.decorators.method_decorator(
+    django.contrib.auth.decorators.login_not_required, name="dispatch"
+)
 class UserGrantsViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
     """Get the grants associated with a user."""
 
@@ -223,6 +240,9 @@ class UserGrantsViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
         return queryset
 
 
+@django.utils.decorators.method_decorator(
+    django.contrib.auth.decorators.login_not_required, name="dispatch"
+)
 class CategoriesViewSet(
     jasmin_django_utils.api.viewsets.ActionSerializerMixin,
     rf_viewsets.ReadOnlyModelViewSet,
