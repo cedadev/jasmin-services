@@ -1,0 +1,31 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/dashboard.css" %}">{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+    <table>
+        <tr>
+            <th>Service</th>
+            <th>Role</th>
+            <th>Number of Pending Requests</th>
+    {% for role in ceda_managed_pending %}
+        <tr>
+            <td><a href="{% url 'jasmin_services:service_details' category=role.service.category.name service=role.service.name  %}">{{role.service.category.name}}/{{ role.service.name }}</a></td>
+            <td>{{ role.name }}</td>
+            <td>{{ role.num_pending }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+{% endblock %}
+
+{% block sidebar %}
+{% endblock %}
