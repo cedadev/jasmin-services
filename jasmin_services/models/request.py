@@ -170,8 +170,9 @@ class Request(HasMetadata):
         help_text=markdown_allowed(),
     )
 
-    # Add a field for an internal comment about the grant.
-    internal_comment = models.TextField(blank=True, verbose_name="Internal nodes")
+    # Add a field for an internal comment about the request
+    # This is only shown to the CEDA team.
+    internal_comment = models.TextField(blank=True, verbose_name="Internal notes")
 
     def __str__(self):
         return "{} : {}".format(self.access, "INCOMPETE" if self.incomplete else self.state)

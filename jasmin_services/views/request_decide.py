@@ -1,92 +1,85 @@
-import logging
-
+import django.contrib.auth.mixins
 import django.db
-from django import http
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.db import transaction
-from django.shortcuts import redirect, render
-from django.views.decorators.http import require_http_methods
+import django.views.generic.edit
 
-from ..forms import DecisionForm
-from ..models import Request, RequestState
-from .common import redirect_to_service
-
-_log = logging.getLogger(__name__)
+from .. import forms, models
+from . import mixins
 
 
-@require_http_methods(["GET", "POST"])
-@login_required
-@django.db.transaction.atomic
-def request_decide(request, pk):
-    """
-    Handler for ``/request/<pk>/decide/``.
+class RequestDecideView(
+    django.contrib.auth.mixins.LoginRequiredMixin,
+    django.contrib.auth.mixins.UserPassesTestMixin,
+    mixins.WithServiceMixin,
+    django.views.generic.UpdateView,
+):
+    model = models.Request
+    form_class = forms.DecisionForm
 
-    Responds to GET and POST. The user must have the ``decide_request``
-    permission for the role that the request is for. The request must be active
-    and pending.
+    PERMISSION = "jasmin_services.decide_request"
 
-    Presents information about the request along with a form to collect a decision.
-    """
-    # Try to find the specified request
-    try:
-        pending = Request.objects.get(pk=pk)
-    except Request.DoesNotExist:
-        raise http.Http404("Request does not exist")
-    # The current user must have permission to grant the role
-    permission = "jasmin_services.decide_request"
-    if (
-        not request.user.has_perm(permission)
-        and not request.user.has_perm(permission, pending.access.role.service)
-        and not request.user.has_perm(permission, pending.access.role)
-    ):
-        messages.error(request, "Request does not exist")
-        return redirect_to_service(pending.access.role.service, "service_details")
-    # If the request is not pending, redirect to the list of pending requests
-    if not pending.active or pending.state != RequestState.PENDING:
-        messages.info(request, "This request has already been resolved")
-        return redirect(
-            "jasmin_services:service_requests",
-            category=pending.access.role.service.category.name,
-            service=pending.access.role.service.name,
+    def setup(self, request, *args, **kwargs):
+        """Set up extra class attributes depending on the service and role we are dealing with.
+
+        These are needed throughout and not just in the context.
+        """
+        # pylint: disable=attribute-defined-outside-init
+        super().setup(request, *args, **kwargs)
+        self.object = self.get_object()
+        self.service = self.get_service(
+            self.object.access.role.service.category.name, self.object.access.role.service.name
         )
-    # If the user requesting access has an active grant, find it
-    grant = pending.previous_grant
-    # Find all the rejected requests for the role/user since the active grant
-    rejected = Request.objects.filter(
-        access=pending.access,
-        state=RequestState.REJECTED,
-        previous_grant=pending.previous_grant,
-    ).order_by("requested_at")
-    # Process the form if this is a POST request, otherwise just set it up
-    if request.method == "POST":
-        form = DecisionForm(pending, request.user, data=request.POST)
-        if form.is_valid():
-            with transaction.atomic():
-                form.save()
-            return redirect_to_service(pending.access.role.service, "service_requests")
-        else:
-            messages.error(request, "Error with one or more fields")
-    else:
-        form = DecisionForm(pending, request.user)
-    templates = [
-        "jasmin_services/{}/{}/request_decide.html".format(
-            pending.access.role.service.category.name, pending.access.role.service.name
-        ),
-        "jasmin_services/{}/request_decide.html".format(pending.access.role.service.category.name),
-        "jasmin_services/request_decide.html",
-    ]
-    return render(
-        request,
-        templates,
-        {
-            "service": pending.access.role.service,
-            "pending": pending,
+
+    def test_func(self):
+        """Define the test for the UserPassesTestMixin.
+
+        Return True if access should be allowed, false otherwise.
+        """
+        return self.request.user.has_perm(
+            self.PERMISSION, self.service
+        ) or self.request.user.has_perm(self.PERMISSION, self.object.access.role)
+
+    def get_template_names(self):
+        """Define template to be used by the TemplateResponseMixin."""
+        return [
+            f"jasmin_services/{self.service.category.name}/{self.service.name}/request_decide.html",
+            f"jasmin_services/{self.service.category.name}/request_decide.html",
+            "jasmin_services/request_decide.html",
+        ]
+
+    def get_form_kwargs(self):
+        """Get kwargs for building the form for FormMixin."""
+        kwargs = super().get_form_kwargs()
+        kwargs["request"] = kwargs.pop(
+            "instance"
+        )  # Since the form is not a ModelForm, it expects the instance to be named "request"
+        return kwargs | {"approver": self.request.user}
+
+    def form_valid(self, form):
+        """Make the transtaction atomic. Form does lots of complicated stuff."""
+        with django.db.transaction.atomic():
+            super().form_valid(form)
+
+    def get_success_url(self):
+        """Define the url to redirect to on success."""
+        return f"/services/{self.service.category.name}/{self.service.name}/"
+
+    def get_context_data(self, **kwargs):
+        """Add to the template context."""
+        context = super().get_context_data(**kwargs)
+
+        rejected = models.Request.objects.filter(
+            access=self.object.access,
+            state=models.RequestState.REJECTED,
+            previous_grant=self.object.previous_grant,
+        ).order_by("requested_at")
+
+        context |= {
+            "service": self.service,
+            "pending": self.object,
             "rejected": rejected,
-            "grant": grant,
+            "grant": self.object.previous_grant,  # The previous grant.
             # The list of approvers to show here is any user who has the correct
             # permission for either the role or the service
-            "approvers": pending.access.role.approvers.exclude(pk=request.user.pk),
-            "form": form,
-        },
-    )
+            "approvers": self.object.access.role.approvers.exclude(pk=self.request.user.pk),
+        }
+        return context

@@ -240,7 +240,9 @@ class DecisionForm(forms.Form):
         state = self.cleaned_data.get("state")
         user_reason = self.cleaned_data.get("user_reason")
         if state != "APPROVED" and not user_reason:
-            raise ValidationError("Please give a reason for rejection or incompletion")
+            raise ValidationError(
+                "Please give a reason for rejection or incompletion", code="no_user_reason"
+            )
         return user_reason
 
     def save(self):

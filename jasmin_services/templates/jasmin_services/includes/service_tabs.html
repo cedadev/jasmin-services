@@ -1,9 +1,9 @@
 {% load service_tags %}
 
-{% user_has_service_perm service request.user 'jasmin_services.view_users_role' as view_users %}
-{% user_has_service_perm service request.user 'jasmin_services.decide_request' as approver %}
-{% user_has_service_perm service request.user 'jasmin_services.send_message_role' as send_message %}
-{% user_has_service_perm service request.user 'jasmin_services.grant_role' as grant_role %}
+{% user_has_service_perm service user 'jasmin_services.view_users_role' as view_users %}
+{% user_has_service_perm service user 'jasmin_services.decide_request' as approver %}
+{% user_has_service_perm service user 'jasmin_services.send_message_role' as send_message %}
+{% user_has_service_perm service user 'jasmin_services.grant_role' as grant_role %}
 
 {% with active=request.resolver_match.url_name %}
     {% if view_users or approver or send_message %}
