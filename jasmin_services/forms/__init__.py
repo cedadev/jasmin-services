@@ -21,7 +21,7 @@ from django.utils.safestring import mark_safe
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
 from ..models import Access, Grant, Request, Role
-from .decision_form import decision_form  # unimport: skip
+from .decision_form import DecisionForm  # unimport: skip
 
 
 def message_form_factory(sender, *roles):

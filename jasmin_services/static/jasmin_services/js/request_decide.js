@@ -5,10 +5,10 @@ var YES = 'APPROVED', NO = 'REJECTED', NO_INCOMPLETE = 'INCOMPLETE', CUSTOM_DATE
 var toggle_fields = function() {
     var state = $('[name="state"]').val();
     var expires = $('[name="expires"]').val();
-    $('[name="expires"]').closest('.row')[state == YES ? 'show' : 'hide']();
+    $('[name="expires"]').closest('div')[state == YES ? 'show' : 'hide']();
     var show_custom = ( state == YES && expires == CUSTOM_DATE );
-    $('[name="expires_custom"]').closest('.row')[show_custom ? 'show' : 'hide']();
-    $('[name$="_reason"]').closest('.row')[( state == NO || state == NO_INCOMPLETE ) ? 'show' : 'hide']();
+    $('[name="expires_custom"]').closest('div')[show_custom ? 'show' : 'hide']();
+    $('[name$="_reason"]').closest('div')[( state == NO || state == NO_INCOMPLETE ) ? 'show' : 'hide']();
     $('[for="id_user_reason"]')[0].innerHTML = [( state == NO ) ? 'Reason for rejection (user)' : 'Reason for incomplete (user)'];
     $('[name="user_reason"]')[0].placeholder = [( state == NO ) ? 'Reason for rejection (user)' : 'Reason for incomplete (user)'];
     $('[for="id_internal_reason"]')[0].innerHTML = [( state == NO ) ? 'Reason for rejection (internal)' : 'Reason for incomplete (internal)'];
