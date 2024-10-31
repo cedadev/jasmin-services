@@ -1,3 +1,4 @@
+import asgiref.sync
 import django.contrib.auth.mixins
 import django.db
 import django.views.generic.edit
@@ -10,6 +11,7 @@ class RequestDecideView(
     django.contrib.auth.mixins.LoginRequiredMixin,
     django.contrib.auth.mixins.UserPassesTestMixin,
     mixins.WithServiceMixin,
+    mixins.AccessListMixin,
     django.views.generic.UpdateView,
 ):
     model = models.Request
@@ -57,7 +59,7 @@ class RequestDecideView(
     def form_valid(self, form):
         """Make the transtaction atomic. Form does lots of complicated stuff."""
         with django.db.transaction.atomic():
-            super().form_valid(form)
+            return super().form_valid(form)
 
     def get_success_url(self):
         """Define the url to redirect to on success."""
@@ -67,17 +69,23 @@ class RequestDecideView(
         """Add to the template context."""
         context = super().get_context_data(**kwargs)
 
-        rejected = models.Request.objects.filter(
-            access=self.object.access,
-            state=models.RequestState.REJECTED,
-            previous_grant=self.object.previous_grant,
-        ).order_by("requested_at")
+        grants = models.Grant.objects.filter(
+            access__role__service=self.service, access__user=self.request.user
+        ).prefetch_related("metadata", "access__role__service__category")
+        requests = models.Request.objects.filter(
+            access__role__service=self.service,
+            access__user=self.request.user,
+            resulting_grant__isnull=True,
+        ).prefetch_related("metadata", "access__role__service__category")
 
         context |= {
+            "accesses": asgiref.sync.async_to_sync(self.display_accesses)(
+                self.request.user, grants, requests, may_apply_override=False
+            ),
             "service": self.service,
-            "pending": self.object,
-            "rejected": rejected,
-            "grant": self.object.previous_grant,  # The previous grant.
+            # "pending": self.object,
+            # "rejected": rejected,
+            # "grant": self.object.previous_grant,  # The previous grant.
             # The list of approvers to show here is any user who has the correct
             # permission for either the role or the service
             "approvers": self.object.access.role.approvers.exclude(pk=self.request.user.pk),

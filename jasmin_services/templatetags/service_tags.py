@@ -38,12 +38,18 @@ def pending_req_count(context, service):
 
 
 @register.inclusion_tag("jasmin_services/includes/display_accesses.html")
-def display_accesses(accesses):
+def display_accesses(
+    accesses,
+    for_managers=False,
+):
     """Template tag to display a list of accesses (requests and or grants)."""
-    return {"accesses": accesses}
+    return {"accesses": accesses, "for_managers": for_managers}
 
 
 @register.inclusion_tag("jasmin_services/includes/display_metadata.html")
-def display_metadata(metadata):
+def display_metadata(
+    metadata,
+    help_text="When you submitted your application, you supplied the following information:",
+):
     """Template tag to display a list of metadata for an access."""
-    return {"metadata": metadata}
+    return {"metadata": metadata, "help_text": help_text}

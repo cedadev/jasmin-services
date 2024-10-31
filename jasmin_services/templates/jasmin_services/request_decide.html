@@ -1,5 +1,5 @@
 {% extends "jasmin_services/service_base.html" %}
-{% load static django_bootstrap5 markdown_deux_tags pretty_name artefacts %}
+{% load static django_bootstrap5 markdown_deux_tags pretty_name artefacts service_tags %}
 
 {% block page_title %}Make a decision{% endblock %}
 
@@ -17,12 +17,64 @@
 {% endblock %}
 
 {% block content_panel %}
-    <form method="POST">
-        {% bootstrap_form_errors form %}
-        {% csrf_token %}
-        {% bootstrap_form form %}
-        {% bootstrap_button "Save" button_type="submit" button_class="btn-primary" %}
-    </form>
+    <div class="row pb-2">
+        <div class="card px-0">
+            <div class="card-header">
+                <h4 class="card-title">Application Details</h4>
+            </div>
+            <div class="card-body">
+                <div class="row pb-2">
+                    <div class="col-md-2">Role</div>
+                    <div class="col-md-4">{{ service.category.name }}/{{ service.name }}: {{ object.access.role.name }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2">Applicant</div>
+                    <div class="col-md-4">{{ user.first_name }} {{ user.last_name }} (<code>{{ user.username }}</code>) <br />{{ user.email }}</div>
+                    <div class="col-md-2">Affiliation</div>
+                    <div class="col-md-4">{{ user.discipline }}<br>{{ user.institution }} {{ user.degree }}</div>
+                </div>
+                <div class="row">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row pb-2">
+        <div class="card px-0">
+            <div class="card-header">
+                <h4 class="card-title">Application Metadata</h4>
+            </div>
+            <div class="card-body">
+                {% display_metadata object.metadata help_text='The user supplied the following metadata with their application:' %}
+            </div>
+        </div>
+    </div>
+    <div class="row pb-2">
+        <div class="card px-0">
+            <div class="card-header">
+                <h4 class="card-title">Decide</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% bootstrap_form_errors form %}
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    {% bootstrap_button "Save" button_type="submit" button_class="btn-primary" %}
+                </form>
+            </div>
+        </div>
+    </div>
+    {% if accesses %}
+        <div class="row pb-2">
+            <div class="card px-0">
+                <div class="card-header">
+                    <h4 class="card-title">Request and Grant History</h4>
+                </div>
+                <table class="table table-striped">
+                    {% display_accesses accesses for_managers=True %}
+                </table>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block stylesheets_page %}

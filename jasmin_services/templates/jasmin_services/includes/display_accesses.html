@@ -3,6 +3,9 @@
 <thead>
     <tr>
         <th></th>
+        {% if for_managers %}
+            <th>Type</th>
+        {% endif %}
         <th>Role</th>
         <th>Status</th>
         <th>Created</th>
@@ -28,6 +31,9 @@
         {% else %}
             <tr>
                 <td></td>
+        {% endif %}
+        {% if for_managers %}
+            <td>{{ access.frontend.type }}</td>
         {% endif %}
         <td><code>{{ access.access.role.name }}</code></td>
         <td><code>{{ access.status }}</code></td>
@@ -59,6 +65,11 @@
                 {% if access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
                     <p>This {{ access.frontend.type|lower }} was {{ access.status|lower }} for the following reason:</p>
                     <p>{{ access.user_reason|markdown }} </p>
+                    {% if for_managers %}
+                    {# CAREFUL, this should only be shown to approvers! #}
+                    <p>The internal notes the person marking this {{ access.frontend.type|lower }} as {{ access.status|lower }} wrote were:</p>
+                    <p>{{ access.internal_reason|markdown }}</p>
+                    {% endif %}
                     {% if access.frontend.may_apply and access.status == "INCOMPLETE"%}
                         <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Add Info</a>
                     {% elif access.status == "REVOKED" or access.status == "REJECTED" %}
@@ -78,11 +89,15 @@
                     <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Extend</a>
                     <hr />
                 {% endif %}
-                {% if access.status == "PENDING" %}
+                {% if access.status == "PENDING" and not for_managers %}
                     <p>This request is awaiting consideration. You don't need to do anything.</p>
                     <hr />
                 {% endif %}
-                {% display_metadata access.metadata %}
+                {% if for_managers %}
+                    {% display_metadata access.metadata help_text='When the user submitted their application, they supplied the following information:'%}
+                {% else %}
+                    {% display_metadata access.metadata %}
+                {% endif %}
             </td>
         </tr>
     {% endfor %}
