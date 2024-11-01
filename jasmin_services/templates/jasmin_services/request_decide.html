@@ -70,7 +70,7 @@
                     <h4 class="card-title">Request and Grant History</h4>
                 </div>
                 <table class="table table-striped">
-                    {% display_accesses accesses for_managers=True %}
+                    {% display_accesses accesses for_managers=True user=user %}
                 </table>
             </div>
         </div>

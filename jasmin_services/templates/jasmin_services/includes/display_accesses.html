@@ -42,10 +42,10 @@
         <td>
             {% if  access.status == "EXPIRING" or access.status == "EXPIRED" %}
                 {% if access.frontend.may_apply %}
-                <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">
-                    Extend
-                </a>
-            {% endif %}
+                    <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">
+                        Extend
+                    </a>
+                {% endif %}
             {% elif access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
                 <button class="btn btn-warning btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#access-collapse-{{ access.frontend.id }}">
                     See Reason
@@ -59,46 +59,54 @@
         </td>
         </tr>
         <tr class="collapse" id="access-collapse-{{ access.frontend.id }}">
-            <td colspan="7">
-                <p>This is a {{ access.frontend.type }} for the role of {{ access.access.role.name }} for this service.</p>
-                <hr />
-                {% if access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
-                    <p>This {{ access.frontend.type|lower }} was {{ access.status|lower }} for the following reason:</p>
-                    <p>{{ access.user_reason|markdown }} </p>
-                    {% if for_managers %}
+            {% if for_managers %}
+                <td colspan="8">
+            {% else %}
+                <td colspan="7">
+            {% endif %}
+            <p>This is a {{ access.frontend.type }} for the role of {{ access.access.role.name }} for this service.</p>
+            <hr />
+            {% if access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
+                <p>This {{ access.frontend.type|lower }} was {{ access.status|lower }} for the following reason:</p>
+                <p>{{ access.user_reason|markdown }} </p>
+                {% if for_managers %}
                     {# CAREFUL, this should only be shown to approvers! #}
                     <p>The internal notes the person marking this {{ access.frontend.type|lower }} as {{ access.status|lower }} wrote were:</p>
                     <p>{{ access.internal_reason|markdown }}</p>
+                    {% if user.is_staff %}
+                        <p>The internal notes for CEDA staff on this {{ access.frontend.type|lower }} were:</p>
+                        <p>{{ access.internal_comment|markdown }}</p>
                     {% endif %}
-                    {% if access.frontend.may_apply and access.status == "INCOMPLETE"%}
-                        <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Add Info</a>
-                    {% elif access.status == "REVOKED" or access.status == "REJECTED" %}
-                        {% if access.frontend.may_apply %}
+                {% endif %}
+                {% if access.frontend.may_apply and access.status == "INCOMPLETE"%}
+                    <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Add Info</a>
+                {% elif access.status == "REVOKED" or access.status == "REJECTED" %}
+                    {% if access.frontend.may_apply %}
                         <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Reapply</a>
                     {% endif %}
-                    {% endif %}
-                    <hr />
                 {% endif %}
-                {% if access.frontend.may_apply and access.status == "EXPIRING" %}
-                    <p>This grant is expiring soon.</p>
-                    <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Extend</a>
-                    <hr />
-                {% endif %}
-                {% if access.frontend.may_apply and access.status == "EXPIRED" %}
-                    <p>This grant is has expired.</p>
-                    <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Extend</a>
-                    <hr />
-                {% endif %}
-                {% if access.status == "PENDING" and not for_managers %}
-                    <p>This request is awaiting consideration. You don't need to do anything.</p>
-                    <hr />
-                {% endif %}
-                {% if for_managers %}
-                    {% display_metadata access.metadata help_text='When the user submitted their application, they supplied the following information:'%}
-                {% else %}
-                    {% display_metadata access.metadata %}
-                {% endif %}
-            </td>
+                <hr />
+            {% endif %}
+            {% if access.frontend.may_apply and access.status == "EXPIRING" %}
+                <p>This grant is expiring soon.</p>
+                <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Extend</a>
+                <hr />
+            {% endif %}
+            {% if access.frontend.may_apply and access.status == "EXPIRED" %}
+                <p>This grant is has expired.</p>
+                <a class="btn btn-warning btn-sm" href="{{ access.frontend.apply_url }}">Extend</a>
+                <hr />
+            {% endif %}
+            {% if access.status == "PENDING" and not for_managers %}
+                <p>This request is awaiting consideration. You don't need to do anything.</p>
+                <hr />
+            {% endif %}
+            {% if for_managers %}
+                {% display_metadata access.metadata help_text='When the user submitted their application, they supplied the following information:'%}
+            {% else %}
+                {% display_metadata access.metadata %}
+            {% endif %}
+        </td>
         </tr>
     {% endfor %}
 </tbody>

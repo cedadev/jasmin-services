@@ -54,6 +54,9 @@ class RequestDecideView(
         kwargs["request"] = kwargs.pop(
             "instance"
         )  # Since the form is not a ModelForm, it expects the instance to be named "request"
+        # If the user is CEDA staff, inject the internal comment back to the form.
+        if self.request.user.is_staff:
+            kwargs["initial"]["internal_comment"] = kwargs["request"].internal_comment
         return kwargs | {"approver": self.request.user}
 
     def form_valid(self, form):
@@ -72,11 +75,15 @@ class RequestDecideView(
         grants = models.Grant.objects.filter(
             access__role__service=self.service, access__user=self.request.user
         ).prefetch_related("metadata", "access__role__service__category")
-        requests = models.Request.objects.filter(
-            access__role__service=self.service,
-            access__user=self.request.user,
-            resulting_grant__isnull=True,
-        ).prefetch_related("metadata", "access__role__service__category")
+        requests = (
+            models.Request.objects.filter(
+                access__role__service=self.service,
+                access__user=self.request.user,
+                resulting_grant__isnull=True,
+            )
+            .exclude(pk=self.object.pk)
+            .prefetch_related("metadata", "access__role__service__category")
+        )
 
         context |= {
             "accesses": asgiref.sync.async_to_sync(self.display_accesses)(

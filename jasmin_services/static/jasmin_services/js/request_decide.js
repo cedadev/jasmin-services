@@ -13,6 +13,10 @@ var toggle_fields = function() {
     $('[name="user_reason"]')[0].placeholder = [( state == NO ) ? 'Reason for rejection (user)' : 'Reason for incomplete (user)'];
     $('[for="id_internal_reason"]')[0].innerHTML = [( state == NO ) ? 'Reason for rejection (internal)' : 'Reason for incomplete (internal)'];
     $('[name="internal_reason"]')[0].placeholder = [( state == NO ) ? 'Reason for rejection (internal)' : 'Reason for incomplete (internal)'];
+    var internal_comment = $('[name="internal_comment"]');
+    if (internal_comment.length) {
+        internal_comment.closest('div')[!state ? 'show' : 'hide']();
+    }
 }
 toggle_fields();
 $('[name="state"], [name="expires"]').on('change', toggle_fields);

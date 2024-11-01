@@ -31,6 +31,7 @@ class DecisionForm(forms.Form):
         ],
         coerce=str,
         empty_value=None,
+        required=False,
     )
     expires = forms.TypedChoiceField(
         label="Expiry date",
@@ -73,9 +74,17 @@ class DecisionForm(forms.Form):
         self._approver = approver
         super().__init__(*args, **kwargs)
 
+        if self._approver.is_staff:
+            self.fields["internal_comment"] = forms.CharField(
+                label="Internal comment (shown only to CEDA staff)",
+                required=False,
+                widget=forms.Textarea(attrs={"rows": 5}),
+                help_text=mark_safe(markdown_allowed()),
+            )
+
     def clean_state(self):
         state = self.cleaned_data.get("state")
-        if state is None:
+        if (not self._approver.is_staff) and (state is None):
             raise ValidationError("This field is required")
         return state
 
@@ -99,7 +108,7 @@ class DecisionForm(forms.Form):
     def clean_user_reason(self):
         state = self.cleaned_data.get("state")
         user_reason = self.cleaned_data.get("user_reason")
-        if state != "APPROVED" and not user_reason:
+        if (state is not None) and (state != "APPROVED") and (not user_reason):
             raise ValidationError(
                 "Please give a reason for rejection or incompletion", code="no_user_reason"
             )
@@ -148,10 +157,15 @@ class DecisionForm(forms.Form):
                 )
             # Copy the metadata from the request to the grant
             self._request.copy_metadata_to(self._request.resulting_grant)
-        else:
+        if self.cleaned_data["state"] in ["INCOMPLETE", "REJECTED"]:
             self._request.state = RequestState.REJECTED
             self._request.incomplete = True if self.cleaned_data["state"] == "INCOMPLETE" else False
             self._request.user_reason = self.cleaned_data["user_reason"]
             self._request.internal_reason = self.cleaned_data["internal_reason"]
+
+        # Set the internal comment if the user is staff.
+        if self._approver.is_staff and self.cleaned_data.get("internal_comment", False):
+            self._request.internal_comment = self.cleaned_data["internal_comment"]
+
         self._request.save()
         return self._request
