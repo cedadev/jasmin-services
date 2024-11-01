@@ -1,6 +1,7 @@
 import asgiref.sync
 import django.contrib.auth.mixins
 import django.db
+import django.urls
 import django.views.generic.edit
 
 from .. import forms, models
@@ -66,6 +67,16 @@ class RequestDecideView(
 
     def get_success_url(self):
         """Define the url to redirect to on success."""
+        # If the is a next url, and it resolves to a place on the site, go there.
+        next = self.request.GET.get("next", None)
+        if next is not None:
+            try:
+                django.urls.resolve(next)
+            except django.urls.Resolver404:
+                pass
+            else:
+                return next
+        # Else redirect to the service.
         return f"/services/{self.service.category.name}/{self.service.name}/"
 
     def get_context_data(self, **kwargs):

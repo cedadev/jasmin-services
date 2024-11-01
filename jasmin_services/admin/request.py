@@ -1,20 +1,17 @@
+import django.contrib.auth.views
 from django import http
 from django.contrib import admin, messages
 from django.contrib.admin.options import IS_POPUP_VAR
 from django.contrib.admin.utils import quote
 from django.shortcuts import redirect, render
-from django.urls import re_path, reverse
+from django.urls import re_path, reverse, reverse_lazy
 from django.utils.safestring import mark_safe
 
 from jasmin_metadata.admin import HasMetadataModelAdmin
+
 from ..actions import remind_pending
 from ..forms import AdminDecisionForm, AdminRequestForm
-from ..models import (
-    Grant,
-    Request,
-    RequestState,
-    Role
-)
+from ..models import Grant, Request, RequestState, Role
 
 # Load the admin for behaviours which are turned on.
 from . import behaviour  # unimport:skip
@@ -23,14 +20,15 @@ from . import filters, request
 
 class RequestAdmin(HasMetadataModelAdmin):
     list_display = (
-        "role_link",
         "access",
+        "decide_link",
         "active",
         "state_html",
         "next_request",
         "previous_grant",
         "requested_at",
     )
+    list_display_links = None
     list_filter = (
         filters.ServiceFilter,
         "access__role__name",
@@ -74,28 +72,29 @@ class RequestAdmin(HasMetadataModelAdmin):
 
     remind_pending.short_description = "Send pending reminders"
 
-    def role_link(self, obj):
+    def decide_link(self, obj):
         if obj.active and obj.state == RequestState.PENDING:
             url = reverse(
-                "admin:jasmin_services_request_decide",
-                args=(quote(obj.pk),),
-                current_app=self.admin_site.name,
+                "jasmin_services:request_decide",
+                kwargs={"pk": quote(obj.pk)},
             )
+            here = reverse("admin:jasmin_services_request_changelist")
+            return mark_safe(f'<a href="{url}?next={here}">Decide</a>')
         else:
             url = reverse(
                 "admin:jasmin_services_request_change",
                 args=(quote(obj.pk),),
                 current_app=self.admin_site.name,
             )
-        return mark_safe('<a href="{}">{}</a>'.format(url, obj.access.role))
+            return mark_safe(f'<a href="{url}">Edit</a>')
 
-    role_link.short_description = "Service"
+    decide_link.short_description = "Actions"
 
     def state_html(self, obj):
         if obj.state == RequestState.PENDING:
             return "PENDING"
         elif obj.state == RequestState.APPROVED:
-            return '<span style="color: #00b300;">APPROVED</span>'
+            return mark_safe('<span style="color: #00b300;">APPROVED</span>')
         elif obj.incomplete:
             return mark_safe('<span style="color: #e67a00; font-weight: bold;">INCOMPLETE</span>')
         else:
@@ -124,65 +123,3 @@ class RequestAdmin(HasMetadataModelAdmin):
         initial = super().get_changeform_initial_data(request)
         initial["requested_by"] = request.user.username
         return initial
-
-    def get_urls(self):
-        return [
-            re_path(
-                r"^(.+)/decide/$",
-                self.admin_site.admin_view(self.decide_request),
-                name="jasmin_services_request_decide",
-            ),
-        ] + super().get_urls()
-
-    def decide_request(self, request, pk):
-        if not self.has_change_permission(request):
-            raise PermissionDenied
-        # Try to find the specified request amongst the pending, active requests
-        try:
-            pending = Request.objects.filter(state=RequestState.PENDING).filter_active().get(pk=pk)
-        except Request.DoesNotExist:
-            raise http.Http404(f"Request with primary key {pk} does not exist")
-        # Process the form if this is a POST request, otherwise just set it up
-        if request.method == "POST":
-            form = AdminDecisionForm(pending, request.user, data=request.POST)
-            if form.is_valid():
-                form.save()
-                self.message_user(request, "Decision made on request", messages.SUCCESS)
-                return redirect(
-                    "{}:jasmin_services_request_changelist".format(self.admin_site.name)
-                )
-        else:
-            form = AdminDecisionForm(pending, request.user)
-        # If the user requesting access has an active grant, find it
-        previous_grant = pending.previous_grant
-
-        grants = Grant.objects.filter(access=pending.access).filter_active()
-
-        # Find all the rejected requests for this request chain.
-        rejected = Request.objects.filter(
-            access=pending.access,
-            state=RequestState.REJECTED,
-            previous_grant=pending.previous_grant,
-        ).order_by("requested_at")
-
-        context = {
-            "title": "Decide Service Request",
-            "form": form,
-            "is_popup": (IS_POPUP_VAR in request.POST or IS_POPUP_VAR in request.GET),
-            "add": True,
-            "change": False,
-            "has_delete_permission": False,
-            "has_change_permission": True,
-            "has_absolute_url": False,
-            "opts": self.model._meta,
-            "original": pending,
-            "save_as": False,
-            "show_save": True,
-            "media": self.media + form.media,
-            "rejected": rejected,
-            "previous_grant": previous_grant,
-            "grants": grants,
-        }
-        context.update(self.admin_site.each_context(request))
-        request.current_app = self.admin_site.name
-        return render(request, "admin/jasmin_services/request/decide.html", context)
