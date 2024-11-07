@@ -175,7 +175,8 @@ class Request(HasMetadata):
     internal_comment = models.TextField(blank=True, verbose_name="Internal notes")
 
     def __str__(self):
-        return "{} : {}".format(self.access, "INCOMPETE" if self.incomplete else self.state)
+        state = "INCOMPLETE" if self.incomplete else self.state
+        return f"{self.access} : {state}"
 
     @property
     def status(self):

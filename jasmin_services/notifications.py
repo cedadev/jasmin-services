@@ -101,7 +101,7 @@ def notify_approvers(instance):
         else:
             # If there are no approvers, post a message to Slack
             link = settings.BASE_URL + reverse(
-                "admin:jasmin_services_request_decide", args=(instance.pk,)
+                "jasmin_services:request_decide", kwargs={"pk": instance.pk}
             )
             httpx.post(
                 settings.SLACK_WEBHOOK,

@@ -19,7 +19,7 @@ Outstanding requests for the USER role for services with no approver or with the
 Outstanding requests for the MANAGER role for all services:
 {% if manager_requests|length != 0 %}{% for mr_cat, mrs in manager_requests.items %}
     {{ mr_cat }}
-        Username, Serivce, Role, Link
+        Username, Service, Role, Link
 {% for mr in mrs %}
         {{ mr.access.user.username }}, {{ mr.access.role.service.name }}, {{ mr.access.role.name }}, {{ url }}/services/request/{{ mr.id }}/decide/
 {% endfor %}{% endfor %}
