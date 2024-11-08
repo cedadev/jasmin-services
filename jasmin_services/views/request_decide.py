@@ -84,12 +84,12 @@ class RequestDecideView(
         context = super().get_context_data(**kwargs)
 
         grants = models.Grant.objects.filter(
-            access__role__service=self.service, access__user=self.request.user
+            access__role__service=self.service, access__user=self.object.access.user
         ).prefetch_related("metadata", "access__role__service__category")
         requests = (
             models.Request.objects.filter(
                 access__role__service=self.service,
-                access__user=self.request.user,
+                access__user=self.object.access.user,
                 resulting_grant__isnull=True,
             )
             .exclude(pk=self.object.pk)
