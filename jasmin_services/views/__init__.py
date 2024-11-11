@@ -1,7 +1,7 @@
 from .grant_review import grant_review
 from .grant_role import grant_role
 from .my_services import my_services
-from .request_decide import request_decide
+from .request_decide import RequestDecideView
 from .reverse_dns_check import reverse_dns_check
 from .role_apply import RoleApplyView
 from .service_details import ServiceDetailsView
@@ -14,7 +14,7 @@ __all__ = [
     "grant_review",
     "grant_role",
     "my_services",
-    "request_decide",
+    "RequestDecideView",
     "reverse_dns_check",
     "service_details",
     "service_list",

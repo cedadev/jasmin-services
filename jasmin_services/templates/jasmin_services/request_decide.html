@@ -1,5 +1,5 @@
 {% extends "jasmin_services/service_base.html" %}
-{% load static django_bootstrap5 markdown_deux_tags pretty_name artefacts %}
+{% load static django_bootstrap5 markdown_deux_tags pretty_name artefacts service_tags %}
 
 {% block page_title %}Make a decision{% endblock %}
 
@@ -17,183 +17,71 @@
 {% endblock %}
 
 {% block content_panel %}
-    <div class="row">
-        <div class="col-md-9">
-            <form method="POST" action="" class="form-horizontal" id="decision-form" onsubmit="submitted.disabled = true; return true;">
-                {% csrf_token %}
-
-                <div class="row mb-3">
-                    <label class="col-sm-2 col-form-label" for="id_role">Role</label>
-                    <div class="col-sm-10">
-                        <p class="form-control-plaintext" id="id_role">
-                            <code>{{ pending.access.role }}</code>
-                        </p>
-                    </div>
+    <div class="row pb-2">
+        <div class="card px-0">
+            <div class="card-header">
+                <h4 class="card-title">Application Details</h4>
+            </div>
+            <div class="card-body">
+                <div class="row pb-2">
+                    <div class="col-md-2">Role</div>
+                    <div class="col-md-4">{{ service.category.name }}/{{ service.name }}: {{ object.access.role.name }}</div>
                 </div>
-                <div class="row mb-3">
-                    <label class="col-sm-2 col-form-label" for="id_for_username">Username</label>
-                    <div class="col-sm-10">
-                        <p class="form-control-plaintext" id="id_for_username">
-                            <code>{{ pending.access.user.username }}</code>
-                        </p>
-                    </div>
+                <div class="row">
+                    <div class="col-md-2">Applicant</div>
+                    <div class="col-md-4">{{ user.first_name }} {{ user.last_name }} (<code>{{ user.username }}</code>) <br />{{ user.email }}</div>
+                    <div class="col-md-2">Affiliation</div>
+                    <div class="col-md-4">{{ user.discipline }}<br>{{ user.institution }} {{ user.degree }}</div>
                 </div>
-                <div class="row mb-3">
-                    <label class="col-sm-2 col-form-label" for="id_for_full_name">Full Name</label>
-                    <div class="col-sm-10">
-                        <p class="form-control-plaintext" id="id_for_full_name">
-                            {{ pending.access.user.get_full_name }}
-                        </p>
-                    </div>
+                <div class="row">
                 </div>
-                <div class="row mb-3">
-                    <label class="col-sm-2 col-form-label" for=""id_for_email">Email Address</label>
-                                                                              <div class="col-sm-10">
-                                                                                                                               <p class="form-control-plaintext" id="id_for_email">
-                                                                                                                                                   {{ pending.access.user.email }}
-                                                                                                                                                   </p>
-                                                                                                                                                   </div>
-                                                                                                                                                   </div>
-                                                                                                                                                   <div class="row mb-3">
-                                                                                                                                                      <label class="col-sm-2 col-form-label" for="id_for_institution">Institution</label>
-                                                                                                                                                          <div class="col-sm-10">
-                                                                                                                                                               <p class="form-control-plaintext" id="id_for_institution">
-                                                                                                                                                         {{ pending.access.user.institution }}
-                                                                                                                                                         </p>
-                                                                                                                                                         </div>
-                                                                                                                                                         </div>
-                                                                                                                                                         <div class="row mb-3">
-                                                                                                                                                            <label class="col-sm-2 col-form-label" for="id_for_discipline">Discipline</label>
-                                                                                                                                                         <div class="col-sm-10">
-                                                                                                                                                              <p class="form-control-plaintext" id="id_for_discipline">
-                                                                                                                                                        {{ pending.access.user.discipline }}
-                                                                                                                                                        </p>
-                                                                                                                                                        </div>
-                                                                                                                                                        </div>
-                                                                                                                                                        <div class="row mb-3">
-                                                                                                                                                           <label class="col-sm-2 col-form-label" for="id_for_degree">Degree</label>
-                                                                                                                                                     <div class="col-sm-10">
-                                                                                                                                                          <p class="form-control-plaintext" id="id_for_degree">
-                                                                                                                                                    {{ pending.access.user.degree|default:"N/A" }}
-                                                                                                                                                    </p>
-                                                                                                                                                    </div>
-                                                                                                                                                    </div>
+            </div>
+        </div>
+    </div>
+    <div class="row pb-2">
+        <div class="card px-0">
+            <div class="card-header">
+                <h4 class="card-title">Application Metadata</h4>
+            </div>
+            <div class="card-body">
+                {% display_metadata object.metadata help_text='The user supplied the following metadata with their application:' %}
+            </div>
+        </div>
+    </div>
+    <div class="row pb-2">
+        <div class="card px-0">
+            <div class="card-header">
+                <h4 class="card-title">Decide</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% bootstrap_form_errors form %}
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    {% bootstrap_button "Save" button_type="submit" button_class="btn-primary" %}
+                </form>
+            </div>
+        </div>
+    </div>
+    {% if accesses %}
+        <div class="row pb-2">
+            <div class="card px-0">
+                <div class="card-header">
+                    <h4 class="card-title">Request and Grant History</h4>
+                </div>
+                <table class="table table-striped">
+                    {% display_accesses accesses for_managers=True user=user %}
+                </table>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
 
-                                                                                                                                                    {% if rejected %}
-                                                                                                                                                        <div class="row mb-3">
-                                                                                                                                                               <label class="col-sm-2 col-form-label" for="reason-accordion">Previous Rejections</label>
-                                                                                                                                                                    <div class="col-sm-10">
-                                                                                                                                                                         <div class="accordion" id="reason-accordion">
-                                                                                                                                                        {% for req in rejected %}
-                                                                                                                                                            <div class="accordion-item">
-                                                                                                                                                                         <h4 class="accordion-header" id="acc-heading-{{ forloop.counter }}">
-                                                                                                                                                                                                        <button class="accordion-button bg-warning text-white"
-                                                                                                                                                                                                                                       type="button"
-                                                data-bs-toggle="collapse"
-                                                            data-bs-target="#acc-collapse-{{ forloop.counter }}"
-                                                                                       {% if forloop.last %}aria-expanded="true"{% endif %}
-                                                                            aria-controls="acc-collapse-{{ forloop.counter }}"
-                                                                                     >
-                                                                                     {{ forloop.counter }} of {{ rejected|length }}: {% if req.incomplete %}Incomplete{% else %}Rejected{% endif %}
-                                                                                     </button>
-                                                                                     </h4>
-                                                                                     <div id="acc-collapse-{{ forloop.counter }}"
-                                                                                                                                                                    class="accordion-collapse collapse{% if forloop.last %} show{% endif %}"
-                                                                                                           aria-labelledby="acc-heading-{{ forloop.counter }}"
-                                                                                      data-bs-parent="#reason-accordion">
-                                                                     <div class="accordion-body">
-                                                                                                                                   <h5>Reason for rejection (user)</h5>
-                                                                                                                                   <p>{{ req.user_reason|markdown }}</p>
-                                                                                                                                   {% if req.internal_reason %}
-                                                                                                                                       <h5>Reason for rejection (internal)</h5>
-                                                                                                                                       <p>{{ req.internal_reason|markdown }}</p>
-                                                                                                                                   {% endif %}
-                                                                                                                                   <p>Requested at {{ req.requested_at }}</p>
-                                                                                                                                   </div>
-                                                                                                                                   </div>
-                                                                                                                                   </div>
-                                                                                                                               {% endfor %}
-                                                                                                                               </div>
-                                                                                                                               </div>
-                                                                                                                               </div>
-                                                                                                                           {% endif %}
-                                                                                                                           {% if grant.revoked %}
-                                                                                                                               <div class="form-group">
-                                                                                                                                                            <div class="col-sm-10 col-md-offset-3">
-                                                                                                                                               <aside class="danger">
-                                                                                                                                                 <header>Previous access revoked</header>
-                                                                                                                                                 {{ grant.user_reason|markdown }}
-                                                                                                                                                 {% if grant.internal_reason %}
-                                                                                                                                                     <hr>
-                                                                                                                                                     {{ grant.internal_reason|markdown }}
-                                                                                                                                                 {% endif %}
-                                                                                                                                                 </aside>
-                                                                                                                                                 </div>
-                                                                                                                                                 </div>
-                                                                                                                                             {% elif grant.expired %}
-                                                                                                                                                 <div class="form-group">
-                                                                                                                                      <div class="col-sm-10 col-md-offset-3">
-                                                                                                                                               <aside class="danger">
-                                                                                                                                                 <header>Previous access expired</header>
-                                                                                                                                                 <p>Expired on {{ grant.expires }}</p>
-                                                                                                                                                 </aside>
-                                                                                                                                                 </div>
-                                                                                                                                                 </div>
-                                                                                                                                             {% elif grant.expiring %}
-                                                                                                                                                 <div class="form-group">
-                                                                                                                                      <div class="col-sm-10 col-md-offset-3">
-                                                                                                                                               <aside class="warning">
-                                                                                                                                                  <header>Current access expiring</header>
-                                                                                                                                                  <p>Expires on {{ grant.expires }}</p>
-                                                                                                                                                  </aside>
-                                                                                                                                                  </div>
-                                                                                                                                                  </div>
-                                                                                                                                              {% endif %}
+{% block stylesheets_page %}
+    <link rel="stylesheet" href="{% artefact "vendor/css/easymde.min.css" %}">
+{% endblock %}
 
-                                                                                                                                              {% block extra_context %}{% endblock %}
-
-                                                                                                                                              {% for datum in pending.metadata.all %}
-                                                                                                                                                  <div class="row mb-3">
-                                                                                                                                     <label class="col-sm-2 col-form-label" for="id_{{ datum.key }}">{{ datum.key|pretty_name }}</label>
-                                                                                                                                                                      <div class="col-sm-10">
-                                                                                                                                                                           <p class="form-control-plaintext" id="id_{{ datum.key }}" style="white-space: pre-wrap;">{{ datum.value }}</p>
-                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                {% endfor %}
-
-                                                                                                                                                                                                {% bootstrap_form form layout='horizontal' %}
-
-                                                                                                                                                                                                <div class="row justify-content-end">
-                                                                                                                                                                                                              <div class="col-sm-10">
-                                                                                                                                <button name="submitted" type="submit" class="btn btn-primary" autocomplete="off">Make decision</button>
-                                                                                                                                                                                 </div>
-                                                                                                                                                                                 </div>
-                                                                                                                                                                                 </form>
-                                                                                                                                                                                 </div>
-                                                                                                                                                                                 <div class="col-md-3">
-                                                                                                                                                                                    <div class="card">
-                                                                                                    <div class="card-header">Other approvers</div>
-                                                                                                           <div class="card-body">
-                                                                                                                    {% if approvers %}
-                                                                                                                        <ul class="list-group">
-                                                                                                                          {% for user in approvers %}
-                                                                                                                              <li class="list-group-item"><code>{{ user.username }}</code></li>
-                                                                                                                                           {% endfor %}
-                                                                                                                                           </ul>
-                                                                                                                                       {% else %}
-                                                                                                                                           You are the only approver for this service.
-                                                                                                                                       {% endif %}
-                                                                                                                                       </div>
-                                                                                                                                       </div>
-                                                                                                                                       </div>
-                                                                                                                                       </div>
-                                                                                                                   {% endblock %}
-
-                                                                                                                   {% block stylesheets_page %}
-                                                                                                                       <link rel="stylesheet" href="{% artefact "vendor/css/easymde.min.css" %}">
-                                                                                                                                                      {% endblock %}
-
-                                                                                                                                                      {% block js_page %}
-                                                                                                                                                          <script src="{% artefact "vendor/js/easymde.min.js" %}"></script>
-                                                                                                                                                          <script src="{% static "jasmin_services/js/request_decide.js" %}"></script>
-                                                                                                                                              {% endblock %}
+{% block js_page %}
+    <script src="{% artefact "vendor/js/easymde.min.js" %}"></script>
+    <script src="{% static "jasmin_services/js/request_decide.js" %}"></script>
+{% endblock %}

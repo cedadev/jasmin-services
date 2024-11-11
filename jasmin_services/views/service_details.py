@@ -12,6 +12,7 @@ from . import common, mixins
 class ServiceDetailsView(
     mixins.AsyncLoginRequiredMixin,
     mixins.WithServiceMixin,
+    mixins.AccessListMixin,
     mixins.AsyncTemplateView,
 ):
     """Handle ``/<category>/<service>/``.
@@ -38,46 +39,6 @@ class ServiceDetailsView(
         async for item in holders:
             result.append(item.access.user)
         return result
-
-    @staticmethod
-    async def process_access(access, user, id_part, id_):
-        access.frontend = {
-            "start": (
-                access.requested_at if isinstance(access, models.Request) else access.granted_at
-            ),
-            "id": f"{id_part}_{id_}",
-            "type": ("REQUEST" if isinstance(access, models.Request) else "GRANT"),
-            "apply_url": django.urls.reverse(
-                "jasmin_services:role_apply",
-                kwargs={
-                    "category": access.access.role.service.category.name,
-                    "service": access.access.role.service.name,
-                    "role": access.access.role.name,
-                    "bool_grant": 0 if isinstance(access, models.Request) else 1,
-                    "previous": access.id,
-                },
-            ),
-            "may_apply": await access.access.role.auser_may_apply(user),
-        }
-        return access
-
-    async def display_accesses(self, user, grants, requests):
-        """Process a list of either requests or grants for display."""
-        processed = []
-
-        # This ID is used to create CSS ids. Must be unique per access.
-        id_part = "".join(random.choice(string.ascii_lowercase) for i in range(5))
-        id_ = 0
-        # We loop through the list, and add some information which is not otherwise available.
-        async for grant in grants:
-            processed.append(await self.process_access(grant, user, id_part, id_))
-            id_ += 1
-        async for request in requests:
-            processed.append(await self.process_access(request, user, id_part, id_))
-            id_ += 1
-
-        accesses = sorted(processed, key=lambda x: x.frontend["start"], reverse=True)
-        return accesses
 
     async def get_context_data(self, **kwargs):
         """Add information about service to the context."""

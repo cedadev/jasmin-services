@@ -1,5 +1,5 @@
 {% if metadata.all %}
-    <p>When you submitted your application, you supplied the following information:</p>
+    <p>{{ help_text }}</p>
     {% for metadata_item in metadata.all %}
         <h5>{{ metadata_item.get_friendly_name }}:</h5> <p><i>{{metadata_item.value}}</i></p>
     {% endfor %}
