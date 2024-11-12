@@ -101,9 +101,6 @@ class RequestDecideView(
                 self.request.user, grants, requests, may_apply_override=False
             ),
             "service": self.service,
-            # "pending": self.object,
-            # "rejected": rejected,
-            # "grant": self.object.previous_grant,  # The previous grant.
             # The list of approvers to show here is any user who has the correct
             # permission for either the role or the service
             "approvers": self.object.access.role.approvers.exclude(pk=self.request.user.pk),
