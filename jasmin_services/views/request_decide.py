@@ -77,7 +77,7 @@ class RequestDecideView(
             else:
                 return next
         # Else redirect to the service.
-        return f"/services/{self.service.category.name}/{self.service.name}/"
+        return f"/services/{self.service.category.name}/{self.service.name}/requests/"
 
     def get_context_data(self, **kwargs):
         """Add to the template context."""
