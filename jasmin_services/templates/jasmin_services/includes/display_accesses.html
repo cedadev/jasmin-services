@@ -83,11 +83,15 @@
                 <p>{{ access.user_reason|markdown }} </p>
                 {% if for_managers %}
                     {# CAREFUL, this should only be shown to approvers! #}
+                    {% if access.internal_reason %}
                     <p>The internal notes the person marking this {{ access.frontend.type|lower }} as {{ access.status|lower }} wrote were:</p>
+                {% endif %}
                     <p>{{ access.internal_reason|markdown }}</p>
                     {% if user.is_staff %}
+                        {% if access.internal_comment %}
                         <p>The internal notes for CEDA staff on this {{ access.frontend.type|lower }} were:</p>
                         <p>{{ access.internal_comment|markdown }}</p>
+                    {% endif %}
                     {% endif %}
                 {% endif %}
                 {% if access.frontend.may_apply and access.status == "INCOMPLETE"%}
