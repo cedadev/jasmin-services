@@ -73,6 +73,10 @@
                 <td colspan="7">
             {% endif %}
             <p>This is a {{ access.frontend.type }} for the role of {{ access.access.role.name }} for this service.</p>
+            {% if user.is_staff and for_managers and access.granted_by %}
+            <hr />
+            <p>This {{ access.frontend.type }} was processed by <strong>{{ access.granted_by }}</strong>.</p>
+            {% endif %}
             <hr />
             {% if access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
                 <p>This {{ access.frontend.type|lower }} was {{ access.status|lower }} for the following reason:</p>
