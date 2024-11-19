@@ -37,6 +37,7 @@ def swapable_view(setting_name: str, default_view_class: django.views.View) -> d
 # Setup swappable views where required.
 ServiceDetailsView = swapable_view("SERVICE_DETAILS", views.ServiceDetailsView)
 RoleApplyView = swapable_view("ROLE_APPLY", views.RoleApplyView)
+RequestDecideView = swapable_view("REQUEST_DECIDE", views.RequestDecideView)
 
 
 app_name = "jasmin_services"
@@ -72,6 +73,6 @@ urlpatterns = [
         RoleApplyView.as_view(),
         name="role_apply",
     ),
-    path("request/<int:pk>/decide/", views.RequestDecideView.as_view(), name="request_decide"),
+    path("request/<int:pk>/decide/", RequestDecideView.as_view(), name="request_decide"),
     path("grant/<int:pk>/review/", views.grant_review, name="grant_review"),
 ]
