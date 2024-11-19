@@ -73,17 +73,25 @@
                 <td colspan="7">
             {% endif %}
             <p>This is a {{ access.frontend.type }} for the role of {{ access.access.role.name }} for this service.</p>
+            {% if user.is_staff and for_managers and access.granted_by %}
+            <hr />
+            <p>This {{ access.frontend.type }} was processed by <strong>{{ access.granted_by }}</strong>.</p>
+            {% endif %}
             <hr />
             {% if access.status == "REVOKED" or access.status == "REJECTED" or access.status == "INCOMPLETE" %}
                 <p>This {{ access.frontend.type|lower }} was {{ access.status|lower }} for the following reason:</p>
                 <p>{{ access.user_reason|markdown }} </p>
                 {% if for_managers %}
                     {# CAREFUL, this should only be shown to approvers! #}
+                    {% if access.internal_reason %}
                     <p>The internal notes the person marking this {{ access.frontend.type|lower }} as {{ access.status|lower }} wrote were:</p>
+                {% endif %}
                     <p>{{ access.internal_reason|markdown }}</p>
                     {% if user.is_staff %}
+                        {% if access.internal_comment %}
                         <p>The internal notes for CEDA staff on this {{ access.frontend.type|lower }} were:</p>
                         <p>{{ access.internal_comment|markdown }}</p>
+                    {% endif %}
                     {% endif %}
                 {% endif %}
                 {% if access.frontend.may_apply and access.status == "INCOMPLETE"%}
