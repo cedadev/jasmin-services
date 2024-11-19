@@ -75,6 +75,19 @@
             </div>
         </div>
     {% endif %}
+    {% if user.is_staff and all_accesses %}
+        <div class="row pb-2">
+            <div class="card px-0">
+                <div class="card-header">
+                    <h4 class="card-title">Other Requests and Grants</h4>
+                    <p>Shown only to CEDA staff.</p>
+                </div>
+                <table class="table table-striped">
+                    {% display_accesses all_accesses for_managers=True user=user show_service_name=True %}
+                </table>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block stylesheets_page %}

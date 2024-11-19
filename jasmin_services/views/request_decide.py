@@ -96,10 +96,33 @@ class RequestDecideView(
             .prefetch_related("metadata", "access__role__service__category")
         )
 
+        # If the user is staff, show them any request and grant the user has ever had
+        # from any service.
+        if self.request.user.is_staff:
+            all_grants = (
+                models.Grant.objects.filter(access__user=self.object.access.user)
+                .exclude(access__role__service=self.service)
+                .prefetch_related("metadata", "access__role__service__category")
+            )
+            all_requests = (
+                models.Request.objects.filter(
+                    access__user=self.object.access.user,
+                    resulting_grant__isnull=True,
+                )
+                .exclude(access__role__service=self.service)
+                .prefetch_related("metadata", "access__role__service__category")
+            )
+            all_accesses = asgiref.sync.async_to_sync(self.display_accesses)(
+                self.request.user, all_grants, all_requests, may_apply_override=False
+            )
+        else:
+            all_accesses = None
+
         context |= {
             "accesses": asgiref.sync.async_to_sync(self.display_accesses)(
                 self.request.user, grants, requests, may_apply_override=False
             ),
+            "all_accesses": all_accesses,
             "service": self.service,
             # The list of approvers to show here is any user who has the correct
             # permission for either the role or the service

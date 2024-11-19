@@ -3,6 +3,9 @@
 <thead>
     <tr>
         <th></th>
+        {% if show_service_name %}
+            <th>Service Name</th>
+        {% endif %}
         {% if for_managers %}
             <th>Type</th>
         {% endif %}
@@ -32,6 +35,9 @@
             <tr>
                 <td></td>
         {% endif %}
+        {% if show_service_name %}
+            <td>{{ access.access.role.service.name }}</td>
+        {% endif %}
         {% if for_managers %}
             <td>{{ access.frontend.type }}</td>
         {% endif %}
@@ -59,7 +65,9 @@
         </td>
         </tr>
         <tr class="collapse" id="access-collapse-{{ access.frontend.id }}">
-            {% if for_managers %}
+            {% if for_managers and show_service_name %}
+                <td colspan="9">
+            {% elif for_managers or show_service_name %}
                 <td colspan="8">
             {% else %}
                 <td colspan="7">
