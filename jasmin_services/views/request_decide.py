@@ -1,6 +1,8 @@
 import asgiref.sync
 import django.contrib.auth.mixins
+import django.contrib.messages
 import django.db
+import django.http
 import django.urls
 import django.views.generic.edit
 
@@ -31,6 +33,27 @@ class RequestDecideView(
         self.service = self.get_service(
             self.object.access.role.service.category.name, self.object.access.role.service.name
         )
+
+    def request_already_actioned(self, request):
+        """Generate a response for the case where the request has already been actioned."""
+        django.contrib.messages.add_message(
+            request, django.contrib.messages.INFO, "The request has already been approved."
+        )
+        return django.http.HttpResponseRedirect(
+            f"/services/{self.service.category.name}/{self.service.name}/requests/"
+        )
+
+    def get(self, request, *args, **kwargs):
+        """Override get to deal with case where request has been actioned already."""
+        if self.object.state != "PENDING":
+            return self.request_already_actioned(request)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """Override post to deal with case where request has been actioned already."""
+        if self.object.state != "PENDING":
+            return self.request_already_actioned(request)
+        return super().post(request, *args, **kwargs)
 
     def test_func(self):
         """Define the test for the UserPassesTestMixin.
