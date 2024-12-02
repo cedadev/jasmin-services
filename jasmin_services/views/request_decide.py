@@ -34,15 +34,25 @@ class RequestDecideView(
             self.object.access.role.service.category.name, self.object.access.role.service.name
         )
 
+    def request_already_actioned(self, request):
+        """Generate a response for the case where the request has already been actioned."""
+        django.contrib.messages.add_message(
+            request, django.contrib.messages.INFO, "The request has already been approved."
+        )
+        return django.http.HttpResponseRedirect(
+            f"/services/{self.service.category.name}/{self.service.name}/requests/"
+        )
+
     def get(self, request, *args, **kwargs):
-        """If the grant has already been approved, send the user away."""
+        """Override get to deal with case where request has been actioned already."""
         if self.object.state != "PENDING":
-            django.contrib.messages.add_message(
-                request, django.contrib.messages.INFO, "The request has already been approved."
-            )
-            return django.http.HttpResponseRedirect(
-                f"/services/{self.service.category.name}/{self.service.name}/requests/"
-            )
+            self.request_already_actioned(request)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """Override post to deal with case where request has been actioned already."""
+        if self.object.state != "PENDING":
+            self.request_already_actioned(request)
         return super().get(request, *args, **kwargs)
 
     def test_func(self):
