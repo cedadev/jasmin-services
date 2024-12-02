@@ -41,7 +41,7 @@ def grant_review(request, pk):
         and not request.user.has_perm(permission, grant.access.role)
     ):
         messages.error(request, "Grant does not exist")
-        return redirect_to_service(grant.role.service, "service_details")
+        return redirect_to_service(grant.access.role.service, "service_details")
     # If the grant is expired or revoked, redirect to the list of users
     if not grant.active or grant.expired or grant.revoked:
         messages.info(request, "This grant has already been rekoved or expired")
