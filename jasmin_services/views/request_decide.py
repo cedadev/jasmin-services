@@ -46,13 +46,13 @@ class RequestDecideView(
     def get(self, request, *args, **kwargs):
         """Override get to deal with case where request has been actioned already."""
         if self.object.state != "PENDING":
-            self.request_already_actioned(request)
+            return self.request_already_actioned(request)
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         """Override post to deal with case where request has been actioned already."""
         if self.object.state != "PENDING":
-            self.request_already_actioned(request)
+            return self.request_already_actioned(request)
         return super().post(request, *args, **kwargs)
 
     def test_func(self):
