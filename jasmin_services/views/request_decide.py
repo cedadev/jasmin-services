@@ -1,6 +1,8 @@
 import asgiref.sync
 import django.contrib.auth.mixins
+import django.contrib.messages
 import django.db
+import django.http
 import django.urls
 import django.views.generic.edit
 
@@ -31,6 +33,17 @@ class RequestDecideView(
         self.service = self.get_service(
             self.object.access.role.service.category.name, self.object.access.role.service.name
         )
+
+    def get(self, request, *args, **kwargs):
+        """If the grant has already been approved, send the user away."""
+        if self.object.state != "PENDING":
+            django.contrib.messages.add_message(
+                request, django.contrib.messages.INFO, "The request has already been approved."
+            )
+            return django.http.HttpResponseRedirect(
+                f"/services/{self.service.category.name}/{self.service.name}/requests/"
+            )
+        return super().get(request, *args, **kwargs)
 
     def test_func(self):
         """Define the test for the UserPassesTestMixin.
