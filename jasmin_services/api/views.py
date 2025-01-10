@@ -82,14 +82,17 @@ class RolesNestedUnderServicesViewSet(rf_viewsets.ReadOnlyModelViewSet):
         # /categories/<name>/services/<name>roles/
         # And we will get slightly different kwargs in each case.
         try:
-            # If nested, we will get the category and service name.
-            service = models.Service.objects.get(
-                category__name=self.kwargs["category_name"],
-                name=self.kwargs["service_name"],
-            )
-        except KeyError:
-            # Otherwise, we get the service pk.
-            service = models.Service.objects.get(pk=self.kwargs["service_pk"])
+            try:
+                # If nested, we will get the category and service name.
+                service = models.Service.objects.get(
+                    category__name=self.kwargs["category_name"],
+                    name=self.kwargs["service_name"],
+                )
+            except KeyError:
+                # Otherwise, we get the service pk.
+                service = models.Service.objects.get(pk=self.kwargs["service_pk"])
+        except models.Service.DoesNotExist:
+            return models.Role.objects.none()
 
         queryset = models.Role.objects.filter(service=service).prefetch_related(
             dj_models.Prefetch(
