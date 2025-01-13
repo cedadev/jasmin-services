@@ -239,6 +239,7 @@ def account_reactivated(sender, instance, created, **kwargs):
             access__user=instance,
             revoked=True,
             user_reason="Account was suspended",
+            access__role__service__disabled=False,
         ).filter_active():
             # Re-instate revoked grants if not expired else create new grant with
             # one month till expiry.
