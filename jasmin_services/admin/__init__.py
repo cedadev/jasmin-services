@@ -16,6 +16,7 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import path, re_path
 from django.utils.safestring import mark_safe
+
 from jasmin_metadata.models import Form
 
 from .. import models as service_models
@@ -27,7 +28,7 @@ from ..models import (
     Request,
     Role,
     RoleObjectPermission,
-    Service
+    Service,
 )
 from ..widgets import AdminGfkContentTypeWidget, AdminGfkObjectIdWidget
 
