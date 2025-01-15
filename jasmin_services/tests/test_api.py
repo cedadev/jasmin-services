@@ -19,6 +19,8 @@ DJANGO_TZ = ZoneInfo(django.conf.settings.TIME_ZONE)
 # So we must construct the correct offset string ourselves.
 utc_offset_amount = int(dt.datetime.now(tz=DJANGO_TZ).utcoffset().total_seconds() / 3600)
 utc_offset = f"+{utc_offset_amount:02}:00"
+if utc_offset == "+00:00":
+    utc_offset = "Z"
 
 
 class BaseTest(rf_test.APITestCase):
