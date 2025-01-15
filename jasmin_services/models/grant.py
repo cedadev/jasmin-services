@@ -55,7 +55,7 @@ class GrantQuerySet(models.QuerySet):
             else:
                 return grants.order_by("granted_at").first()
         else:
-            return grants
+            return grants.first()
 
 
 def _default_expiry():
