@@ -49,7 +49,7 @@ class RequestQuerySet(models.QuerySet):
         """
         requests = self.filter(access__role=role, access__user=user)
         if requests.count() == 1:
-            return requests
+            return requests.first()
         elif requests.count() > 0:
             pending_requests = requests.filter(state=RequestState.PENDING)
             if pending_requests:
@@ -57,7 +57,7 @@ class RequestQuerySet(models.QuerySet):
             else:
                 return requests.order_by("requested_at").first()
         else:
-            return requests
+            return requests.first()
 
 
 class RequestState:
