@@ -31,7 +31,7 @@ django-filter = {version = "^24.1", optional = true}
 drf-spectacular = {version="^0.27.1", optional = true}
 drf-spectacular-sidecar = {version="^2024.1.1", optional = true}
 django-picklefield = "^3.1"
-httpx = "^0.27.0"
+httpx = "^0.28.1"
 
 # Optional dependencies for behaviours.
 jasmin-ldap-django = {git = "https://github.com/cedadev/jasmin-ldap-django.git", rev = "2b708c9136f31e8819ffff00fcb95567c27ed659", optional=true}
