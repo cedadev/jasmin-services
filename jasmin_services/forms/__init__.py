@@ -183,15 +183,6 @@ class GrantReviewForm(forms.Form):
 ######
 
 
-class AdminDecisionForm(DecisionForm):
-    expires_custom = forms.DateField(
-        label="Custom expiry date",
-        required=False,
-        input_formats=["%Y-%m-%d", "%d/%m/%Y"],
-        widget=AdminDateWidget,
-    )
-
-
 class AdminRevokeForm(forms.Form):
     user_reason = forms.CharField(
         label="Reason for rejection (user)",

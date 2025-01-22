@@ -34,11 +34,16 @@ from ..widgets import AdminGfkContentTypeWidget, AdminGfkObjectIdWidget
 
 # Load the admin for behaviours which are turned on.
 from . import behaviour  # unimport:skip
-from . import grant, request
+from . import dashboard, grant, request
 
 # Register admins from submodules.
 admin.site.register(Grant, grant.GrantAdmin)
 admin.site.register(Request, request.RequestAdmin)
+
+# Register custom dashboards.
+# This requires a custom AdminSite which supports registering views.
+if hasattr(admin.site, "register_view"):
+    admin.site.register_view("jasmin_services/dashboard/", view=dashboard.AdminDashboardView)
 
 
 class GroupAdmin(admin.ModelAdmin):

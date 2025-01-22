@@ -1,0 +1,102 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}Request dashboard {{ block.super }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/dashboard.css" %}">{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} change-list{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="{% url 'admin:index' %}">Home</a> &rsaquo;
+        <a href="{% url 'admin:jasmin_services_request_changelist' %}">Service Requests</a> &rsaquo; Request Dashboard
+    </div>
+{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+    <div>
+        <table width="100%">
+            <tr>
+                <th colspan=3>
+                    <h2>CEDA Managed Roles with Pending Requests</h2>
+                </th>
+            </tr>
+            <tr>
+                <th>Service</th>
+                <th>Role</th>
+                <th>Number of Pending Requests</th>
+            </tr>
+                {% for role in ceda_managed_pending %}
+                    <tr>
+                        <td><a href="{% url 'jasmin_services:service_requests' category=role.service.category.name service=role.service.name  %}">{{role.service.category.name}}/{{ role.service.name }}</a></td>
+                        <td>{{ role.name }}</td>
+                        <td>{{ role.num_pending }}</td>
+                    </tr>
+                {% endfor %}
+
+                <tr>
+                    <th colspan=3>
+                        <h2>Roles with No Approvers with Pending Requests</h2>
+                    </th>
+                </tr>
+                <tr>
+                    <th>Service</th>
+                    <th>Role</th>
+                    <th>Number of Pending Requests</th>
+            </tr>
+                    {% for role in no_approver_pending %}
+                        <tr>
+                            <td><a href="{% url 'jasmin_services:service_requests' category=role.service.category.name service=role.service.name %}">{{role.service.category.name}}/{{ role.service.name }}</a></td>
+                            <td>{{ role.name }}</td>
+                            <td>{{ role.num_pending }}</td>
+                        </tr>
+                    {% endfor %}
+
+                    <tr>
+                        <th colspan=3>
+                            <h2>Roles with with Pending Manager Requests</h2>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>Service</th>
+                        <th>Role</th>
+                        <th>Number of Pending Requests</th>
+            </tr>
+                        {% for role in manager_requests_pending %}
+                            <tr>
+                                <td><a href="{% url 'jasmin_services:service_requests' category=role.service.category.name service=role.service.name  %}">{{role.service.category.name}}/{{ role.service.name }}</a></td>
+                                <td>{{ role.name }}</td>
+                                <td>{{ role.num_pending }}</td>
+                            </tr>
+                        {% endfor %}
+
+                        <tr>
+                            <th colspan=3>
+                                <h2>Roles with Requests which have been pending for more than 30 days</h2>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>Service</th>
+                            <th>Role</th>
+                            <th>Number of Pending Requests</th>
+            </tr>
+                            {% for role in manager_requests_pending %}
+                                <tr>
+                                    <td><a href="{% url 'jasmin_services:service_requests' category=role.service.category.name service=role.service.name  %}">{{role.service.category.name}}/{{ role.service.name }}</a></td>
+                                    <td>{{ role.name }}</td>
+                                    <td>{{ role.num_pending }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                        <hr>
+                    </div>
+
+{% endblock %}
+
+{% block sidebar %}
+{% endblock %}

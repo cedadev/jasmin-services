@@ -1,17 +1,13 @@
-import django.contrib.auth.views
-from django import http
-from django.contrib import admin, messages
-from django.contrib.admin.options import IS_POPUP_VAR
+from django.contrib import admin
 from django.contrib.admin.utils import quote
-from django.shortcuts import redirect, render
-from django.urls import re_path, reverse, reverse_lazy
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from jasmin_metadata.admin import HasMetadataModelAdmin
 
 from ..actions import remind_pending
-from ..forms import AdminDecisionForm, AdminRequestForm
-from ..models import Grant, Request, RequestState, Role
+from ..forms import AdminRequestForm
+from ..models import RequestState, Role
 
 # Load the admin for behaviours which are turned on.
 from . import behaviour  # unimport:skip
