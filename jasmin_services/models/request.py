@@ -130,6 +130,9 @@ class Request(HasMetadata):
         )
         get_latest_by = "requested_at"
         permissions = (("decide_request", "Can make decisions on requests"),)
+        indexes = [
+            models.Index(fields=["state"]),
+        ]
 
     objects = RequestQuerySet.as_manager()
 

@@ -15,7 +15,10 @@ class Service(models.Model):
     class Meta:
         unique_together = ("category", "name")
         ordering = ("category__position", "category__long_name", "position", "name")
-        indexes = [models.Index(fields=["position", "name"])]
+        indexes = [
+            models.Index(fields=["position", "name"]),
+            models.Index(fields=["ceda_managed"]),
+        ]
 
     @property
     def details_link(self):

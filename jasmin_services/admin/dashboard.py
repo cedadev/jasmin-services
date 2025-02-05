@@ -77,7 +77,7 @@ class AdminDashboardView(django.views.generic.base.TemplateView):
 
         extra_context = {
             "ceda_managed_pending": ceda_managed_pending,
-            "no_approver_pending": no_approver_pending,
+            "no_approver_pending": [],
             "manager_requests_pending": manager_requests_pending,
             "longtime_pending": longtime_pending,
         }
