@@ -311,6 +311,18 @@ class ServiceAdmin(admin.ModelAdmin):
                 user_reason="This service has been retired.",
                 internal_reason=f"Service was retired by {request.user.username}.",
             )
+
+            # Find a list of current requests for the tervice.
+            current_requests = Request().objects.filter(
+                access__role__service=service, state="PENDING"
+            )
+            # And reject them en-masse.
+            current_requests.update(
+                state="REJECTED",
+                user_reason="This service has been retired.",
+                internal_reason=f"Service was retired by {request.user.username}.",
+            )
+
             return django.shortcuts.redirect(f"/admin/jasmin_services/service/{service.id}/change")
 
         context = {
