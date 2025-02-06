@@ -22,8 +22,6 @@ class AdminDashboardView(django.views.generic.base.TemplateView):
                     "access",
                     filter=django.db.models.Q(
                         access__request__state=js_models.RequestState.PENDING,
-                        access__request__resulting_grant__isnull=True,
-                        access__request__next_request__isnull=True,
                     ),
                 ),
             )
@@ -73,6 +71,7 @@ class AdminDashboardView(django.views.generic.base.TemplateView):
             num_pending_longtime=django.db.models.Count(
                 "access",
                 filter=django.db.models.Q(
+                    access__request__state=js_models.RequestState.PENDING,
                     access__request__requested_at__lt=(
                         django.utils.timezone.now() - dt.timedelta(days=30)
                     ),
