@@ -313,7 +313,7 @@ class ServiceAdmin(admin.ModelAdmin):
             )
 
             # Find a list of current requests for the tervice.
-            current_requests = Request().objects.filter(
+            current_requests = Request.objects.filter(
                 access__role__service=service, state="PENDING"
             )
             # And reject them en-masse.
