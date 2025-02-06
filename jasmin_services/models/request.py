@@ -132,6 +132,8 @@ class Request(HasMetadata):
         permissions = (("decide_request", "Can make decisions on requests"),)
         indexes = [
             models.Index(fields=["state"]),
+            models.Index(fields=["resulting_grant"]),
+            models.Index(fields=["state", "resulting_grant"]),
         ]
 
     objects = RequestQuerySet.as_manager()
@@ -177,14 +179,14 @@ class Request(HasMetadata):
     # This is only shown to the CEDA team.
     internal_comment = models.TextField(blank=True, verbose_name="Internal notes")
 
-    def __str__(self):
-        state = "INCOMPLETE" if self.incomplete else self.state
-        return f"{self.access} : {state}"
-
     @property
     def status(self):
         """Shortcut to get the proper status of the request."""
         return "INCOMPLETE" if self.incomplete else self.state
+
+    def __str__(self):
+        state = "INCOMPLETE" if self.incomplete else self.state
+        return f"{self.access} : {state}"
 
     @property
     def active(self):

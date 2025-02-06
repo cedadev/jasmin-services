@@ -2,6 +2,7 @@ import datetime as dt
 
 import django.contrib.auth
 import django.db.models
+import django.utils.timezone
 import django.views.generic
 
 from .. import models as js_models
@@ -21,6 +22,8 @@ class AdminDashboardView(django.views.generic.base.TemplateView):
                     "access",
                     filter=django.db.models.Q(
                         access__request__state=js_models.RequestState.PENDING,
+                        access__request__resulting_grant__isnull=True,
+                        access__request__next_request__isnull=True,
                     ),
                 ),
             )
@@ -70,7 +73,9 @@ class AdminDashboardView(django.views.generic.base.TemplateView):
             num_pending_longtime=django.db.models.Count(
                 "access",
                 filter=django.db.models.Q(
-                    access__request__requested_at__lt=(dt.date.today() - dt.timedelta(days=30)),
+                    access__request__requested_at__lt=(
+                        django.utils.timezone.now() - dt.timedelta(days=30)
+                    ),
                 ),
             ),
         ).filter(num_pending_longtime__gt=0)
