@@ -91,7 +91,7 @@
                                 <tr>
                                     <td><a href="{% url 'jasmin_services:service_requests' category=role.service.category.name service=role.service.name  %}">{{role.service.category.name}}/{{ role.service.name }}</a></td>
                                     <td>{{ role.name }}</td>
-                                    <td>{{ role.num_pending }}</td>
+                                    <td>{{ role.num_pending_longtime }}</td>
                                 </tr>
                             {% endfor %}
                         </table>
