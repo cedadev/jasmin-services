@@ -21,6 +21,7 @@
 {% block content %}
     <div>
         <table width="100%">
+            {% block dashboard_table_rows %}
             <tr>
                 <th colspan=3>
                     <h2>CEDA Managed Roles with Pending Requests</h2>
@@ -94,6 +95,7 @@
                                     <td>{{ role.num_pending_longtime }}</td>
                                 </tr>
                             {% endfor %}
+                        {% endblock %}
                         </table>
                         <hr>
                     </div>
