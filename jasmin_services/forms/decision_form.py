@@ -1,6 +1,5 @@
-from datetime import date
+import datetime as dt
 
-from dateutil.relativedelta import relativedelta
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
@@ -101,7 +100,7 @@ class DecisionForm(forms.Form):
         expires_custom = self.cleaned_data.get("expires_custom")
         if state == "APPROVED" and expires == self.EXPIRES_CUSTOM and not expires_custom:
             raise ValidationError("Please give an expiry date for access")
-        if expires_custom and expires_custom < date.today():
+        if expires_custom and expires_custom < dt.date.today():
             raise ValidationError("Expiry date must be in the future")
         return expires_custom
 
@@ -120,43 +119,25 @@ class DecisionForm(forms.Form):
             # Get the expiry date
             expires = self.cleaned_data["expires"]
             if expires == self.EXPIRES_SIX_MONTHS:
-                expires_date = date.today() + relativedelta(months=6)
+                expires_date = dt.date.today() + dt.timedelta(days=180)
             elif expires == self.EXPIRES_ONE_YEAR:
-                expires_date = date.today() + relativedelta(years=1)
+                expires_date = dt.date.today() + dt.timedelta(days=365)
             elif expires == self.EXPIRES_TWO_YEARS:
-                expires_date = date.today() + relativedelta(years=2)
+                expires_date = dt.date.today() + dt.timedelta(days=365 * 2)
             elif expires == self.EXPIRES_THREE_YEARS:
-                expires_date = date.today() + relativedelta(years=3)
+                expires_date = dt.date.today() + dt.timedelta(days=365 * 3)
             elif expires == self.EXPIRES_FIVE_YEARS:
-                expires_date = date.today() + relativedelta(years=5)
+                expires_date = dt.date.today() + dt.timedelta(days=365 * 5)
             elif expires == self.EXPIRES_TEN_YEARS:
-                expires_date = date.today() + relativedelta(years=10)
+                expires_date = dt.date.today() + dt.timedelta(days=365 * 10)
             else:
                 expires_date = self.cleaned_data["expires_custom"]
-            self._request.state = RequestState.APPROVED
-            # If the request has a previous_grant create a new grant
-            # and link with the old grant
-            previous_grant = self._request.previous_grant
-            if previous_grant:
-                self._request.resulting_grant = Grant.objects.create(
-                    access=self._request.access,
-                    granted_by=self._approver.username,
-                    expires=expires_date,
-                    previous_grant=previous_grant,
-                )
-            else:
-                # Else create the access if it does not already exist and
-                # then create the new grant
-                access, _ = Access.objects.get_or_create(
-                    user=self._request.access.user, role=self._request.access.role
-                )
-                self._request.resulting_grant = Grant.objects.create(
-                    access=access,
-                    granted_by=self._approver.username,
-                    expires=expires_date,
-                )
-            # Copy the metadata from the request to the grant
-            self._request.copy_metadata_to(self._request.resulting_grant)
+
+            self._request.approve(
+                expires=expires_date,
+                granted_by=self._approver.username,
+            )
+
         if self.cleaned_data["state"] in ["INCOMPLETE", "REJECTED"]:
             self._request.state = RequestState.REJECTED
             self._request.incomplete = True if self.cleaned_data["state"] == "INCOMPLETE" else False

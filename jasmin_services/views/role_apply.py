@@ -150,8 +150,7 @@ class RoleApplyView(
                     requested_by=self.request.user.username,
                     state=RequestState.APPROVED,
                 )
-                req.resulting_grant = Grant.objects.create(
-                    access=access,
+                req.approve(
                     granted_by="automatic",
                     expires=date.today()
                     + dt.timedelta(

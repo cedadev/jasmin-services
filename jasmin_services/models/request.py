@@ -1,3 +1,4 @@
+import datetime as dt
 import inspect
 
 import django.db.models.signals
@@ -9,6 +10,7 @@ from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 
 from jasmin_metadata.models import HasMetadata
 
+from .. import errors
 from .grant import Grant
 
 
@@ -226,6 +228,20 @@ class Request(HasMetadata):
         ``True`` if the request is in the REJECTED state, ``False`` otherwise.
         """
         return self.state == RequestState.REJECTED
+
+    def approve(self, expires: dt.date, granted_by: str):
+        """Approve the request and turn it into a grant."""
+        if self.resulting_grant is not None:
+            raise errors.GrantAlreadyExistsError
+        self.state = RequestState.APPROVED
+        self.resulting_grant = Grant.objects.create(
+            access=self.access,
+            previous_grant=self.previous_grant,
+            granted_by=granted_by,
+            expires=expires,
+        )
+        self.copy_metadata_to(self.resulting_grant)
+        self.save()
 
     def clean(self):
         errors = {}
