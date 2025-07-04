@@ -124,7 +124,7 @@ class GrantAdmin(HasMetadataModelAdmin):
         response["Content-Disposition"] = f"filename={opts.verbose_name}.csv"
         writer = csv.writer(response)
         # This is the list of fields which will be exported.
-        export_fields = ["access", "active", "revoked", "expired", "expires", "granted_at"]
+        export_fields = ["id", "access", "active", "revoked", "expired", "expires", "granted_at"]
         fields = [field for field in opts.get_fields() if field.name in export_fields]
         # Write a first row with header information
         writer.writerow([field.name for field in fields])
