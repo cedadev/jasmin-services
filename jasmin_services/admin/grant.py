@@ -1,11 +1,12 @@
 import csv
 import datetime as dt
+import operator
 from urllib.parse import urlparse
 
-from django.contrib import admin
-from django.contrib.contenttypes.models import ContentType
 import django.db.models.fields.related
 import django.db.models.fields.reverse_related
+from django.contrib import admin
+from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import redirect, render
 from django.urls import Resolver404, re_path, resolve, reverse
 
@@ -124,15 +125,26 @@ class GrantAdmin(HasMetadataModelAdmin):
         response["Content-Disposition"] = f"filename={opts.verbose_name}.csv"
         writer = csv.writer(response)
         # This is the list of fields which will be exported.
-        export_fields = ["id", "access", "active", "revoked", "expired", "expires", "granted_at"]
-        fields = [field for field in opts.get_fields() if field.name in export_fields]
+        export_fields = [
+            "id",
+            "user.username",
+            "user.email",
+            "access.role.service.category.name",
+            "access.role.service.name",
+            "access.role.name",
+            "revoked",
+            "granted_at",
+            "expires",
+        ]
+        # fields = [field for field in opts.get_fields() if field.name in export_fields]
         # Write a first row with header information
-        writer.writerow([field.name for field in fields])
+        writer.writerow(export_fields)
         # Write data rows
         for obj in queryset:
             data_row = []
-            for field in fields:
-                value = getattr(obj, field.name)
+            for field in export_fields:
+                getter = operator.attrgetter(field)
+                value = getter(obj)
                 if isinstance(value, dt.datetime):
                     value = value.strftime("%d/%m/%Y")
                 data_row.append(value)
