@@ -1,7 +1,11 @@
+import csv
+import datetime as dt
 from urllib.parse import urlparse
 
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
+import django.db.models.fields.related
+import django.db.models.fields.reverse_related
 from django.shortcuts import redirect, render
 from django.urls import Resolver404, re_path, resolve, reverse
 
@@ -37,6 +41,7 @@ class GrantAdmin(HasMetadataModelAdmin):
         "synchronise_service_access",
         "send_expiry_notifications",
         "revoke_grants",
+        "export_to_csv",
     )
     list_select_related = (
         "access__role",
@@ -111,6 +116,29 @@ class GrantAdmin(HasMetadataModelAdmin):
         return obj.expired
 
     expired.boolean = True
+
+    def export_to_csv(self, request, queryset):
+        """Admin action to export the grant list to CSV."""
+        opts = self.model._meta
+        response = django.http.HttpResponse(content_type="text/plain")
+        response["Content-Disposition"] = f"filename={opts.verbose_name}.csv"
+        writer = csv.writer(response)
+        # This is the list of fields which will be exported.
+        export_fields = ["access", "active", "revoked", "expired", "expires", "granted_at"]
+        fields = [field for field in opts.get_fields() if field.name in export_fields]
+        # Write a first row with header information
+        writer.writerow([field.name for field in fields])
+        # Write data rows
+        for obj in queryset:
+            data_row = []
+            for field in fields:
+                value = getattr(obj, field.name)
+                if isinstance(value, dt.datetime):
+                    value = value.strftime("%d/%m/%Y")
+                data_row.append(value)
+            writer.writerow(data_row)
+
+        return response
 
     def get_referring_request(self, request):
         """
