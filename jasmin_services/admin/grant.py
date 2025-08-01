@@ -124,28 +124,29 @@ class GrantAdmin(HasMetadataModelAdmin):
         response = django.http.HttpResponse(content_type="text/plain")
         response["Content-Disposition"] = f"filename={opts.verbose_name}.csv"
         writer = csv.writer(response)
-        # This is the list of fields which will be exported.
-        export_fields = [
-            "id",
-            "user.username",
-            "user.email",
-            "access.role.service.category.name",
-            "access.role.service.name",
-            "access.role.name",
-            "revoked",
-            "granted_at",
-            "expires",
-        ]
+        # This is the dict of fields which will be exported (keys) with their shorter names (values).
+        export_fields = {
+            "id": "grant_id",
+            "user.username": "username",
+            "user.email": "email_address",
+            "access.role.service.category.long_name": "category",
+            "access.role.service.name": "service",
+            "access.role.name": "role",
+            "revoked": "revoked",
+            "granted_at": "date_granted",
+            "expires": "date_expires",
+        }
         # fields = [field for field in opts.get_fields() if field.name in export_fields]
         # Write a first row with header information
-        writer.writerow(export_fields)
+        writer.writerow(export_fields.values())
         # Write data rows
         for obj in queryset:
             data_row = []
-            for field in export_fields:
+            for field in export_fields.keys():
                 getter = operator.attrgetter(field)
                 value = getter(obj)
-                if isinstance(value, dt.datetime):
+                # granted_at is a datetime but expires is a date
+                if isinstance(value, (dt.datetime, dt.date)):
                     value = value.strftime("%d/%m/%Y")
                 data_row.append(value)
             writer.writerow(data_row)
