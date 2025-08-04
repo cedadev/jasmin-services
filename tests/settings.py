@@ -112,9 +112,7 @@ REST_FRAMEWORK = {
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "jasmin_django_utils.api.permissions.IsAdminUserOrTokenHasResourceScope"
-    ],
+    "DEFAULT_PERMISSION_CLASSES": ["oauth2_provider.contrib.rest_framework.TokenHasResourceScope"],
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.OrderingFilter",
@@ -137,5 +135,4 @@ SPECTACULAR_SETTINGS = {
     "AUTHENTICATION_WHITELIST": [
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
     ],
-    "PREPROCESSING_HOOKS": ["jasmin_django_utils.api.hooks.spectacular_hide_admin_auth"],
 }

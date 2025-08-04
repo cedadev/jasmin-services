@@ -7,7 +7,6 @@ import django.db.models as dj_models
 import django.utils.decorators
 import django.utils.timezone
 import drf_spectacular.utils
-import jasmin_django_utils.api.viewsets
 import rest_framework.decorators as rf_decorators
 import rest_framework.mixins as rf_mixins
 import rest_framework.response as rf_response
@@ -20,11 +19,14 @@ from . import filters, serializers
 @django.utils.decorators.method_decorator(
     django.contrib.auth.decorators.login_not_required, name="dispatch"
 )
-class ServicesViewSet(
-    jasmin_django_utils.api.viewsets.ActionSerializerMixin,
-    rf_viewsets.ReadOnlyModelViewSet,
-):
+class ServicesViewSet(rf_viewsets.ReadOnlyModelViewSet):
     """View and get details of a service."""
+
+    def get_serializer_class(self):
+        """Allow different actions for different serializers."""
+        if hasattr(self, "action_serializers"):
+            return self.action_serializers.get(self.action, self.serializer_class)
+        return super().get_serializer_class()
 
     queryset = models.Service.objects.all().prefetch_related("category")
     serializer_class = serializers.ServiceSerializer
@@ -246,11 +248,14 @@ class UserGrantsViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
 @django.utils.decorators.method_decorator(
     django.contrib.auth.decorators.login_not_required, name="dispatch"
 )
-class CategoriesViewSet(
-    jasmin_django_utils.api.viewsets.ActionSerializerMixin,
-    rf_viewsets.ReadOnlyModelViewSet,
-):
+class CategoriesViewSet(rf_viewsets.ReadOnlyModelViewSet):
     """Details of services categories."""
+
+    def get_serializer_class(self):
+        """Allow different actions for different serializers."""
+        if hasattr(self, "action_serializers"):
+            return self.action_serializers.get(self.action, self.serializer_class)
+        return super().get_serializer_class()
 
     queryset = models.Category.objects.prefetch_related("services")
     lookup_field = "name"
