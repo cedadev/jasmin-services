@@ -38,9 +38,15 @@ class AdminMetadataSearchTestCase(django.test.TestCase):
             description="A service for testing",
         )
 
+        # Create metadata form for role
+        self.metadata_form = jasmin_metadata.models.Form.objects.create(name="Test Role Form")
+
         # Create role
         self.role = jasmin_services.models.Role.objects.create(
-            service=self.service, name="test_role", description="Test role"
+            service=self.service,
+            name="test_role",
+            description="Test role",
+            metadata_form=self.metadata_form,
         )
 
         # Create access objects
