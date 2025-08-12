@@ -3,6 +3,7 @@
 import django.contrib.auth
 import django.test
 from django.contrib.contenttypes.models import ContentType
+from django.test import override_settings
 
 import jasmin_metadata.models
 import jasmin_services.models
@@ -10,6 +11,7 @@ from jasmin_services.admin.grant import GrantAdmin
 from jasmin_services.admin.request import RequestAdmin
 
 
+@override_settings(MULTIPLE_REQUESTS_ALLOWED=False)
 class AdminMetadataSearchTestCase(django.test.TestCase):
     """Test metadata search functionality in admin classes."""
 
