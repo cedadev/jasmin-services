@@ -3,10 +3,12 @@
 import django.contrib.auth
 import django.test
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import signals
 from django.test import override_settings
 
 import jasmin_metadata.models
 import jasmin_services.models
+from jasmin_services import notifications
 from jasmin_services.admin.grant import GrantAdmin
 from jasmin_services.admin.request import RequestAdmin
 
@@ -17,10 +19,21 @@ class AdminMetadataSearchTestCase(django.test.TestCase):
 
     def setUp(self):
         """Set up test data with metadata."""
-        # Create user
+        # These signals do not exist on the standard django user model.
+        signals.post_save.disconnect(
+            notifications.confirm_request, sender=jasmin_services.models.Request
+        )
+        signals.post_save.disconnect(
+            notifications.notify_approvers_created, sender=jasmin_services.models.Request
+        )
+
+        # Create users.
         User = django.contrib.auth.get_user_model()
         self.user1 = User.objects.create_user(
-            username="testuser1", email="testuser1@example.com", first_name="Test", last_name="User"
+            username="testuser1",
+            email="testuser1@example.com",
+            first_name="Test",
+            last_name="User",
         )
         self.user2 = User.objects.create_user(
             username="testuser2",
@@ -29,9 +42,11 @@ class AdminMetadataSearchTestCase(django.test.TestCase):
             last_name="Person",
         )
 
-        # Create category and service
+        # Create a service.
         self.category = jasmin_services.models.Category.objects.create(
-            name="test_cat", long_name="Test Category", position=1
+            name="test_cat",
+            long_name="Test Category",
+            position=1,
         )
         self.service = jasmin_services.models.Service.objects.create(
             category=self.category,
@@ -40,10 +55,8 @@ class AdminMetadataSearchTestCase(django.test.TestCase):
             description="A service for testing",
         )
 
-        # Create metadata form for role
+        # And associated role.
         self.metadata_form = jasmin_metadata.models.Form.objects.create(name="Test Role Form")
-
-        # Create role
         self.role = jasmin_services.models.Role.objects.create(
             service=self.service,
             name="test_role",
@@ -51,19 +64,15 @@ class AdminMetadataSearchTestCase(django.test.TestCase):
             metadata_form=self.metadata_form,
         )
 
-        # Create access objects
+        # Create grants
         self.access1 = jasmin_services.models.Access.objects.create(role=self.role, user=self.user1)
         self.access2 = jasmin_services.models.Access.objects.create(role=self.role, user=self.user2)
-
-        # Create grants
         self.grant1 = jasmin_services.models.Grant.objects.create(
             access=self.access1, granted_by="admin"
         )
         self.grant2 = jasmin_services.models.Grant.objects.create(
             access=self.access2, granted_by="admin"
         )
-
-        # Create requests
         self.request1 = jasmin_services.models.Request.objects.create(
             access=self.access1, requested_by="testuser1"
         )
@@ -71,7 +80,7 @@ class AdminMetadataSearchTestCase(django.test.TestCase):
             access=self.access2, requested_by="testuser2"
         )
 
-        # Create metadata for grants
+        # Create some fake metadata
         grant_ct = ContentType.objects.get_for_model(jasmin_services.models.Grant)
         jasmin_metadata.models.Metadatum.objects.create(
             content_type=grant_ct,
@@ -98,7 +107,6 @@ class AdminMetadataSearchTestCase(django.test.TestCase):
             value=500,
         )
 
-        # Create metadata for requests
         request_ct = ContentType.objects.get_for_model(jasmin_services.models.Request)
         jasmin_metadata.models.Metadatum.objects.create(
             content_type=request_ct,
@@ -122,9 +130,19 @@ class AdminMetadataSearchTestCase(django.test.TestCase):
             content_type=request_ct, object_id=self.request2.pk, key="urgency_level", value="High"
         )
 
-        # Initialize admin instances
         self.grant_admin = GrantAdmin(jasmin_services.models.Grant, None)
         self.request_admin = RequestAdmin(jasmin_services.models.Request, None)
+
+    def tearDown(self):
+        """Clean up after tests."""
+        # Reconnect signals.
+        signals.post_save.connect(
+            notifications.confirm_request, sender=jasmin_services.models.Request
+        )
+        signals.post_save.connect(
+            notifications.notify_approvers_created, sender=jasmin_services.models.Request
+        )
+        super().tearDown()
 
     def test_grant_admin_metadata_search_text(self):
         """Test searching grants by text metadata values."""
