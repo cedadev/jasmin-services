@@ -3,8 +3,6 @@ import datetime as dt
 import operator
 from urllib.parse import urlparse
 
-import django.db.models.fields.related
-import django.db.models.fields.reverse_related
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import redirect, render
@@ -85,9 +83,7 @@ class GrantAdmin(HasMetadataModelAdmin):
     send_expiry_notifications.short_description = "Send expiry notifications"
 
     def revoke_grants(self, request, queryset):
-        """
-        Admin action that revokes the selected grants.
-        """
+        """Admin action that revokes the selected grants."""
         selected = queryset.values_list("pk", flat=True)
         selected_ids = "_".join(str(pk) for pk in selected)
 
@@ -221,6 +217,30 @@ class GrantAdmin(HasMetadataModelAdmin):
             metadata = Metadatum.objects.filter(content_type=ctype, object_id=referring.pk)
             return {d.key: d.value for d in metadata.all()}
         return super().get_metadata_form_initial_data(request, obj)
+
+    def get_search_results(self, request, queryset, search_term):
+        """Override search to include metadata values."""
+        # Get the standard search results first
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+
+        if search_term:
+            grant_content_type = ContentType.objects.get_for_model(Grant)
+            metadata_objects = Metadatum.objects.filter(content_type=grant_content_type)
+
+            matching_ids = []
+            for metadata in metadata_objects:
+                # Convert pickled value to string and search
+                value_str = str(metadata.value) if metadata.value is not None else ""
+                if search_term.lower() in value_str.lower():
+                    matching_ids.append(metadata.object_id)
+
+            if matching_ids:
+                # Combine with existing queryset
+                metadata_queryset = self.model.objects.filter(pk__in=matching_ids)
+                queryset = queryset | metadata_queryset
+                use_distinct = True
+
+        return queryset, use_distinct
 
     def get_urls(self):
         return [

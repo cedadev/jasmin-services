@@ -1,13 +1,15 @@
 from django.contrib import admin
 from django.contrib.admin.utils import quote
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from jasmin_metadata.admin import HasMetadataModelAdmin
+from jasmin_metadata.models import Metadatum
 
 from ..actions import remind_pending
 from ..forms import AdminRequestForm
-from ..models import RequestState, Role
+from ..models import Request, RequestState, Role
 
 # Load the admin for behaviours which are turned on.
 from . import behaviour  # unimport:skip
@@ -119,3 +121,27 @@ class RequestAdmin(HasMetadataModelAdmin):
         initial = super().get_changeform_initial_data(request)
         initial["requested_by"] = request.user.username
         return initial
+
+    def get_search_results(self, request, queryset, search_term):
+        """Override search to include metadata values."""
+        # Get the standard search results first
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+
+        if search_term:
+            request_content_type = ContentType.objects.get_for_model(Request)
+            metadata_objects = Metadatum.objects.filter(content_type=request_content_type)
+
+            matching_ids = []
+            for metadata in metadata_objects:
+                # Convert pickled value to string and search
+                value_str = str(metadata.value) if metadata.value is not None else ""
+                if search_term.lower() in value_str.lower():
+                    matching_ids.append(metadata.object_id)
+
+            if matching_ids:
+                # Combine with existing queryset
+                metadata_queryset = self.model.objects.filter(pk__in=matching_ids)
+                queryset = queryset | metadata_queryset
+                use_distinct = True
+
+        return queryset, use_distinct
