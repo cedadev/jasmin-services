@@ -20,6 +20,11 @@ class RequestDecideView(
     model = models.Request
     form_class = forms.DecisionForm
 
+    # SingleObjectMixin adds the instance to the context using the name of the model.
+    # This causes it to overwrite the HTTPRequest object and sadness happens.
+    # We need to give it a different name.
+    context_object_name = "jasminrequest"
+
     PERMISSION = "jasmin_services.decide_request"
 
     def setup(self, request, *args, **kwargs):
