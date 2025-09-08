@@ -239,6 +239,7 @@ class Request(HasMetadata):
             previous_grant=self.previous_grant,
             granted_by=granted_by,
             expires=expires,
+            internal_comment=self.internal_comment,
         )
         self.copy_metadata_to(self.resulting_grant)
         self.save()
