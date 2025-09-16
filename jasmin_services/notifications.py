@@ -212,7 +212,11 @@ def account_suspended(sender, instance, created, **kwargs):
     the pending requests for that user.
     """
     if not instance.is_active:
-        for grant in Grant.objects.filter(access__user=instance, revoked=False).filter_active():
+        for grant in Grant.objects.filter(
+            access__user=instance,
+            revoked=False,
+            expires__gt=dt.date.today(),
+        ).filter_active():
             grant.revoked = True
             if re.match(r"train\d{3}", instance.username):
                 grant.user_reason = "Training account was torn down"
