@@ -92,6 +92,13 @@ categories_services_router.register(
     basename="category-services-roles",
 )
 
+# Access grants directly.
+primary_router.register(
+    "v1/grants",
+    apiviews.GrantsViewSet,
+    basename="grant",
+)
+
 
 # Combine all the nested routers into one.
 def get_nested_router_registry(nested_router):
