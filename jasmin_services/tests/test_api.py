@@ -519,3 +519,168 @@ class UserServicesTest(BaseTest):
             },
         ]
         self.assertListEqual(user_services_data, expected_user_services)
+
+
+class GrantsTest(BaseTest):
+    def test_grants_list(self):
+        """Test the grants list API endpoint."""
+        response = self.client.get(
+            "/api/v1/grants/", HTTP_AUTHORIZATION=f"Bearer {self.token.token}"
+        )
+        self.assertEqual(response.status_code, 200)
+        grants_list_data = response.json()
+        expected_grants_list = [
+            {
+                "id": self.manager_grant.id,
+                "service": {
+                    "id": self.service1.id,
+                    "url": "http://testserver/api/v1/categories/test_cat1/services/testservice1/",
+                    "category": {
+                        "id": self.category1.id,
+                        "url": "http://testserver/api/v1/categories/test_cat1/",
+                        "name": "test_cat1",
+                    },
+                    "name": "testservice1",
+                    "summary": "First test category",
+                    "hidden": True,
+                },
+                "role": {"id": 1, "name": "MANAGER"},
+                "user": {
+                    "id": self.user.id,
+                    "url": "http://testserver/api/v1/users/testuser/",
+                    "username": "testuser",
+                    "email": "testuser@example.com",
+                },
+                "granted_at": self.manager_grant.granted_at.astimezone(DJANGO_TZ).strftime(
+                    f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
+                ),
+                "expires": self.manager_grant.expires.strftime("%Y-%m-%d"),
+                "revoked": False,
+                "revoked_at": None,
+                "user_reason": "",
+            },
+            {
+                "id": self.deputy_grant.id,
+                "service": {
+                    "id": self.service2.id,
+                    "url": "http://testserver/api/v1/categories/test_cat2/services/testservice2/",
+                    "category": {
+                        "id": self.category2.id,
+                        "url": "http://testserver/api/v1/categories/test_cat2/",
+                        "name": "test_cat2",
+                    },
+                    "name": "testservice2",
+                    "summary": "Another test category",
+                    "hidden": True,
+                },
+                "role": {"id": 2, "name": "DEPUTY"},
+                "user": {
+                    "id": self.user.id,
+                    "url": "http://testserver/api/v1/users/testuser/",
+                    "username": "testuser",
+                    "email": "testuser@example.com",
+                },
+                "granted_at": self.deputy_grant.granted_at.astimezone(DJANGO_TZ).strftime(
+                    f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
+                ),
+                "expires": self.deputy_grant.expires.strftime("%Y-%m-%d"),
+                "revoked": False,
+                "revoked_at": None,
+                "user_reason": "",
+            },
+        ]
+        self.assertListEqual(grants_list_data, expected_grants_list)
+
+
+class CategoryGrantsTest(BaseTest):
+    def test_category_grants_list(self):
+        """Test the category grants list API endpoint."""
+        response = self.client.get(
+            "/api/v1/categories/test_cat1/grants/",
+            HTTP_AUTHORIZATION=f"Bearer {self.token.token}",
+        )
+        self.assertEqual(response.status_code, 200)
+        category_grants_data = response.json()
+        expected_category_grants = [
+            {
+                "id": self.manager_grant.id,
+                "service": {
+                    "id": self.service1.id,
+                    "url": "http://testserver/api/v1/categories/test_cat1/services/testservice1/",
+                    "category": {
+                        "id": self.category1.id,
+                        "url": "http://testserver/api/v1/categories/test_cat1/",
+                        "name": "test_cat1",
+                    },
+                    "name": "testservice1",
+                    "summary": "First test category",
+                    "hidden": True,
+                },
+                "role": {"id": 1, "name": "MANAGER"},
+                "user": {
+                    "id": self.user.id,
+                    "url": "http://testserver/api/v1/users/testuser/",
+                    "username": "testuser",
+                    "email": "testuser@example.com",
+                },
+                "granted_at": self.manager_grant.granted_at.astimezone(DJANGO_TZ).strftime(
+                    f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
+                ),
+                "expires": self.manager_grant.expires.strftime("%Y-%m-%d"),
+                "revoked": False,
+                "revoked_at": None,
+                "user_reason": "",
+            }
+        ]
+        self.assertListEqual(category_grants_data, expected_category_grants)
+
+    def test_category_grants_list_different_category(self):
+        """Test the category grants list API endpoint for a different category."""
+        response = self.client.get(
+            "/api/v1/categories/test_cat2/grants/",
+            HTTP_AUTHORIZATION=f"Bearer {self.token.token}",
+        )
+        self.assertEqual(response.status_code, 200)
+        category_grants_data = response.json()
+        expected_category_grants = [
+            {
+                "id": self.deputy_grant.id,
+                "service": {
+                    "id": self.service2.id,
+                    "url": "http://testserver/api/v1/categories/test_cat2/services/testservice2/",
+                    "category": {
+                        "id": self.category2.id,
+                        "url": "http://testserver/api/v1/categories/test_cat2/",
+                        "name": "test_cat2",
+                    },
+                    "name": "testservice2",
+                    "summary": "Another test category",
+                    "hidden": True,
+                },
+                "role": {"id": 2, "name": "DEPUTY"},
+                "user": {
+                    "id": self.user.id,
+                    "url": "http://testserver/api/v1/users/testuser/",
+                    "username": "testuser",
+                    "email": "testuser@example.com",
+                },
+                "granted_at": self.deputy_grant.granted_at.astimezone(DJANGO_TZ).strftime(
+                    f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
+                ),
+                "expires": self.deputy_grant.expires.strftime("%Y-%m-%d"),
+                "revoked": False,
+                "revoked_at": None,
+                "user_reason": "",
+            }
+        ]
+        self.assertListEqual(category_grants_data, expected_category_grants)
+
+    def test_category_grants_empty_for_nonexistent_category(self):
+        """Test that category grants returns empty list for nonexistent category."""
+        response = self.client.get(
+            "/api/v1/categories/nonexistent/grants/",
+            HTTP_AUTHORIZATION=f"Bearer {self.token.token}",
+        )
+        self.assertEqual(response.status_code, 200)
+        category_grants_data = response.json()
+        self.assertListEqual(category_grants_data, [])
