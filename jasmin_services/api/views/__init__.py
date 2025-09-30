@@ -1,5 +1,5 @@
 from .categories import CategoriesViewSet
-from .grants import GrantsViewSet, UserGrantsViewSet
+from .grants import GrantsNestedUnderCategoriesViewSet, GrantsViewSet, UserGrantsViewSet
 from .services import (
     RolesNestedUnderServicesViewSet,
     ServicesNestedUnderCategoriesViewSet,
@@ -15,4 +15,5 @@ __all__ = [
     "UserGrantsViewSet",
     "UserServicesViewSet",
     "GrantsViewSet",
+    "GrantsNestedUnderCategoriesViewSet",
 ]

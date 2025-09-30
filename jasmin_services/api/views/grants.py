@@ -21,7 +21,6 @@ class GrantsViewSet(rf_mixins.ListModelMixin, rf_viewsets.GenericViewSet):
 
     required_scopes = ["jasmin.services.userservices.all"]
     serializer_class = serializers.GrantSerializer
-    # filterset_class = filters.UserGrantsFilter
 
     def get_queryset(self):
         # If we are generating swagger definitions, return the correct
@@ -91,3 +90,47 @@ class UserGrantsViewSet(GrantsViewSet):
         )
 
         return queryset
+
+
+@drf_spectacular.utils.extend_schema_view(
+    list=drf_spectacular.utils.extend_schema(
+        parameters=[
+            drf_spectacular.utils.OpenApiParameter(
+                name="category_name",
+                type=str,
+                location=drf_spectacular.utils.OpenApiParameter.PATH,
+            ),
+        ],
+    ),
+    retrieve=drf_spectacular.utils.extend_schema(
+        parameters=[
+            drf_spectacular.utils.OpenApiParameter(
+                name="category_name",
+                type=str,
+                location=drf_spectacular.utils.OpenApiParameter.PATH,
+            ),
+        ]
+    ),
+)
+@django.utils.decorators.method_decorator(
+    django.contrib.auth.decorators.login_not_required, name="dispatch"
+)
+class GrantsNestedUnderCategoriesViewSet(GrantsViewSet):
+    """Viewset to allow grants to be nested under categories.
+
+    Same as GrantsViewset, but filter by category.
+    """
+
+    lookup_field = "name"
+    required_scopes = ["jasmin.services.userservices.all"]
+    # filterset_fields = ["name"]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # If we are generating swagger definitions, return the correct
+        # queryset to allow types to be infered without error.
+        if getattr(self, "swagger_fake_view", False):
+            return queryset.none()
+
+        return queryset.filter(access__role__service__category__name=self.kwargs["category_name"])
