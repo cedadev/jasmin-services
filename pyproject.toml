@@ -44,7 +44,7 @@ jasmin-ldap = ["jasmin-ldap-django", "jasmin-ldap"]
 
 [tool.poetry.group.dev.dependencies]
 tox = "^4.4.12"
-pytest = "^8.0.0"
+pytest = "^9.0.0"
 black = "^25.1.0"
 isort = "^6.0.1"
 mypy = "^1.2.0"
