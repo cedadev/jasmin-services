@@ -28,7 +28,7 @@ django-countries = "^8.0.1"
 djangorestframework = {version = "^3.13.1", optional = true}
 django-filter = {version = "^25.1", optional = true}
 drf-spectacular = {version=">=0.28.0,<1", optional = true}
-drf-spectacular-sidecar = {version="^2025.1.1", optional = true}
+drf-spectacular-sidecar = {version="^2026.1.1", optional = true}
 django-picklefield = "^3.1"
 httpx = "^0.28.1"
 
