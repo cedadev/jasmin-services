@@ -1,11 +1,15 @@
 """Serializers for the jasmin_services api."""
 
+import logging
+
 import django.contrib.auth
 import django_countries.serializers
 import rest_framework.serializers as rf_serial
 import rest_framework_nested.serializers
 
 from .. import models
+
+logger = logging.getLogger()
 
 
 class ServiceUserSerializer(rf_serial.HyperlinkedModelSerializer):
@@ -48,12 +52,25 @@ class RoleListSerializer(rf_serial.ModelSerializer):
         fields = ["id", "name", "user_count", "ldap_groups"]
 
     @staticmethod
-    def get_ldap_groups(obj) -> LdapGroupSerializer(many=True):
+    def _to_group(obj):
+        """Convert behaviours to LDAP Group Objects."""
+        if isinstance(obj, models.behaviours.LdapGroupBehaviour):
+            try:
+                group = obj.get_ldap_group()
+            except django.core.exceptions.ObjectDoesNotExist:
+                logger.error(
+                    "A LDAP group behaviour exists for %s : %s, but it does not exist in LDAP.",
+                    obj.ldap_model,
+                    obj.group_name,
+                )
+            else:
+                return group
+        return None
+
+    def get_ldap_groups(self, obj) -> LdapGroupSerializer(many=True):
         """Return a list of LDAP groups for the role."""
         groups = [
-            x.get_ldap_group()
-            for x in obj.behaviours.all()
-            if isinstance(x, models.behaviours.LdapGroupBehaviour)
+            group for behaviour in obj.behaviours.all() if (group := self._to_group(behaviour))
         ]
         return LdapGroupSerializer(groups, many=True).data
 
