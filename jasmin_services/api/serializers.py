@@ -27,24 +27,43 @@ class AccessSerializer(rf_serial.ModelSerializer):
         fields = ["id", "user"]
 
 
+class LdapGroupSerializer(rf_serial.Serializer):
+    cn = rf_serial.CharField(source="name")
+    dn = rf_serial.SerializerMethodField()
+    gidNumber = rf_serial.IntegerField()
+
+    @staticmethod
+    def get_dn(obj) -> str:
+        return (f"cn={obj.name},{obj.base_dn}",)
+
+
 class RoleListSerializer(rf_serial.ModelSerializer):
     """Basic list of roles."""
 
     user_count = rf_serial.IntegerField(read_only=True)
+    ldap_groups = rf_serial.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Role
-        fields = ["id", "name", "user_count"]
+        fields = ["id", "name", "user_count", "ldap_groups"]
+
+    @staticmethod
+    def get_ldap_groups(obj) -> LdapGroupSerializer(many=True):
+        """Return a list of LDAP groups for the role."""
+        groups = [
+            x for x in obj.behaviours.all() if isinstance(x, models.behaviours.LdapGroupBehaviour)
+        ]
+        return LdapGroupSerializer(groups, many=True).data
 
 
-class RoleSerializer(rf_serial.ModelSerializer):
+class RoleSerializer(RoleListSerializer):
     """Detail of role with holders."""
 
     accesses = AccessSerializer(many=True)
 
     class Meta:
         model = models.Role
-        fields = ["id", "name", "accesses"]
+        fields = ["id", "name", "accesses", "user_count", "ldap_groups"]
 
 
 class CategoryListSerializer(rf_serial.HyperlinkedModelSerializer):
