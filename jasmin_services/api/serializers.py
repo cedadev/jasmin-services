@@ -38,7 +38,8 @@ class LdapGroupSerializer(rf_serial.Serializer):
 
     @staticmethod
     def get_dn(obj) -> str:
-        return (f"cn={obj.name},{obj.base_dn}",)
+        """Build the dn from the name and the base."""
+        return f"cn={obj.name},{obj.base_dn}"
 
 
 class RoleListSerializer(rf_serial.ModelSerializer):
