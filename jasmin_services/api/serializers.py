@@ -51,7 +51,9 @@ class RoleListSerializer(rf_serial.ModelSerializer):
     def get_ldap_groups(obj) -> LdapGroupSerializer(many=True):
         """Return a list of LDAP groups for the role."""
         groups = [
-            x for x in obj.behaviours.all() if isinstance(x, models.behaviours.LdapGroupBehaviour)
+            x.get_ldap_group()
+            for x in obj.behaviours.all()
+            if isinstance(x, models.behaviours.LdapGroupBehaviour)
         ]
         return LdapGroupSerializer(groups, many=True).data
 
