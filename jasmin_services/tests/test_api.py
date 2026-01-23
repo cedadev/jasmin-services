@@ -148,7 +148,7 @@ class ServiceGoodScopeTest(BaseTest):
                 "url": "http://testserver/api/v1/categories/test_cat1/",
                 "name": "test_cat1",
             },
-            "roles": [{"id": 1, "name": "MANAGER"}],
+            "roles": [{"id": 1, "name": "MANAGER", "ldap_groups": []}],
             "summary": "First test category",
             "description": "This should be a long description.",
             "approver_message": "",
@@ -184,7 +184,7 @@ class UserGrantsTest(BaseTest):
                     "summary": "First test category",
                     "hidden": True,
                 },
-                "role": {"id": 1, "name": "MANAGER"},
+                "role": {"id": 1, "name": "MANAGER", "ldap_groups": []},
                 "granted_at": self.manager_grant.granted_at.astimezone(DJANGO_TZ).strftime(
                     f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
                 ),
@@ -207,7 +207,7 @@ class UserGrantsTest(BaseTest):
                     "summary": "Another test category",
                     "hidden": True,
                 },
-                "role": {"id": 2, "name": "DEPUTY"},
+                "role": {"id": 2, "name": "DEPUTY", "ldap_groups": []},
                 "granted_at": self.deputy_grant.granted_at.astimezone(DJANGO_TZ).strftime(
                     f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
                 ),
@@ -242,7 +242,7 @@ class UserGrantsTest(BaseTest):
                     "summary": "First test category",
                     "hidden": True,
                 },
-                "role": {"id": 1, "name": "MANAGER"},
+                "role": {"id": 1, "name": "MANAGER", "ldap_groups": []},
                 "granted_at": self.manager_grant.granted_at.astimezone(DJANGO_TZ).strftime(
                     f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
                 ),
@@ -277,7 +277,7 @@ class UserGrantsTest(BaseTest):
                     "summary": "Another test category",
                     "hidden": True,
                 },
-                "role": {"id": 2, "name": "DEPUTY"},
+                "role": {"id": 2, "name": "DEPUTY", "ldap_groups": []},
                 "granted_at": self.deputy_grant.granted_at.astimezone(DJANGO_TZ).strftime(
                     f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
                 ),
@@ -312,7 +312,7 @@ class UserGrantsTest(BaseTest):
                     "summary": "First test category",
                     "hidden": True,
                 },
-                "role": {"id": 1, "name": "MANAGER"},
+                "role": {"id": 1, "name": "MANAGER", "ldap_groups": []},
                 "granted_at": self.manager_grant.granted_at.astimezone(DJANGO_TZ).strftime(
                     f"%Y-%m-%dT%H:%M:%S.%f{utc_offset}"
                 ),
@@ -415,7 +415,7 @@ class NestedServicesTest(BaseTest):
                 "url": "http://testserver/api/v1/categories/test_cat1/",
                 "name": "test_cat1",
             },
-            "roles": [{"id": 1, "name": "MANAGER"}],
+            "roles": [{"id": 1, "name": "MANAGER", "ldap_groups": []}],
             "summary": "First test category",
             "description": "This should be a long description.",
             "approver_message": "",
@@ -440,6 +440,7 @@ class RolesTest(BaseTest):
             {
                 "id": 1,
                 "name": "MANAGER",
+                "ldap_groups": [],
                 "accesses": [
                     {
                         "id": 1,
@@ -467,6 +468,7 @@ class RolesTest(BaseTest):
             {
                 "id": 1,
                 "name": "MANAGER",
+                "ldap_groups": [],
                 "accesses": [
                     {
                         "id": 1,
@@ -544,7 +546,7 @@ class GrantsTest(BaseTest):
                     "summary": "First test category",
                     "hidden": True,
                 },
-                "role": {"id": 1, "name": "MANAGER"},
+                "role": {"id": 1, "name": "MANAGER", "ldap_groups": []},
                 "user": {
                     "id": self.user.id,
                     "url": "http://testserver/api/v1/users/testuser/",
@@ -573,7 +575,7 @@ class GrantsTest(BaseTest):
                     "summary": "Another test category",
                     "hidden": True,
                 },
-                "role": {"id": 2, "name": "DEPUTY"},
+                "role": {"id": 2, "name": "DEPUTY", "ldap_groups": []},
                 "user": {
                     "id": self.user.id,
                     "url": "http://testserver/api/v1/users/testuser/",
@@ -616,7 +618,7 @@ class CategoryGrantsTest(BaseTest):
                     "summary": "First test category",
                     "hidden": True,
                 },
-                "role": {"id": 1, "name": "MANAGER"},
+                "role": {"id": 1, "name": "MANAGER", "ldap_groups": []},
                 "user": {
                     "id": self.user.id,
                     "url": "http://testserver/api/v1/users/testuser/",
@@ -657,7 +659,7 @@ class CategoryGrantsTest(BaseTest):
                     "summary": "Another test category",
                     "hidden": True,
                 },
-                "role": {"id": 2, "name": "DEPUTY"},
+                "role": {"id": 2, "name": "DEPUTY", "ldap_groups": []},
                 "user": {
                     "id": self.user.id,
                     "url": "http://testserver/api/v1/users/testuser/",
