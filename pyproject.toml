@@ -14,7 +14,7 @@ packages = [
 python = "^3.11"
 
 # Dependencies of dependencies. Need to specify here so poetry knows where to get them from.
-jasmin-ldap = {git = "https://github.com/cedadev/jasmin-ldap.git", tag = "v1.0.2", optional=true}
+jasmin-ldap = {git = "https://github.com/cedadev/jasmin-ldap.git", tag = "v1.0.3", optional=true}
 
 # CEDA dependencies.
 jasmin-notifications = {git = "https://github.com/cedadev/jasmin-notifications.git", rev = "249a562d67fe866d6b6f2387c7af42fb00f2df73"}
