@@ -3,6 +3,7 @@ import datetime as dt
 import operator
 from urllib.parse import urlparse
 
+import django.http
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import redirect, render
@@ -231,13 +232,19 @@ class GrantAdmin(HasMetadataModelAdmin):
             for metadata in metadata_objects:
                 # Convert pickled value to string and search
                 value_str = str(metadata.value) if metadata.value is not None else ""
-                if search_term.lower() in value_str.lower():
+
+                # Ignore case when searching (.lower())
+                # Ignore spaces when searching (.replace(" ", ""))
+                clean_search_term = search_term.lower().replace(" ", "")
+                clean_value_term = value_str.lower().replace(" ", "")
+
+                if clean_search_term in clean_value_term:
                     matching_ids.append(metadata.object_id)
 
             if matching_ids:
                 # Combine with existing queryset
                 metadata_queryset = self.model.objects.filter(pk__in=matching_ids)
-                queryset = queryset | metadata_queryset
+                queryset = queryset & metadata_queryset
                 use_distinct = True
 
         return queryset, use_distinct
