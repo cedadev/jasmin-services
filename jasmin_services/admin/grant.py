@@ -222,7 +222,9 @@ class GrantAdmin(HasMetadataModelAdmin):
     def get_search_results(self, request, queryset, search_term):
         """Override search to include metadata values."""
         # Get the standard search results first
-        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        grantsearch_queryset, use_distinct = super().get_search_results(
+            request, queryset, search_term
+        )
 
         if search_term:
             grant_content_type = ContentType.objects.get_for_model(Grant)
@@ -244,10 +246,14 @@ class GrantAdmin(HasMetadataModelAdmin):
             if matching_ids:
                 # Combine with existing queryset
                 metadata_queryset = self.model.objects.filter(pk__in=matching_ids)
-                queryset = queryset & metadata_queryset
+                result_queryset = grantsearch_queryset | (queryset & metadata_queryset)
                 use_distinct = True
+            else:
+                result_queryset = grantsearch_queryset
+        else:
+            result_queryset = grantsearch_queryset
 
-        return queryset, use_distinct
+        return result_queryset, use_distinct
 
     def get_urls(self):
         return [
