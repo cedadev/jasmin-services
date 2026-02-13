@@ -30,9 +30,11 @@ class AccessSerializer(rf_serial.ModelSerializer):
 class RoleListSerializer(rf_serial.ModelSerializer):
     """Basic list of roles."""
 
+    user_count = rf_serial.IntegerField(read_only=True)
+
     class Meta:
         model = models.Role
-        fields = ["id", "name"]
+        fields = ["id", "name", "user_count"]
 
 
 class RoleSerializer(rf_serial.ModelSerializer):
@@ -133,6 +135,28 @@ class UserGrantSerializer(rf_serial.ModelSerializer):
             "id",
             "service",
             "role",
+            "granted_at",
+            "expires",
+            "revoked",
+            "revoked_at",
+            "user_reason",
+        ]
+
+
+class GrantSerializer(rf_serial.ModelSerializer):
+    """Simple details about a grant."""
+
+    service = ServiceListSerializer(source="access.role.service", read_only=True)
+    role = RoleListSerializer(source="access.role", read_only=True)
+    user = ServiceUserSerializer(source="access.user", read_only=True)
+
+    class Meta:
+        model = models.Grant
+        fields = [
+            "id",
+            "service",
+            "role",
+            "user",
             "granted_at",
             "expires",
             "revoked",

@@ -107,6 +107,8 @@ JASMIN_SERVICES = {
     "LDAP_GROUPS": [],
 }
 
+MULTIPLE_REQUESTS_ALLOWED = False
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",

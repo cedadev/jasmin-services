@@ -80,6 +80,11 @@ categories_router.register(
     apiviews.ServicesNestedUnderCategoriesViewSet,
     basename="category-services",
 )
+categories_router.register(
+    "grants",
+    apiviews.GrantsNestedUnderCategoriesViewSet,
+    basename="category-grants",
+)
 # Create a nested router for accessing roles under categories under services..
 categories_services_router = rest_framework_nested.routers.NestedDefaultRouter(
     parent_router=categories_router,
@@ -90,6 +95,13 @@ categories_services_router.register(
     "roles",
     apiviews.RolesNestedUnderServicesViewSet,
     basename="category-services-roles",
+)
+
+# Access grants directly.
+primary_router.register(
+    "v1/grants",
+    apiviews.GrantsViewSet,
+    basename="grant",
 )
 
 

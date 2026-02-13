@@ -283,6 +283,7 @@ def admin_message_form_factory(service):
     )
 
 
+# When moving this out of a custom form, we should tidy with fieldsets, e.g. hide revoked_at when revoked is False
 class AdminGrantForm(forms.ModelForm):
     class Meta:
         model = Grant
@@ -297,6 +298,7 @@ class AdminGrantForm(forms.ModelForm):
             "revoked_at",
             "user_reason",
             "internal_reason",
+            "internal_comment",
         )
         widgets = {"access": forms.HiddenInput()}
 
@@ -380,6 +382,9 @@ class AdminRequestForm(forms.ModelForm):
             "previous_grant",
             "previous_request",
             "incomplete",
+            "internal_comment",
+            "user_reason",
+            "internal_reason",
         )
         widgets = {"access": forms.HiddenInput()}
 

@@ -212,7 +212,11 @@ def account_suspended(sender, instance, created, **kwargs):
     the pending requests for that user.
     """
     if not instance.is_active:
-        for grant in Grant.objects.filter(access__user=instance, revoked=False).filter_active():
+        for grant in Grant.objects.filter(
+            access__user=instance,
+            revoked=False,
+            expires__gt=dt.date.today(),
+        ).filter_active():
             grant.revoked = True
             if re.match(r"train\d{3}", instance.username):
                 grant.user_reason = "Training account was torn down"
@@ -241,13 +245,13 @@ def account_reactivated(sender, instance, created, **kwargs):
             user_reason="Account was suspended",
             access__role__service__disabled=False,
         ).filter_active():
-            # Re-instate revoked grants if not expired else create new grant with
-            # one month till expiry.
+            # Re-instate revoked grants if not expired, or create new grant with one
+            # month till expiry if expired within the last two years.
             if grant.expires > date.today():
                 grant.user_reason = ""
                 grant.revoked = False
                 grant.save()
-            else:
+            elif grant.expires >= date.today() - dt.timedelta(days=730):
                 access, _ = Access.objects.get_or_create(
                     user=instance,
                     role=grant.access.role,

@@ -85,7 +85,7 @@ class Role(models.Model):
     auto_accept = models.BooleanField(
         default=False,
         help_text="Auto accepts all requested access giving users with a 1 "
-        "year experation date ",
+        "year expiration date.",
     )
     #: Determines the order that the roles appear when listed.
     position = models.PositiveIntegerField(

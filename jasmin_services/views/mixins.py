@@ -17,7 +17,7 @@ class WithServiceMixin:
 
     @staticmethod
     def get_service(category_name: str, service_name: str) -> models.Service:
-        """Get a service from it's category and name."""
+        """Get a service from its category and name."""
         try:
             service = models.Service.objects.get(name=service_name, category__name=category_name)
         except models.Service.DoesNotExist as err:
