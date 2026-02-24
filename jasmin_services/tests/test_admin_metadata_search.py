@@ -190,6 +190,20 @@ class AdminMetadataSearchTestCase(django.test.TestCase):
         self.assertTrue(use_distinct)
         self.assertIn(self.grant1, results)
 
+    def test_grant_admin_metadata_search_whitespace(self):
+        """Test that metadata search ignores whitespace."""
+        queryset = jasmin_services.models.Grant.objects.all()
+
+        # Search for " Climate" should find grant1
+        results, use_distinct = self.grant_admin.get_search_results(None, queryset, " Climate")
+        self.assertTrue(use_distinct)
+        self.assertIn(self.grant1, results)
+
+        # Search for " Oxford" should find grant1
+        results, use_distinct = self.grant_admin.get_search_results(None, queryset, " Oxford")
+        self.assertTrue(use_distinct)
+        self.assertIn(self.grant1, results)
+
     def test_request_admin_metadata_search_text(self):
         """Test searching requests by text metadata values."""
         queryset = jasmin_services.models.Request.objects.all()
@@ -220,6 +234,16 @@ class AdminMetadataSearchTestCase(django.test.TestCase):
 
         # Search for "HIGH" (uppercase) should find request2
         results, use_distinct = self.request_admin.get_search_results(None, queryset, "HIGH")
+        self.assertTrue(use_distinct)
+        self.assertNotIn(self.request1, results)
+        self.assertIn(self.request2, results)
+
+    def test_request_admin_metadata_search_whitespace(self):
+        """Test that request metadata search ignores whitespace."""
+        queryset = jasmin_services.models.Request.objects.all()
+
+        # Search for " Marine" should find request2
+        results, use_distinct = self.request_admin.get_search_results(None, queryset, " Marine")
         self.assertTrue(use_distinct)
         self.assertNotIn(self.request1, results)
         self.assertIn(self.request2, results)
