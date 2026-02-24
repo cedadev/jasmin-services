@@ -167,7 +167,7 @@ class GrantAdmin(HasMetadataModelAdmin):
             match = resolve(urlparse(referrer).path)
             if match.url_name == req_change_url_name:
                 return Request.objects.get(pk=match.args[0])
-        except (ValueError, Resolver404, Request.DoesNotExist):
+        except ValueError, Resolver404, Request.DoesNotExist:
             # These are expected errors
             return None
 
