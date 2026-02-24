@@ -129,6 +129,7 @@ class RequestAdmin(HasMetadataModelAdmin):
             request, queryset, search_term
         )
 
+        # Then check if we need to look at the metadata
         if search_term:
             request_content_type = ContentType.objects.get_for_model(Request)
             metadata_objects = Metadatum.objects.filter(content_type=request_content_type)
@@ -149,11 +150,14 @@ class RequestAdmin(HasMetadataModelAdmin):
             if matching_ids:
                 # Combine with existing queryset
                 metadata_queryset = self.model.objects.filter(pk__in=matching_ids)
+                
+                # Only include matching metadata grants if they would also be matched by the selected filters (queryset)
                 result_queryset = requestsearch_queryset | (queryset & metadata_queryset)
                 use_distinct = True
             else:
                 result_queryset = requestsearch_queryset
         else:
+            # Return unchanged queryset if no search term
             result_queryset = requestsearch_queryset
 
         return result_queryset, use_distinct
