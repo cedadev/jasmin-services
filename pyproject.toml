@@ -11,7 +11,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.14"
 
 # Dependencies of dependencies. Need to specify here so poetry knows where to get them from.
 jasmin-ldap = {git = "https://github.com/cedadev/jasmin-ldap.git", tag = "v1.0.2", optional=true}
@@ -61,7 +61,7 @@ tblib = "^3.0.0"
 
 [tool.black]
 line-length = 100
-target-version = ['py311', 'py312', 'py313']
+target-version = ['py314']
 
 [tool.isort]
 profile = "black"
