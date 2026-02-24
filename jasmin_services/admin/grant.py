@@ -247,7 +247,7 @@ class GrantAdmin(HasMetadataModelAdmin):
             if matching_ids:
                 # Combine with existing queryset
                 metadata_queryset = self.model.objects.filter(pk__in=matching_ids)
-                
+
                 # Only include matching metadata grants if they would also be matched by the selected filters (queryset)
                 result_queryset = grantsearch_queryset | (queryset & metadata_queryset)
                 use_distinct = True
