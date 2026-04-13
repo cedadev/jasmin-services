@@ -107,6 +107,8 @@ JASMIN_SERVICES = {
     "LDAP_GROUPS": [],
 }
 
+SUPPORT_EMAIL = "support@example.com"
+
 MULTIPLE_REQUESTS_ALLOWED = False
 
 REST_FRAMEWORK = {
