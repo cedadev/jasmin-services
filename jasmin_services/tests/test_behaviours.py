@@ -54,6 +54,13 @@ class JoinJISCMailListBehaviourTest(BehaviourTestBase):
         self.behaviour = JoinJISCMailListBehaviour.objects.create(list_name="TEST-LIST")
         self.role.behaviours.add(self.behaviour)
 
+    def test_apply_subscribes_user_with_none_user_type(self):
+        """user.user_type = None → None is not in the skip list → user is subscribed."""
+        self.user.user_type = None
+        self.behaviour.apply(self.user, self.role)
+        self.assertEqual(len(django.core.mail.outbox), 1)
+        self.assertTrue(self.behaviour.joined_users.filter(pk=self.user.pk).exists())
+
     def test_apply_raises_attribute_error_without_user_type(self):
         """apply() accesses user.user_type, which doesn't exist on Django's default User model."""
         with self.assertRaises(AttributeError):
@@ -448,3 +455,190 @@ class RoleDisableTest(BehaviourTestBase):
         self.role.disable(self.user)
         self.assertEqual(self.mock_account.tags, ["role-disable-tag"])
         self.mock_account.save.assert_not_called()
+
+
+class GrantSyncAccessTest(BehaviourTestBase):
+    def setUp(self):
+        super().setUp()
+        self.behaviour = LdapTagBehaviour.objects.create(tag="sync-tag")
+        self.role.behaviours.add(self.behaviour)
+        self.mock_account = mock.MagicMock()
+        self.mock_account.tags = []
+        self.user.account = self.mock_account
+
+    def test_creating_active_grant_calls_enable(self):
+        """Creating an active grant fires grant_sync_access → enable() → apply() → tag added."""
+        jasmin_services.models.Grant.objects.create(
+            access=self.access,
+            granted_by="admin",
+            revoked=False,
+            expires=dt.date.today() + dt.timedelta(days=365),
+        )
+        self.assertEqual(self.mock_account.tags, ["sync-tag"])
+        self.mock_account.save.assert_called_once()
+
+    def test_creating_revoked_grant_calls_disable(self):
+        """Creating a revoked grant fires grant_sync_access → disable() → unapply() → tag removed."""
+        self.mock_account.tags = ["sync-tag"]
+        jasmin_services.models.Grant.objects.create(
+            access=self.access,
+            granted_by="admin",
+            revoked=True,
+            expires=dt.date.today() + dt.timedelta(days=365),
+        )
+        self.assertEqual(self.mock_account.tags, [])
+        self.mock_account.save.assert_called_once()
+
+    def test_creating_expired_grant_calls_disable(self):
+        """Creating an expired grant fires grant_sync_access → disable() → unapply() → tag removed."""
+        self.mock_account.tags = ["sync-tag"]
+        yesterday = dt.date.today() - dt.timedelta(days=1)
+        jasmin_services.models.Grant.objects.create(
+            access=self.access,
+            granted_by="admin",
+            revoked=False,
+            expires=yesterday,
+        )
+        self.assertEqual(self.mock_account.tags, [])
+        self.mock_account.save.assert_called_once()
+
+    def test_saving_inactive_grant_does_not_call_enable_or_disable(self):
+        """Saving an inactive grant (one with a next_grant) does not trigger enable() or disable()."""
+        grant_1 = jasmin_services.models.Grant.objects.create(
+            access=self.access,
+            granted_by="admin",
+            revoked=False,
+            expires=dt.date.today() + dt.timedelta(days=365),
+        )
+        jasmin_services.models.Grant.objects.create(
+            access=self.access,
+            granted_by="admin",
+            revoked=False,
+            expires=dt.date.today() + dt.timedelta(days=365),
+            previous_grant=grant_1,
+        )
+        self.mock_account.reset_mock()
+        self.mock_account.tags = ["sync-tag"]
+
+        grant_1 = jasmin_services.models.Grant.objects.get(pk=grant_1.pk)
+        grant_1.save()
+
+        self.assertEqual(self.mock_account.tags, ["sync-tag"])
+        self.mock_account.save.assert_not_called()
+
+
+class GrantRevokedAtTest(BehaviourTestBase):
+    def test_revoked_at_set_when_grant_revoked(self):
+        """revoked_at is None on creation and is populated when the grant is revoked."""
+        grant = jasmin_services.models.Grant.objects.create(
+            access=self.access,
+            granted_by="admin",
+        )
+        self.assertIsNone(grant.revoked_at)
+        grant.revoked = True
+        grant.save()
+        grant.refresh_from_db()
+        self.assertIsNotNone(grant.revoked_at)
+
+    def test_revoked_at_cleared_when_grant_unrevoked(self):
+        """revoked_at is cleared when a revoked grant is un-revoked."""
+        grant = jasmin_services.models.Grant.objects.create(
+            access=self.access,
+            granted_by="admin",
+            revoked=True,
+        )
+        grant.refresh_from_db()
+        self.assertIsNotNone(grant.revoked_at)
+        grant.revoked = False
+        grant.save()
+        grant.refresh_from_db()
+        self.assertIsNone(grant.revoked_at)
+
+    def test_revoked_at_not_updated_on_repeated_save(self):
+        """revoked_at is not changed on a subsequent save when already revoked."""
+        grant = jasmin_services.models.Grant.objects.create(
+            access=self.access,
+            granted_by="admin",
+            revoked=True,
+        )
+        # pre_save sets revoked_at in-place before the INSERT; no refresh needed
+        first_revoked_at = grant.revoked_at
+        self.assertIsNotNone(first_revoked_at)
+        grant.save()
+        grant.refresh_from_db()
+        self.assertEqual(grant.revoked_at, first_revoked_at)
+
+
+@django.test.override_settings(
+    JASMIN_SERVICES={
+        "DEFAULT_EXPIRY_DELTA": dt.timedelta(days=365 * 3),
+        "NOTIFY_EXPIRE_DELTAS": [],
+        "JISCMAIL_TO_ADDRS": ["test@example.com"],
+        "DEFAULT_METADATA_FORM": 1,
+        "LDAP_GROUPS": [],
+        "KEYCLOAK": {
+            "SERVER_URL": "http://test-keycloak",
+            "REALM_NAME": "test-realm",
+            "USERNAME": "admin",
+            "PASSWORD": "password",
+        },
+    }
+)
+class RoleDisableMixedBehavioursTest(BehaviourTestBase):
+    def setUp(self):
+        super().setUp()
+        patcher = mock.patch("keycloak.KeycloakAdmin")
+        self.mock_keycloak_admin_class = patcher.start()
+        self.addCleanup(patcher.stop)
+
+        self.ldap_behaviour = LdapTagBehaviour.objects.create(tag="mixed-tag")
+        self.keycloak_behaviour = KeycloakAttributeBehaviour.objects.create()
+        self.role.behaviours.add(self.ldap_behaviour)
+        self.role.behaviours.add(self.keycloak_behaviour)
+
+        self.mock_account = mock.MagicMock()
+        self.mock_account.tags = ["mixed-tag"]
+        self.user.account = self.mock_account
+
+    def test_disable_applies_correct_filter_per_behaviour(self):
+        """disable() uses each behaviour's own active_grant_filter() independently.
+
+        LdapTagBehaviour uses a cross-role filter: a grant on service_b protects the tag.
+        KeycloakAttributeBehaviour uses a service-scoped filter: a grant on service_b
+        does not protect self.service, so unapply() is called for Keycloak.
+        """
+        service_b = jasmin_services.models.Service.objects.create(
+            category=self.category,
+            name="service_b",
+            summary="Service B",
+            description="Service B description",
+        )
+        role_b = jasmin_services.models.Role.objects.create(
+            service=service_b,
+            name="role_b",
+            metadata_form=self.metadata_form,
+        )
+        role_b.behaviours.add(self.ldap_behaviour)
+        role_b.behaviours.add(self.keycloak_behaviour)
+        access_b = jasmin_services.models.Access.objects.create(user=self.user, role=role_b)
+        jasmin_services.models.Grant.objects.create(
+            access=access_b,
+            granted_by="admin",
+            revoked=False,
+            expires=dt.date.today() + dt.timedelta(days=365),
+        )
+
+        mock_admin = self.mock_keycloak_admin_class.return_value
+        mock_admin.reset_mock()
+        mock_admin.get_group_by_path.return_value = {"id": "group-uuid"}
+        mock_admin.get_user_id.return_value = "user-uuid"
+        self.mock_account.reset_mock()
+        self.mock_account.tags = ["mixed-tag"]
+
+        self.role.disable(self.user)
+
+        # LDAP: cross-role filter finds the active grant on role_b → unapply skipped
+        self.assertEqual(self.mock_account.tags, ["mixed-tag"])
+        self.mock_account.save.assert_not_called()
+        # Keycloak: service-scoped filter finds no active grant on self.service → unapply called
+        mock_admin.group_user_remove.assert_called_once_with("user-uuid", "group-uuid")
