@@ -210,6 +210,7 @@ class Role(models.Model):
 
             grants = Grant.objects.filter(
                 access__role__behaviours=behaviour,
+                access__role__service__name=self.service.name,
                 access__user=user,
                 revoked=False,
                 expires__gte=date.today(),
