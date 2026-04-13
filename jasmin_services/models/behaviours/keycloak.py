@@ -27,6 +27,14 @@ class KeycloakAttributeBehaviour(Behaviour):
             verify=settings.get("VERIFY", True),
         )
 
+    def active_grant_filter(self, role):
+        """Scope the active grant check to the service being disabled.
+
+        Because unapply() removes the user from a Keycloak group named after the service,
+        a grant on a different service sharing this behaviour should not prevent unapply.
+        """
+        return {"access__role__service": role.service}
+
     def apply(self, user, role):
         """Add the user to the specified keycloak groups."""
         logger.info("Applying keycloak group %s to user %s.", role.service.name, user.username)

@@ -250,10 +250,11 @@ class KeycloakAttributeBehaviourTest(BehaviourTestBase):
         mock_admin.group_user_remove.assert_called_once_with("user-uuid", "group-uuid")
         mock_admin.group_user_add.assert_not_called()
 
-    def test_disable_does_not_skip_unapply_when_other_service_grant_active(self):
-        """
-        Documents a bug: Role.disable() skips unapply when a grant for a *different* service
-        sharing the same behaviour is active. The user is left in the wrong Keycloak group.
+    def test_disable_calls_unapply_when_only_other_service_grant_active(self):
+        """disable() calls unapply() for service_a even when an active grant for service_b shares the behaviour.
+
+        Because unapply() is service-specific (it removes the user from /{service.name}),
+        a grant on a different service must not prevent unapply for this one.
         """
         service_b = jasmin_services.models.Service.objects.create(
             category=self.category,
@@ -268,19 +269,11 @@ class KeycloakAttributeBehaviourTest(BehaviourTestBase):
         )
         role_b.behaviours.add(self.behaviour)
         access_b = jasmin_services.models.Access.objects.create(user=self.user, role=role_b)
-
-        today = dt.date.today()
-        jasmin_services.models.Grant.objects.create(
-            access=self.access,
-            granted_by="admin",
-            revoked=False,
-            expires=today + dt.timedelta(days=365),
-        )
         jasmin_services.models.Grant.objects.create(
             access=access_b,
             granted_by="admin",
             revoked=False,
-            expires=today + dt.timedelta(days=365),
+            expires=dt.date.today() + dt.timedelta(days=365),
         )
 
         mock_admin = self.mock_keycloak_admin_class.return_value
@@ -290,9 +283,32 @@ class KeycloakAttributeBehaviourTest(BehaviourTestBase):
 
         self.role.disable(self.user)
 
-        # This assertion FAILS — documents the bug where Role.disable() finds role_b's grant
-        # and skips unapply entirely, leaving the user in the /test_service Keycloak group.
         mock_admin.group_user_remove.assert_called_once_with("user-uuid", "group-uuid")
+
+    def test_disable_skips_unapply_when_same_service_grant_active(self):
+        """disable() does not call unapply() when the user has an active grant on another role within the same service."""
+        role_b = jasmin_services.models.Role.objects.create(
+            service=self.service,
+            name="role_b",
+            metadata_form=self.metadata_form,
+        )
+        role_b.behaviours.add(self.behaviour)
+        access_b = jasmin_services.models.Access.objects.create(user=self.user, role=role_b)
+        jasmin_services.models.Grant.objects.create(
+            access=access_b,
+            granted_by="admin",
+            revoked=False,
+            expires=dt.date.today() + dt.timedelta(days=365),
+        )
+
+        mock_admin = self.mock_keycloak_admin_class.return_value
+        mock_admin.get_group_by_path.return_value = {"id": "group-uuid"}
+        mock_admin.get_user_id.return_value = "user-uuid"
+        mock_admin.reset_mock()
+
+        self.role.disable(self.user)
+
+        mock_admin.group_user_remove.assert_not_called()
 
 
 class RoleEnableTest(BehaviourTestBase):
