@@ -213,6 +213,7 @@ class Role(models.Model):
                 access__user=user,
                 revoked=False,
                 expires__gte=date.today(),
+                **behaviour.active_grant_filter(self),
             ).filter_active()
             if not grants.exists():
                 behaviour.unapply(user, self)
