@@ -177,6 +177,13 @@ class Role(models.Model):
         query = self._user_may_apply_query(user)
         return not await query.aexists()
 
+    def user_has_role(self, user):
+        return self.accesses.filter(
+            user=user,
+            grant__revoked=False,
+            grant__expires__gte=django.utils.timezone.localdate(),
+        ).exists()
+
     def enable(self, user):
         """Enable this role for the given user."""
         # During an import, disable all behaviours

@@ -29,5 +29,13 @@ class Category(models.Model):
         "then alphabetically by name within that.",
     )
 
+    require_role_to_apply = models.ForeignKey(
+        "jasmin_services.Role",
+        null=True,
+        default=None,
+        help_text="Require uses have this role before they are able to apply for roles in this category.",
+        on_delete=models.SET_NULL,
+    )
+
     def __str__(self):
         return str(self.long_name)

@@ -21,6 +21,7 @@ _log = logging.getLogger(__name__)
 class RoleApplyView(
     django.contrib.auth.mixins.LoginRequiredMixin,
     mixins.WithServiceMixin,
+    mixins.MayApplyMixin,
     django.views.generic.edit.FormView,
 ):
     """Handle for ``/<category>/<service>/apply/<role>/``.

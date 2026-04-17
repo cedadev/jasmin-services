@@ -4,6 +4,7 @@ from datetime import date
 
 import asgiref.sync
 import django.contrib.auth.mixins
+import django.contrib.messages
 import django.http
 import django.urls
 from django.db.models import Q
@@ -145,3 +146,27 @@ class AccessListMixin:
         accesses = sorted(processed, key=lambda x: x.frontend["start"], reverse=True)
 
         return accesses
+
+
+class MayApplyMixin:
+    def dispatch(self, request, *args, **kwargs):
+        req_role_to_apply = self.service.category.require_role_to_apply
+
+        if (req_role_to_apply is not None) and (not req_role_to_apply.user_has_role(request.user)):
+            django.contrib.messages.add_message(
+                request,
+                django.contrib.messages.WARNING,
+                f"You must apply for {req_role_to_apply.service.name} before you may apply for {self.service.name}.",
+            )
+
+            return django.http.HttpResponseRedirect(
+                django.urls.reverse(
+                    "jasmin_services:service_details",
+                    kwargs={
+                        "category": req_role_to_apply.service.category.name,
+                        "service": req_role_to_apply.service.name,
+                    },
+                ),
+            )
+
+        return super().dispatch(request, *args, **kwargs)
