@@ -156,7 +156,7 @@ class MayApplyMixin:
             django.contrib.messages.add_message(
                 request,
                 django.contrib.messages.WARNING,
-                f"You must apply for {req_role_to_apply.service.name} before you may apply for {self.service.name}.",
+                f"You must have been granted the {req_role_to_apply.service.name} service before you may apply for {self.service.category.name}/{self.service.name}.",
             )
 
             return django.http.HttpResponseRedirect(
