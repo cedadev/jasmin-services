@@ -1,11 +1,15 @@
 """Serializers for the jasmin_services api."""
 
+import logging
+
 import django.contrib.auth
 import django_countries.serializers
 import rest_framework.serializers as rf_serial
 import rest_framework_nested.serializers
 
 from .. import models
+
+logger = logging.getLogger()
 
 
 class ServiceUserSerializer(rf_serial.HyperlinkedModelSerializer):
@@ -27,24 +31,59 @@ class AccessSerializer(rf_serial.ModelSerializer):
         fields = ["id", "user"]
 
 
+class LdapGroupSerializer(rf_serial.Serializer):
+    cn = rf_serial.CharField(source="name")
+    dn = rf_serial.SerializerMethodField()
+    gidNumber = rf_serial.IntegerField()
+
+    @staticmethod
+    def get_dn(obj) -> str:
+        """Build the dn from the name and the base."""
+        return f"cn={obj.name},{obj.base_dn}"
+
+
 class RoleListSerializer(rf_serial.ModelSerializer):
     """Basic list of roles."""
 
     user_count = rf_serial.IntegerField(read_only=True)
+    ldap_groups = rf_serial.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Role
-        fields = ["id", "name", "user_count"]
+        fields = ["id", "name", "user_count", "ldap_groups"]
+
+    @staticmethod
+    def _to_group(obj):
+        """Convert behaviours to LDAP Group Objects."""
+        if isinstance(obj, models.behaviours.LdapGroupBehaviour):
+            try:
+                group = obj.get_ldap_group()
+            except django.core.exceptions.ObjectDoesNotExist:
+                logger.error(
+                    "A LDAP group behaviour exists for %s : %s, but it does not exist in LDAP.",
+                    obj.ldap_model,
+                    obj.group_name,
+                )
+            else:
+                return group
+        return None
+
+    def get_ldap_groups(self, obj) -> LdapGroupSerializer(many=True):
+        """Return a list of LDAP groups for the role."""
+        groups = [
+            group for behaviour in obj.behaviours.all() if (group := self._to_group(behaviour))
+        ]
+        return LdapGroupSerializer(groups, many=True).data
 
 
-class RoleSerializer(rf_serial.ModelSerializer):
+class RoleSerializer(RoleListSerializer):
     """Detail of role with holders."""
 
     accesses = AccessSerializer(many=True)
 
     class Meta:
         model = models.Role
-        fields = ["id", "name", "accesses"]
+        fields = ["id", "name", "accesses", "user_count", "ldap_groups"]
 
 
 class CategoryListSerializer(rf_serial.HyperlinkedModelSerializer):
