@@ -55,6 +55,7 @@ def service_message(request, service):
                     "sender": request.user,
                     "message": form.cleaned_data["message"],
                     "reply_to": reply_to,
+                    "service": service
                 },
             )
             recipients = [u.email for u in form.cleaned_data["users"]]
